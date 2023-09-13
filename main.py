@@ -7,11 +7,7 @@ curr_sheet = workbook.active
 wca_items, apc_items, tc_items = [], [], []
 store_items = []
 
-#print(list(curr_sheet.rows)[12])
-#print(curr_sheet["J12"].value
-
 def iterate_sheet(curr_sheet):
-    #main, store = [["BOX No.", None, "CODE", "DESCRIPTION", "QUANTITY"]], []
     curr_number = 0
     for row in curr_sheet.iter_rows(min_row=13, min_col=1, max_row=curr_sheet.max_row+1, max_col=9):
         is_main_wh = True
@@ -53,10 +49,10 @@ def iterate_sheet(curr_sheet):
                     is_main_wh = False
 
             curr_item.append(cell.value)
-            
+
         if not is_main_wh:
             store_items.append(curr_item)
-        if '- TC' in curr_item[3] or "Small Cup" in curr_item[3]:
+        if ' TC' in curr_item[3] or "Small Cup" in curr_item[3]:
             tc_items.append(curr_item)
         elif curr_item[1] == "U":
             wca_items.append(curr_item)
@@ -64,16 +60,23 @@ def iterate_sheet(curr_sheet):
             apc_items.append(curr_item)
     
 def write_to_file(data, filename, wb):
+    total_data = [["BOX No.", None, "CODE", "DESCRIPTION", "QUANTITY"]]
+    for items in data:
+        for item in items:
+            total_data.append(item)
+        total_data.append([' ']*len(items[0]))
+    
     sheet = wb.active
-    for row in range(len(data)):
-        for col in range(len(data[0])):
+    for row in range(len(total_data)):
+        for col in range(len(total_data[0])):
             curr_cell = sheet.cell(row = row+1, column = col+1)
-            curr_cell.value = data[row][col]
+            curr_cell.value = total_data[row][col]
     wb.save(f"./Finalized Data/{filename}")
 
 
 iterate_sheet(curr_sheet)
-#write_to_file(main_wh_items, alphabetical_file, Workbook())
+write_to_file([wca_items, apc_items, tc_items], box_no_file, Workbook())
+#TODO sort by alphabetical
 
 def print_items(items):
     for item in items:
