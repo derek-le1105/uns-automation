@@ -6,6 +6,7 @@ curr_sheet = workbook.active
 
 wca_items, apc_items, tc_items = [], [], []
 store_items = []
+store_map = {}
 
 def iterate_sheet(curr_sheet):
     curr_number = 0
@@ -14,7 +15,7 @@ def iterate_sheet(curr_sheet):
         curr_item = []
         for cell in row:
             
-
+            # Column E for item description
             if cell.column_letter == "E":
                 #if our item description is None, that means we have reached the end of the invoice so break out of for loop
                 if cell.value == None:
@@ -32,6 +33,7 @@ def iterate_sheet(curr_sheet):
                 curr_item.append(plant_name)
                 continue
 
+            # Column A for Box No.    
             if cell.column_letter == "A":
                 #if BOX No. in col A is None since only one instance of the BOX No. is listed in the invoice
                 if cell.value == None:
@@ -39,7 +41,8 @@ def iterate_sheet(curr_sheet):
                     continue
                 else:
                     curr_number = cell.value
-                
+            
+            # Column B for Store No. 
             if cell.column_letter == "B":
                 #if the ORDER NO. in col B is NONE, that means our current item is for main warehouse
                 #if it is not NONE, that means our current item is a store order
@@ -47,11 +50,14 @@ def iterate_sheet(curr_sheet):
                     continue
                 else:  
                     is_main_wh = False
+                    if cell.value not in store_map:
+                        store_map[cell.value] = []
 
             curr_item.append(cell.value)
 
         if not is_main_wh:
             store_items.append(curr_item)
+            store_map[curr_item[1]].append(curr_item[2: 6])
         if ' TC' in curr_item[3] or "Small Cup" in curr_item[3]:
             tc_items.append(curr_item)
         elif curr_item[1] == "U":
@@ -73,12 +79,26 @@ def write_to_file(data, filename, wb):
             curr_cell.value = total_data[row][col]
     wb.save(f"./Finalized Data/{filename}")
 
+def alphabetize(data, index):
+    data.sort(key = lambda x: x[index])
+    return data
+
+def sort_store_map():
+    key_sorted = dict(sorted(store_map.items()))
+    for key in key_sorted:
+        alphabetize(key_sorted[key], 2)
+    return key_sorted
+
 
 iterate_sheet(curr_sheet)
-write_to_file([wca_items, apc_items, tc_items], box_no_file, Workbook())
-#TODO sort by alphabetical
+store_map = sort_store_map()
 
-def print_items(items):
+#creates box no masterlist
+write_to_file([wca_items, apc_items, tc_items], box_no_file, Workbook())
+#creates alphabetical masterlist
+write_to_file([alphabetize(wca_items, 3), alphabetize(apc_items, 3), alphabetize(tc_items, 3)], alphabetical_file, Workbook())
+
+'''def print_items(items):
     for item in items:
         for value in item:
             print(value, end=" ")
@@ -91,7 +111,7 @@ print("==========================APC==========================")
 print_items(apc_items)
 print("==========================TC==========================")
 print_items(tc_items)
-print("==========================STORE==========================")
+print("==========================STORE==========================")'''
 #print_items(store_items)
 
 
