@@ -1,3 +1,5 @@
 adfa/
 
 .env
+front-end/src/firebase.js
+front-end/src/firebaseConfig.js
