@@ -1,37 +1,45 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import FloatingLabel from "react-bootstrap/FloatingLabel";
 import { auth } from "../firebase";
 import {
   setPersistence,
   signInWithEmailAndPassword,
   browserSessionPersistence,
 } from "firebase/auth";
-import { Form, Button, FloatingLabel } from "react-bootstrap";
+
+import { useLogin } from "../hooks/useLogin";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
+  const [error, setError] = useState("a");
+  const { login } = useLogin();
+
+  const firebaseErrorCodes = {
+    "auth/missing-email": "Please enter a valid email",
+    "auth/missing-password": "Please enter a valid password",
+    "auth/invalid-login-credentials": "Please enter a valid email or password",
+  };
 
   const handleSubmit = async (e) => {
-    //console.log(email, password);
     e.preventDefault();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/home");
-    } catch (error) {
-      alert(error);
-    }
 
-    // setPersistence(auth, browserSessionPersistence).then(() => {
-    //   return signInWithEmailAndPassword(auth, email, password)
-    //     .then(() => {
-    //       navigate("/home");
-    //     })
-    //     .catch((error) => {
-    //       alert(error.message);
-    //     });
-    // });
+    setPersistence(auth, browserSessionPersistence).then(() => {
+      return signInWithEmailAndPassword(auth, email, password)
+        .then(async () => {
+          await login(email, password);
+          navigate("/home");
+        })
+        .catch((error) => {
+          //alert("error" + error.code + " " + error.message);
+          setError(error.code);
+        });
+    });
   };
 
   return (
@@ -46,8 +54,7 @@ const Login = () => {
           <h3 className="mb-3">Administrator Log In</h3>
           <FloatingLabel label="Email" className="mb-3">
             <Form.Control
-              type="text"
-              label="Email"
+              type="email"
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
             />
@@ -60,13 +67,9 @@ const Login = () => {
               placeholder="Password"
             />
           </FloatingLabel>
-
           <Button variant="primary" type="submit">
             Submit
           </Button>
-          {/* {<Button variant="secondary" onClick={homeSubmit}>
-            Home
-          </Button>} */}
         </Form.Group>
       </Form>
     </div>
