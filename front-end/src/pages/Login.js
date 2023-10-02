@@ -20,11 +20,11 @@ const Login = () => {
   const [error, setError] = useState("a");
   const { login } = useLogin();
 
-  const firebaseErrorCodes = {
+  /*const firebaseErrorCodes = {
     "auth/missing-email": "Please enter a valid email",
     "auth/missing-password": "Please enter a valid password",
     "auth/invalid-login-credentials": "Please enter a valid email or password",
-  };
+  };*/
 
   const handleSubmit = async (e) => {
     e.preventDefault();

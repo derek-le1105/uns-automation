@@ -103,7 +103,7 @@ button {
   margin: 15px;
 }
 
-.entry-details {
+.order-listings {
   background: #fff;
   border-radius: 4px;
   margin: 10px;
@@ -113,18 +113,18 @@ button {
   width: 100%;
 }
 
-.entry-details h4 {
+.order-listings h4 {
   margin: 0 0 10px 0;
   font-size: 1.2em;
   color: var(--primary);
 }
 
-.entry-details p {
+.order-listings p {
   margin: 0;
   font-size: 0.9em;
   color: #555;
 }
-.entry-details span {
+.order-listings span {
   position: absolute;
   top: 20px;
   right: 20px;

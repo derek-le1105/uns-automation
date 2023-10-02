@@ -1,12 +1,16 @@
 {
+  "proxy": "http://localhost:4000/",
   "name": "front-end",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@shopify/shopify-api": "^7.7.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.5.1",
     "bootstrap": "^4.6.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "firebase": "^10.4.0",
     "react": "^18.2.0",
@@ -40,5 +44,20 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "assert": "^2.1.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "react-app-rewired": "^2.2.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.3",
+    "util": "^0.12.5"
   }
 }
