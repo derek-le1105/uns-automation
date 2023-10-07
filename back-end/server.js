@@ -2,7 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const app = express();
-const shopifyRoutes = require("./routes/shopify");
+const orderRoute = require("./routes/orders");
+const itemRoute = require("./routes/item");
 var cors = require("cors");
 
 app.use(cors());
@@ -14,7 +15,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/pullShopifyOrders", shopifyRoutes);
+app.use("/orders", orderRoute);
+app.use("/item", itemRoute);
 
 app.listen(process.env.PORT, () => {
   console.log("listen on port " + process.env.PORT);
