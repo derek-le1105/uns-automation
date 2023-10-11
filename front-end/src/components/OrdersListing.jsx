@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Table } from "react-bootstrap";
 
-const OrdersListing = ({ orders }) => {
+const OrdersListing = ({ orders, items }) => {
   const [shopifyOrders, setShopifyOrders] = useState(null);
 
   useEffect(() => {
-    if (orders) {
+    if (items) {
       const order_dict = {};
       orders.orders.map((order, idx) => {
         var orderLastName =
@@ -26,7 +26,7 @@ const OrdersListing = ({ orders }) => {
       });
       setShopifyOrders(Object.values(order_dict));
     }
-  }, [orders]);
+  }, [orders, items]);
 
   return (
     <div className="order-listings">

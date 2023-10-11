@@ -36,7 +36,7 @@ const Login = () => {
           navigate("/home");
         })
         .catch((error) => {
-          //alert("error" + error.code + " " + error.message);
+          alert("error" + error.code + " " + error.message);
           setError(error.code);
         });
     });

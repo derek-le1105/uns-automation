@@ -17,10 +17,8 @@ const options = {
 };
 
 router.get("/", async (req, res) => {
-  console.log("here");
   try {
     const response = await axios.get(process.env.ORDER_RESOURCE_URL, options);
-    //console.log(response.data);
     return res.status(200).json(response.data);
   } catch (error) {
     console.log(error.code);

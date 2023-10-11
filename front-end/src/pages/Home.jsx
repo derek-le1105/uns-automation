@@ -26,11 +26,6 @@ const Home = () => {
 
   const getShopify = async () => {
     try {
-      /*const response = await axios.get(
-        "https://ultumnaturesystems.myshopify.com/admin/api/2023-07/orders.json",
-        [options]
-      );*/
-      //const response = await axios.get("/orders", [options]);
       const response = await fetch("/orders", {
         method: "GET",
         headers: {
@@ -91,7 +86,7 @@ const Home = () => {
         ></input>
       <button onClick={uploadFile}>Upload</button>*/}
       <button onClick={getShopify}>Shopify</button>
-      <OrdersListing orders={orders} />
+      {orders && items && <OrdersListing orders={orders} items={items} />}
     </div>
   );
 };

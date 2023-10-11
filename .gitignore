@@ -1,5 +1,5 @@
 adfa/
-
+node_modules/
 .env
 front-end/src/firebase.js
 front-end/src/firebaseConfig.js

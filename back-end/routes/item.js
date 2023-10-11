@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
     options.params = { fields: "id, title, variants", ids: req.query.ids };
     const response = await axios.get(process.env.ITEM_RESOURCE_URL, options);
     var item_mapping = {};
-    console.log(response.data.products.length);
+
     for (let i = 0; i < response.data.products.length; ++i) {
       item_mapping[response.data.products[i].id] = {
         id: response.data.products[i].id,
