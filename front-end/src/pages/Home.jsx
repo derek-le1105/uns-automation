@@ -2,7 +2,6 @@ import { useState } from "react";
 import { storage } from "../firebase";
 import { ref, uploadBytes } from "firebase/storage";
 import { v4 } from "uuid";
-import { Table } from "react-bootstrap";
 import OrdersListing from "../components/OrdersListing";
 
 const Home = () => {
@@ -35,14 +34,22 @@ const Home = () => {
       const json = await response.json();
       var line_items = new Set();
       var line_item_mapping = [];
+      var orders = []
+      
+      json.orders.forEach((order) => {
+        if(!(order.tags.includes("Edit Order"))){
+          orders.push(order)
+        }
+      }) 
+      console.log(orders)
 
-      for (let i = 0; i < json.orders.length; ++i) {
-        for (let j = 0; j < json.orders[i].line_items.length; ++j) {
-          line_items.add(json.orders[i].line_items[j].product_id);
+      for (let i = 0; i < orders.length; ++i) {
+        for (let j = 0; j < orders[i].line_items.length; ++j) {
+          line_items.add(orders[i].line_items[j].product_id);
         }
       }
 
-      setOrders(json);
+      //setOrders(orders);
 
       for (let i = 0; i < line_items.size / 50; ++i) {
         let curr_items = await getItems(
@@ -53,6 +60,7 @@ const Home = () => {
           line_item_mapping.push({ [key]: value });
         }
       }
+      console.log(line_item_mapping)
 
       setItems(line_item_mapping);
     } catch (error) {

@@ -18,4 +18,20 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      "/orders": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+      "/item": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
+  },
 });

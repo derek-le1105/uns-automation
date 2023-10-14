@@ -9,10 +9,12 @@ const options = {
   },
   params: {
     status: "any",
-    created_at_min: "2023-09-22",
-    created_at_max: "2023-09-29",
-    fields: "order_number, line_items, billing_address, customer, tags",
+    created_at_min: "2023-10-07",
+    created_at_max: "2023-10-13",
+    fields:
+      "order_number, line_items, billing_address, customer, tags, admin_graphql_api_id",
     tag: "PlantOrder",
+    limit: "250",
   },
 };
 
