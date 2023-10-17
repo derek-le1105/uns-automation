@@ -26,7 +26,7 @@ const Home = () => {
   const getShopify = async () => {
     try {
       const response = await fetch("/orders", {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -35,6 +35,7 @@ const Home = () => {
       var line_items = new Set();
       var line_item_mapping = [];
       var orders = []
+      console.log(json)
       
       json.orders.forEach((order) => {
         if(!(order.tags.includes("Edit Order"))){
