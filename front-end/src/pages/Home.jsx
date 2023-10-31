@@ -94,7 +94,7 @@ const Home = () => {
         type="file"
         ></input>
       <button onClick={uploadFile}>Upload</button>*/}
-      <button onClick={getShopify}>Shopify</button>
+      <button onClick={(getShopify)}>Shopify</button>
       {orders && items && <OrdersListing orders={orders} items={items} />}
     </div>
   );
