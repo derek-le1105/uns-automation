@@ -8,60 +8,48 @@ require("dotenv").config();
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
-const parseData = async (url) => {
-  async function processJSONLData() {
-    const newData = {};
-    let currCustomer = "";
-    const jsonlFilePath = "data.jsonl"; // The path to the downloaded JSONL file
+const parseData = async () => {
+  const tempData = {};
+  function processJSONLData() {
+    return new Promise((resolve, reject) => {
+      let currCustomer = "";
+      const jsonlFilePath = "data.jsonl"; // The path to the downloaded JSONL file
 
-    try {
-      // Download the JSONL data
-      const response = await axios.get(url, { responseType: "stream" });
-      response.data.pipe(fs.createWriteStream("data.jsonl"));
-
-      // Create a Promise to handle the asynchronous processing
-      await new Promise((resolve, reject) => {
-        const readStream = readline.createInterface({
-          input: fs.createReadStream(jsonlFilePath),
-        });
-        readStream.on("line", (line) => {
-          try {
-            console.log(line);
-            const cleanLine = line.replace(/'/g, "");
-            const jsonData = JSON.parse(cleanLine);
-            if (jsonData.id) {
-              currCustomer = jsonData.customer.lastName;
-              newData[currCustomer] = [];
-            } else {
-              let item_extension =
-                jsonData.variant.title == "Default Title"
-                  ? ""
-                  : ` ${jsonData.variant.title}`;
-              newData[currCustomer].push({
-                title: `${jsonData.title + item_extension}`,
-                quantity: jsonData.quantity,
-                sku: jsonData.sku,
-                vendor: jsonData.vendor,
-                barcode: jsonData.variant.barcode,
-              });
-            }
-            //console.log(line);
-          } catch (error) {
-            console.error("Error parsing JSON:", error);
-            console.log(line, "\n");
-            reject(error);
-          }
-        });
-
-        readStream.on("close", () => {
-          console.log("Finished processing JSONL data.");
-          resolve(newData); // Resolve the Promise when processing is complete
-        });
+      const readStream = readline.createInterface({
+        input: fs.createReadStream(jsonlFilePath),
       });
-    } catch (error) {
-      console.error("Error downloading JSONL file:", error);
-      return newData; // Return an empty object in case of an error
-    }
+      readStream.on("line", (line) => {
+        try {
+          const cleanLine = line.replace(/'/g, "");
+          const jsonData = JSON.parse(cleanLine);
+          if (jsonData.id) {
+            currCustomer = jsonData.customer.lastName;
+            tempData[currCustomer] = [];
+          } else {
+            let item_extension =
+              jsonData.variant.title == "Default Title"
+                ? ""
+                : ` ${jsonData.variant.title}`;
+            tempData[currCustomer].push({
+              title: `${jsonData.name + item_extension}`,
+              quantity: jsonData.quantity,
+              sku: jsonData.sku,
+              vendor: jsonData.vendor,
+              barcode: jsonData.variant.barcode,
+            });
+          }
+        } catch (error) {
+          //TODO: handle error when reading line stops abruptly
+          console.error("Error parsing JSON:", error);
+          console.log(line, "\n");
+        }
+      });
+
+      readStream.on("close", () => {
+        console.log("Finished processing JSONL data.");
+        resolve(tempData); // Resolve the Promise when processing is complete
+      });
+    });
   }
 
   // Call the async function to start processing JSONL data
@@ -88,17 +76,18 @@ router.post("/", async (req, res) => {
       data: {
         query: `query 
         {
-          orders(first: 50, query: "created_at:>'2023-10-20' created_at:<'2023-10-27' tag:'PlantOrder' -tag:'Edit Order'"){
+          orders(first: 50, query: "created_at:>'2023-10-27' created_at:<'2023-11-03' tag:'PlantOrder' -tag:'Edit Order'"){
             edges{
               node{
-                id
-                name
-                customer{
-                  lastName
+                  id
+                  name
+                  customer{
+                    lastName
                 }
                 lineItems(first: 150){
                   edges{
                     node{
+                      name
                       quantity
                       sku
                       vendor
@@ -144,13 +133,14 @@ router.post("/", async (req, res) => {
         },
       });
       console.log("waiting " + response2.data.data.currentBulkOperation.status);
-      await wait(5000);
+      await wait(2000);
     } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
     console.log("done");
 
     url = response2.data.data.currentBulkOperation.url;
-
-    var parsedShopifyData = await parseData(url);
+    const response = await axios.get(url, { responseType: "stream" });
+    response.data.pipe(fs.createWriteStream("data.jsonl"));
+    var parsedShopifyData = await parseData();
     console.log(parsedShopifyData);
 
     return res.status(200).json(parsedShopifyData);
