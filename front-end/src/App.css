@@ -141,3 +141,8 @@ table caption {
 table caption button {
   margin-left: 10px;
 }
+
+.order, .customer{
+  outline: 1px black solid;
+  padding: 10px;
+}
