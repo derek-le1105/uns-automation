@@ -23,7 +23,10 @@ const parseData = async () => {
           const cleanLine = line.replace(/'/g, "");
           const jsonData = JSON.parse(cleanLine);
           if (jsonData.id) {
-            currCustomer = jsonData.customer.lastName;
+            let lastname = jsonData.customer.lastName;
+            currCustomer = lastname.includes("Store Code")
+              ? lastname.slice(-4)
+              : lastname;
             tempData[currCustomer] = [];
           } else {
             let item_extension =
@@ -53,15 +56,9 @@ const parseData = async () => {
   }
 
   // Call the async function to start processing JSONL data
-  processJSONLData().then(
-    (data) => {
-      console.log("Processed data:", data);
-      return data;
-    },
-    (error) => {
-      console.log("error: ", error);
-    }
-  );
+  return processJSONLData().then((data) => {
+    return data;
+  });
 };
 
 router.post("/", async (req, res) => {
@@ -107,41 +104,44 @@ router.post("/", async (req, res) => {
 
     var url = "";
     var response2;
+    if (!fs.existsSync("data.jsonl")) {
+      do {
+        response2 = await axios({
+          url: process.env.ORDER_RESOURCE_URL,
+          method: "post",
+          headers: {
+            "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+            "Content-Type": "application/json",
+          },
+          data: {
+            query: `query {
+                currentBulkOperation {
+                  id
+                  status
+                  errorCode
+                  createdAt
+                  completedAt
+                  objectCount
+                  fileSize
+                  url
+                  partialDataUrl
+                }
+              }`,
+          },
+        });
+        console.log(
+          "waiting " + response2.data.data.currentBulkOperation.status
+        );
+        await wait(2000);
+      } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
+      console.log("done");
 
-    do {
-      response2 = await axios({
-        url: process.env.ORDER_RESOURCE_URL,
-        method: "post",
-        headers: {
-          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
-          "Content-Type": "application/json",
-        },
-        data: {
-          query: `query {
-              currentBulkOperation {
-                id
-                status
-                errorCode
-                createdAt
-                completedAt
-                objectCount
-                fileSize
-                url
-                partialDataUrl
-              }
-            }`,
-        },
-      });
-      console.log("waiting " + response2.data.data.currentBulkOperation.status);
-      await wait(2000);
-    } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
-    console.log("done");
+      url = response2.data.data.currentBulkOperation.url;
+      const response = await axios.get(url, { responseType: "stream" });
+      response.data.pipe(fs.createWriteStream("data.jsonl"));
+    }
 
-    url = response2.data.data.currentBulkOperation.url;
-    const response = await axios.get(url, { responseType: "stream" });
-    response.data.pipe(fs.createWriteStream("data.jsonl"));
     var parsedShopifyData = await parseData();
-    console.log(parsedShopifyData);
 
     return res.status(200).json(parsedShopifyData);
   } catch (error) {
