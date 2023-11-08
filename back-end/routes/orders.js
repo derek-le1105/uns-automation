@@ -4,6 +4,7 @@ const express = require("express");
 const router = express.Router();
 const readline = require("readline");
 const fs = require("fs");
+
 require("dotenv").config();
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
@@ -14,7 +15,6 @@ const parseData = async () => {
     return new Promise((resolve, reject) => {
       let currCustomer = "";
       const jsonlFilePath = "data.jsonl"; // The path to the downloaded JSONL file
-
       const readStream = readline.createInterface({
         input: fs.createReadStream(jsonlFilePath),
       });
@@ -25,16 +25,12 @@ const parseData = async () => {
           if (jsonData.id) {
             let lastname = jsonData.customer.lastName;
             currCustomer = lastname.includes("Store Code")
-              ? lastname.slice(-4)
-              : lastname;
+              ? `${lastname.slice(-4)} - ${jsonData.name.slice(-5)}`
+              : `${lastname} - ${jsonData.name.slice(-5)}`;
             tempData[currCustomer] = [];
           } else {
-            let item_extension =
-              jsonData.variant.title == "Default Title"
-                ? ""
-                : ` ${jsonData.variant.title}`;
             tempData[currCustomer].push({
-              title: `${jsonData.name + item_extension}`,
+              title: `${jsonData.name}`,
               quantity: jsonData.quantity,
               sku: jsonData.sku,
               vendor: jsonData.vendor,
@@ -102,11 +98,10 @@ router.post("/", async (req, res) => {
       },
     });
 
-    var url = "";
-    var response2;
     if (!fs.existsSync("data.jsonl")) {
+      console.log("not found");
       do {
-        response2 = await axios({
+        var response2 = await axios({
           url: process.env.ORDER_RESOURCE_URL,
           method: "post",
           headers: {
@@ -134,18 +129,35 @@ router.post("/", async (req, res) => {
         );
         await wait(2000);
       } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
-      console.log("done");
 
-      url = response2.data.data.currentBulkOperation.url;
-      const response = await axios.get(url, { responseType: "stream" });
-      response.data.pipe(fs.createWriteStream("data.jsonl"));
+      const url = response2.data.data.currentBulkOperation.url;
+      const writer = fs.createWriteStream("data.jsonl");
+      await axios.get(url, { responseType: "stream" }).then((response) => {
+        //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
+        return new Promise((resolve, reject) => {
+          response.data.pipe(writer);
+          let error = null;
+          writer.on("error", (err) => {
+            error = err;
+            writer.close();
+            reject(err);
+          });
+          writer.on("close", () => {
+            if (!error) {
+              resolve(true);
+            }
+            //no need to call the reject here, as it will have been called in the
+            //'error' stream;
+          });
+        });
+      });
     }
 
     var parsedShopifyData = await parseData();
 
     return res.status(200).json(parsedShopifyData);
   } catch (error) {
-    console.log("error: " + error.code);
+    console.log("error at 142: " + error.code);
     return res.status(404).json({ error: "Invalid" });
   }
 });
