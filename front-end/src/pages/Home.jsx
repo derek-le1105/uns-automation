@@ -39,22 +39,6 @@ const Home = () => {
     }
   };
 
-  const getItems = async (line_items) => {
-    try {
-      const response = await fetch(`/item?ids=${[...line_items].join(", ")}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const json = await response.json();
-      return json;
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   return (
     <div className="">
       {/*<input
