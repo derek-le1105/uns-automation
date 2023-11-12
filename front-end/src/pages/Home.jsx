@@ -32,12 +32,20 @@ const Home = () => {
       });
       const json = await response.json();
       setOrders(json)
-      
-      
     } catch (error) {
       console.log(error);
     }
   };
+
+  const generateExcel = async () => {
+    const response = await fetch("/excels", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(orders)
+    });
+  }
 
   return (
     <div className="">
@@ -49,6 +57,7 @@ const Home = () => {
         ></input>
       <button onClick={uploadFile}>Upload</button>*/}
       <button onClick={(getShopify)}>Shopify</button>
+      <button onClick={(generateExcel)}>Excel Files</button>
       {orders && <OrdersListing orders={orders} />}
     </div>
   );

@@ -26,7 +26,7 @@ export default defineConfig({
         secure: false,
         ws: true,
       },
-      "/item": {
+      "/excels": {
         target: "http://localhost:4000",
         changeOrigin: true,
         secure: false,
