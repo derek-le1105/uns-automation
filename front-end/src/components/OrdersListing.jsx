@@ -15,8 +15,10 @@ const OrdersListing = ({ orders }) => {
                   <th>Quantity</th>
                   <th>Plant Name</th>  
                   <th>Barcode</th>
+                  <th>Fulfillment Number</th>
                   <th>Vendor</th> 
                   <th>SKU</th>
+                  <th>Customer Code</th>
                 </tr>
               </thead>
               <tbody>
@@ -25,8 +27,10 @@ const OrdersListing = ({ orders }) => {
                     <td>{item.quantity}</td>
                     <td>{item.title}</td>
                     <td>{item.barcode}</td>
+                    <td>{item.fulfillment_number}</td>
                     <td>{item.vendor}</td>
                     <td>{item.sku}</td>
+                    <td>{item.customer_code}</td>
                   </tr>)
                 })}
               </tbody>

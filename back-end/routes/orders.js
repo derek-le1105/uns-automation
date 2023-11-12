@@ -14,6 +14,7 @@ const parseData = async () => {
   function processJSONLData() {
     return new Promise((resolve, reject) => {
       let currCustomer = "";
+      let fulfillment_number = 0;
       const jsonlFilePath = "data.jsonl"; // The path to the downloaded JSONL file
       const readStream = readline.createInterface({
         input: fs.createReadStream(jsonlFilePath),
@@ -23,15 +24,18 @@ const parseData = async () => {
           const cleanLine = line.replace(/'/g, "");
           const jsonData = JSON.parse(cleanLine);
           if (jsonData.id) {
-            let lastname = jsonData.customer.lastName;
-            currCustomer = lastname.includes("Store Code")
-              ? `${lastname.slice(10)} - ${jsonData.name.slice(4)}`
-              : `${lastname} - ${jsonData.name.slice(4)}`;
+            let lastname = jsonData.customer.lastName.includes("Store Code")
+              ? jsonData.customer.lastName.slice(11)
+              : jsonData.customer.lastName;
+            currCustomer = `${lastname} - ${jsonData.name.slice(4)}`;
             tempData[currCustomer] = [];
+            fulfillment_number += 1;
           } else {
             tempData[currCustomer].push({
-              title: `${jsonData.name}`,
+              title: jsonData.name,
               quantity: jsonData.quantity,
+              fulfillment_number: fulfillment_number,
+              customer_code: currCustomer.slice(0, currCustomer.indexOf(" - ")),
               sku: jsonData.sku,
               vendor: jsonData.vendor,
               barcode: jsonData.variant.barcode,
@@ -69,7 +73,7 @@ router.post("/", async (req, res) => {
       data: {
         query: `query 
         {
-          orders(first: 50, query: "created_at:>'2023-11-03' created_at:<'2023-11-10' tag:'PlantOrder'"){
+          orders(first: 50, query: "created_at:>'2023-11-03' created_at:<'2023-11-10' tag:'PlantOrder' -tag:'Edit Order'"){
             edges{
               node{
                   id
