@@ -25,8 +25,8 @@ const parseData = async () => {
           if (jsonData.id) {
             let lastname = jsonData.customer.lastName;
             currCustomer = lastname.includes("Store Code")
-              ? `${lastname.slice(-4)} - ${jsonData.name.slice(-5)}`
-              : `${lastname} - ${jsonData.name.slice(-5)}`;
+              ? `${lastname.slice(10)} - ${jsonData.name.slice(4)}`
+              : `${lastname} - ${jsonData.name.slice(4)}`;
             tempData[currCustomer] = [];
           } else {
             tempData[currCustomer].push({
@@ -69,7 +69,7 @@ router.post("/", async (req, res) => {
       data: {
         query: `query 
         {
-          orders(first: 50, query: "created_at:>'2023-10-27' created_at:<'2023-11-03' tag:'PlantOrder' -tag:'Edit Order'"){
+          orders(first: 50, query: "created_at:>'2023-11-03' created_at:<'2023-11-10' tag:'PlantOrder'"){
             edges{
               node{
                   id
@@ -99,7 +99,6 @@ router.post("/", async (req, res) => {
     });
 
     if (!fs.existsSync("data.jsonl")) {
-      console.log("not found");
       do {
         var response2 = await axios({
           url: process.env.ORDER_RESOURCE_URL,

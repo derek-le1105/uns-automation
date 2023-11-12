@@ -2,29 +2,31 @@ import { useState, useEffect } from "react";
 import { Table } from "react-bootstrap";
 
 const OrdersListing = ({ orders }) => {
-
-
   return (
     <div className="order-listings">
       {orders && Object.keys(orders).map((order, idx) => {
-        return(<div className={`order ${idx}`}>
-          <div className="customer">{order}</div>
-          <Table>
+        return(<div className={`order ${idx}`} key={idx}>
+          <div className={`customer ${order}`} onClick={() => {
+
+          }}>{order} {idx+1}</div>
+          <Table className="">
               <thead>
                 <tr>
-                  <th>Plant Name</th>
                   <th>Quantity</th>
-                  <th>Vendor</th>
+                  <th>Plant Name</th>  
                   <th>Barcode</th>
+                  <th>Vendor</th> 
+                  <th>SKU</th>
                 </tr>
               </thead>
               <tbody>
                 {orders[order].map((item, key) => {
-                  return (<tr>
-                    <td>{item.title}</td>
+                  return (<tr key={key}>
                     <td>{item.quantity}</td>
-                    <td>{item.vendor}</td>
+                    <td>{item.title}</td>
                     <td>{item.barcode}</td>
+                    <td>{item.vendor}</td>
+                    <td>{item.sku}</td>
                   </tr>)
                 })}
               </tbody>
