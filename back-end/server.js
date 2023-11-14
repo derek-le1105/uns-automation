@@ -3,8 +3,9 @@ require("dotenv").config();
 const express = require("express");
 const bodyparser = require("body-parser");
 const app = express();
-const orderRoute = require("./routes/orders");
+const ordersRoute = require("./routes/orders");
 const excelRoute = require("./routes/excels");
+const orderRoute = require("./routes/order");
 
 var cors = require("cors");
 
@@ -17,7 +18,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/orders", orderRoute);
+app.use("/orders", ordersRoute);
+app.use("/order", orderRoute);
 app.use("/excels", excelRoute);
 
 app.listen(process.env.PORT, () => {

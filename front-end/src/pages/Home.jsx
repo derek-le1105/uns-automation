@@ -47,6 +47,18 @@ const Home = () => {
     });
   }
 
+  const importOrder = async () => {
+    //TODO: prompt user to enter order number
+    const userPrompt = prompt("Enter order number(s) to add.\nEx: 'UNS-123456'")
+    const reponse = await fetch("/order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userPrompt)
+    })
+  }
+
   return (
     <div className="">
       {/*<input
@@ -58,6 +70,7 @@ const Home = () => {
       <button onClick={uploadFile}>Upload</button>*/}
       <button onClick={(getShopify)}>Shopify</button>
       <button onClick={(generateExcel)}>Excel Files</button>
+      <button onClick={(importOrder)}>Import</button>
       {orders && <OrdersListing orders={orders} />}
     </div>
   );
