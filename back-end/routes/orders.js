@@ -10,7 +10,7 @@ require("dotenv").config();
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
 const parseData = async () => {
-  const tempData = {};
+  const dataContainer = [];
   function processJSONLData() {
     return new Promise((resolve, reject) => {
       let currCustomer = "";
@@ -28,10 +28,15 @@ const parseData = async () => {
               ? jsonData.customer.lastName.slice(11)
               : jsonData.customer.lastName;
             currCustomer = `${lastname} - ${jsonData.name.slice(4)}`;
-            tempData[currCustomer] = [];
             fulfillment_number += 1;
+
+            dataContainer.push({
+              id: fulfillment_number,
+              customer: currCustomer,
+              items: [],
+            });
           } else {
-            tempData[currCustomer].push({
+            dataContainer[dataContainer.length - 1].items.push({
               title: jsonData.name,
               quantity: jsonData.quantity,
               fulfillment_number: fulfillment_number,
@@ -39,6 +44,7 @@ const parseData = async () => {
               sku: jsonData.sku,
               vendor: jsonData.vendor,
               barcode: jsonData.variant.barcode,
+              id: dataContainer[dataContainer.length - 1].items.length + 1,
             });
           }
         } catch (error) {
@@ -50,7 +56,7 @@ const parseData = async () => {
 
       readStream.on("close", () => {
         console.log("Finished processing JSONL data.");
-        resolve(tempData); // Resolve the Promise when processing is complete
+        resolve(dataContainer); // Resolve the Promise when processing is complete
       });
     });
   }
@@ -157,6 +163,7 @@ router.post("/", async (req, res) => {
     }
 
     var parsedShopifyData = await parseData();
+    console.log(parsedShopifyData);
 
     return res.status(200).json(parsedShopifyData);
   } catch (error) {
