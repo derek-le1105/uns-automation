@@ -32,7 +32,11 @@ const parseData = async () => {
 
             dataContainer.push({
               id: fulfillment_number,
-              customer: currCustomer,
+              order_name: currCustomer,
+              customer: {
+                first_name: jsonData.customer.firstName,
+                last_name: jsonData.customer.lastName,
+              },
               items: [],
             });
           } else {
@@ -77,34 +81,50 @@ router.post("/", async (req, res) => {
         "Content-Type": "application/json",
       },
       data: {
-        query: `query 
-        {
-          orders(first: 50, query: "created_at:>'2023-11-03' created_at:<'2023-11-10' tag:'PlantOrder' -tag:'Edit Order'"){
-            edges{
-              node{
-                  id
-                  name
-                  customer{
-                    lastName
-                }
-                lineItems(first: 150){
+        query: `
+        mutation{
+          bulkOperationRunQuery(
+          query: """
+          {
+              orders(first: 75, query: "created_at:>'2023-11-10' created_at:<'2023-11-17' tag:'PlantOrder' -tag:'Edit Order'"){
                   edges{
                     node{
-                      name
-                      quantity
-                      sku
-                      vendor
-                      variant{
-                        barcode
-                        title
+                        id
+                        name
+                        customer{
+                          firstName
+                          lastName
+                      }
+                      lineItems(first: 150){
+                        edges{
+                          node{
+                            name
+                            quantity
+                            sku
+                            vendor
+                            variant{
+                              barcode
+                              title
+                            }
+                          }
+                        }
                       }
                     }
                   }
                 }
-              }
-            }
           }
-        }`,
+          """)
+          {
+              bulkOperation {
+                  id
+                  status
+              }
+              userErrors{
+                  field
+                  message
+              }
+          }
+      }`,
       },
     });
 
@@ -134,7 +154,9 @@ router.post("/", async (req, res) => {
           },
         });
         console.log(
-          "waiting " + response2.data.data.currentBulkOperation.status
+          "waiting " +
+            response2.data.data.currentBulkOperation.status +
+            response2.data.data.currentBulkOperation.id
         );
         await wait(2000);
       } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
@@ -163,7 +185,6 @@ router.post("/", async (req, res) => {
     }
 
     var parsedShopifyData = await parseData();
-    console.log(parsedShopifyData);
 
     return res.status(200).json(parsedShopifyData);
   } catch (error) {
