@@ -10,11 +10,12 @@ import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import { useState } from "react";
 
 const OrderRow = (props) => {
-  const { order } = props;
+  const { order, handleDeleteRow } = props;
   const [open, setOpen] = useState(false);
 
   return (
@@ -34,6 +35,15 @@ const OrderRow = (props) => {
         </TableCell>
         <TableCell align="left">{order.id}</TableCell>
         <TableCell align="left">{order.customer.first_name}</TableCell>
+        <TableCell>
+          <IconButton
+            aria-label="delete row"
+            size="small"
+            onClick={() => handleDeleteRow(order.id)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </TableCell>
       </TableRow>
 
       <TableRow>
