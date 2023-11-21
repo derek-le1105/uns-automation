@@ -38,6 +38,7 @@ const parseData = async () => {
                 last_name: jsonData.customer.lastName,
               },
               items: [],
+              shipping: jsonData.shippingLine.title,
             });
           } else {
             dataContainer[dataContainer.length - 1].items.push({
@@ -94,7 +95,10 @@ router.post("/", async (req, res) => {
                         customer{
                           firstName
                           lastName
-                      }
+                        }
+                        shippingLine{
+                          title
+                        }
                       lineItems(first: 150){
                         edges{
                           node{
