@@ -12,14 +12,45 @@ import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTheme } from "@mui/material/styles";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 import { useState } from "react";
 import OrderRow from "./OrderRow";
+import { useSnackbar } from "notistack";
 
 const OrdersListing = () => {
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const theme = useTheme();
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deletedRows, setDeletedRows] = useState([]);
+
+  const action = (snackbarId) => {
+    return (
+      <>
+        <Button
+          variant={"text"}
+          size={"small"}
+          style={{ color: "#e3f2fd" }}
+          onClick={() => {
+            alert(`I belong to snackbar with id ${snackbarId}`);
+          }}
+        >
+          Undo
+        </Button>
+        <IconButton
+          aria-label="close"
+          onClick={() => {
+            closeSnackbar(snackbarId);
+          }}
+          style={{ color: "#e3f2fd" }}
+        >
+          <CloseIcon color={"inherit"} />
+        </IconButton>
+      </>
+    );
+  };
 
   const getShopify = async () => {
     try {
@@ -48,10 +79,24 @@ const OrdersListing = () => {
     });
   };
 
-  const handleDeleteRow = (order_ids) => {
+  const handleDeleteRow = (order_id) => {
     try {
-      setLoading(true);
-      setLoading(false);
+      const newArray = orders.filter((item, index) => index !== order_id - 1);
+      const updatedArray = newArray.map((item, index) => ({
+        ...item,
+        id: index + 1, // Update the id based on the new order
+      }));
+      enqueueSnackbar(`Deleted ${orders[order_id].order_name}`, { action });
+      setOrders(updatedArray);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const undoDelete = () => {
+    try {
+      let recent_delete = deletedRows[-1];
+      for (let i = 0; i < orders.length; i++) {}
     } catch (error) {}
   };
 
@@ -105,9 +150,10 @@ const OrdersListing = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell />
-                      <TableCell>Customer</TableCell>
-                      <TableCell align="left">Fulfillment Number</TableCell>
+                      <TableCell>{`Customer (${orders.length})`}</TableCell>
+                      <TableCell align="center">Fulfillment Number</TableCell>
                       <TableCell align="left">Store Name</TableCell>
+                      <TableCell align="left">Shipping Method</TableCell>
                       <TableCell />
                     </TableRow>
                   </TableHead>

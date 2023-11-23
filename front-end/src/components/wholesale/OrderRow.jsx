@@ -33,8 +33,9 @@ const OrderRow = (props) => {
         <TableCell component="th" scope="row">
           {order.order_name}
         </TableCell>
-        <TableCell align="left">{order.id}</TableCell>
+        <TableCell align="center">{order.id}</TableCell>
         <TableCell align="left">{order.customer.first_name}</TableCell>
+        <TableCell align="left">{order.shipping}</TableCell>
         <TableCell>
           <IconButton
             aria-label="delete row"
