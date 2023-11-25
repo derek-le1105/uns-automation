@@ -13,7 +13,7 @@ function App() {
   const { user } = useAuthContext();
 
   return (
-    <SnackbarProvider>
+    <SnackbarProvider autoHideDuration={3000}>
       <div className="App">
         <BrowserRouter>
           <Routes>

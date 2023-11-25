@@ -13,44 +13,22 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
+import UndoIcon from "@mui/icons-material/Undo";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import OrderRow from "./OrderRow";
 import { useSnackbar } from "notistack";
 
 const OrdersListing = () => {
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
   const [orders, setOrders] = useState(null);
+  const [deleteStack, setDeleteStack] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [deletedRows, setDeletedRows] = useState([]);
 
-  const action = (snackbarId) => {
-    return (
-      <>
-        <Button
-          variant={"text"}
-          size={"small"}
-          style={{ color: "#e3f2fd" }}
-          onClick={() => {
-            alert(`I belong to snackbar with id ${snackbarId}`);
-          }}
-        >
-          Undo
-        </Button>
-        <IconButton
-          aria-label="close"
-          onClick={() => {
-            closeSnackbar(snackbarId);
-          }}
-          style={{ color: "#e3f2fd" }}
-        >
-          <CloseIcon color={"inherit"} />
-        </IconButton>
-      </>
-    );
-  };
+  useEffect(() => {
+    if (orders !== null) console.log(orders.length);
+  }, [orders]);
 
   const getShopify = async () => {
     try {
@@ -81,13 +59,19 @@ const OrdersListing = () => {
 
   const handleDeleteRow = (order_id) => {
     try {
-      const newArray = orders.filter((item, index) => index !== order_id - 1);
-      const updatedArray = newArray.map((item, index) => ({
-        ...item,
-        id: index + 1, // Update the id based on the new order
-      }));
-      enqueueSnackbar(`Deleted ${orders[order_id].order_name}`, { action });
+      let new_delete = orders[order_id - 1];
+
+      enqueueSnackbar(`Deleted ${orders[order_id].order_name}`, {
+        variant: "success",
+      });
+      const updatedArray = orders
+        .filter((item, index) => index !== order_id - 1)
+        .map((item, index) => ({
+          ...item,
+          id: index + 1, // Update the id based on the new order
+        }));
       setOrders(updatedArray);
+      setDeleteStack([...deleteStack, new_delete]);
     } catch (error) {
       console.log(error);
     }
@@ -95,9 +79,21 @@ const OrdersListing = () => {
 
   const undoDelete = () => {
     try {
-      let recent_delete = deletedRows[-1];
-      for (let i = 0; i < orders.length; i++) {}
-    } catch (error) {}
+      const top = deleteStack[deleteStack.length - 1];
+      const newArray = [
+        ...orders.slice(0, top.id - 1),
+        top,
+        ...orders.slice(top.id - 1),
+      ];
+      setOrders(newArray.map((item, index) => ({ ...item, id: index + 1 })));
+      setDeleteStack(deleteStack.slice(0, -1));
+      enqueueSnackbar(`Recovered ${top.order_name}`, { variant: "success" });
+    } catch (error) {
+      if (error instanceof TypeError) {
+        enqueueSnackbar(`Nothing to delete`, { variant: "error" });
+      }
+      console.log(error);
+    }
   };
 
   return (
@@ -154,7 +150,17 @@ const OrdersListing = () => {
                       <TableCell align="center">Fulfillment Number</TableCell>
                       <TableCell align="left">Store Name</TableCell>
                       <TableCell align="left">Shipping Method</TableCell>
-                      <TableCell />
+                      <TableCell>
+                        <IconButton
+                          disabled={!deleteStack.length}
+                          aria-label="undo"
+                          onClick={() => {
+                            undoDelete();
+                          }}
+                        >
+                          <UndoIcon />
+                        </IconButton>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
 
