@@ -44,7 +44,6 @@ const parseData = async () => {
             dataContainer[dataContainer.length - 1].items.push({
               title: jsonData.name,
               quantity: jsonData.quantity,
-              fulfillment_number: fulfillment_number,
               customer_code: currCustomer.slice(0, currCustomer.indexOf(" - ")),
               sku: jsonData.sku,
               vendor: jsonData.vendor,
