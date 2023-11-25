@@ -10,7 +10,7 @@ require("dotenv").config();
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
 const parseData = async () => {
-  const tempData = {};
+  const dataContainer = [];
   function processJSONLData() {
     return new Promise((resolve, reject) => {
       let currCustomer = "";
@@ -28,17 +28,27 @@ const parseData = async () => {
               ? jsonData.customer.lastName.slice(11)
               : jsonData.customer.lastName;
             currCustomer = `${lastname} - ${jsonData.name.slice(4)}`;
-            tempData[currCustomer] = [];
             fulfillment_number += 1;
+
+            dataContainer.push({
+              id: fulfillment_number,
+              order_name: currCustomer,
+              customer: {
+                first_name: jsonData.customer.firstName,
+                last_name: jsonData.customer.lastName,
+              },
+              items: [],
+              shipping: jsonData.shippingLine.title,
+            });
           } else {
-            tempData[currCustomer].push({
+            dataContainer[dataContainer.length - 1].items.push({
               title: jsonData.name,
               quantity: jsonData.quantity,
-              fulfillment_number: fulfillment_number,
               customer_code: currCustomer.slice(0, currCustomer.indexOf(" - ")),
               sku: jsonData.sku,
               vendor: jsonData.vendor,
               barcode: jsonData.variant.barcode,
+              id: dataContainer[dataContainer.length - 1].items.length + 1,
             });
           }
         } catch (error) {
@@ -50,7 +60,7 @@ const parseData = async () => {
 
       readStream.on("close", () => {
         console.log("Finished processing JSONL data.");
-        resolve(tempData); // Resolve the Promise when processing is complete
+        resolve(dataContainer); // Resolve the Promise when processing is complete
       });
     });
   }
@@ -71,34 +81,53 @@ router.post("/", async (req, res) => {
         "Content-Type": "application/json",
       },
       data: {
-        query: `query 
-        {
-          orders(first: 50, query: "created_at:>'2023-11-03' created_at:<'2023-11-10' tag:'PlantOrder' -tag:'Edit Order'"){
-            edges{
-              node{
-                  id
-                  name
-                  customer{
-                    lastName
-                }
-                lineItems(first: 150){
+        query: `
+        mutation{
+          bulkOperationRunQuery(
+          query: """
+          {
+              orders(first: 75, query: "created_at:>'2023-11-10' created_at:<'2023-11-17' tag:'PlantOrder' -tag:'Edit Order'"){
                   edges{
                     node{
-                      name
-                      quantity
-                      sku
-                      vendor
-                      variant{
-                        barcode
-                        title
+                        id
+                        name
+                        customer{
+                          firstName
+                          lastName
+                        }
+                        shippingLine{
+                          title
+                        }
+                      lineItems(first: 150){
+                        edges{
+                          node{
+                            name
+                            quantity
+                            sku
+                            vendor
+                            variant{
+                              barcode
+                              title
+                            }
+                          }
+                        }
                       }
                     }
                   }
                 }
-              }
-            }
           }
-        }`,
+          """)
+          {
+              bulkOperation {
+                  id
+                  status
+              }
+              userErrors{
+                  field
+                  message
+              }
+          }
+      }`,
       },
     });
 
@@ -128,7 +157,9 @@ router.post("/", async (req, res) => {
           },
         });
         console.log(
-          "waiting " + response2.data.data.currentBulkOperation.status
+          "waiting " +
+            response2.data.data.currentBulkOperation.status +
+            response2.data.data.currentBulkOperation.id
         );
         await wait(2000);
       } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
