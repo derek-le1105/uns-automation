@@ -20,7 +20,10 @@ const OrderRow = (props) => {
 
   return (
     <>
-      <TableRow sx={{ "& > *": { borderBottom: "none" } }}>
+      <TableRow
+        sx={{ "& > *": { borderBottom: "none" } }}
+        onDoubleClick={() => setOpen(!open)}
+      >
         <TableCell>
           <IconButton
             aria-label="expand row"
