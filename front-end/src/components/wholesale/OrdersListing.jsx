@@ -15,9 +15,11 @@ import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import UndoIcon from "@mui/icons-material/Undo";
 
+import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import OrderRow from "./OrderRow";
 import { useSnackbar } from "notistack";
+import { getFridayDates } from "../../helper/getFridays";
 
 const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -25,6 +27,7 @@ const OrdersListing = () => {
   const [orders, setOrders] = useState(null);
   const [deleteStack, setDeleteStack] = useState([]);
   const [loading, setLoading] = useState(false);
+  const fridayDates = getFridayDates();
 
   useEffect(() => {
     if (orders !== null) console.log(orders.length);
@@ -38,6 +41,7 @@ const OrdersListing = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(fridayDates),
       });
       setLoading(false);
       const json = await response.json();
@@ -56,6 +60,8 @@ const OrdersListing = () => {
       body: JSON.stringify(orders),
     });
   };
+
+  const inputShipping = async () => {};
 
   const handleDeleteRow = (order_id) => {
     try {
@@ -109,7 +115,13 @@ const OrdersListing = () => {
         <Grid container sx={{ padding: "25px 50px" }}>
           <Grid item xs={9}>
             <Typography align="left" variant="h4">
-              Wholesale Orders
+              Wholesale Orders{" "}
+              {orders
+                ? `${format(new Date(fridayDates[1]), "MM/dd/yyyy")} - ${format(
+                    new Date(fridayDates[0]),
+                    "MM/dd/yyyy"
+                  )}`
+                : ""}
             </Typography>
           </Grid>
           <Grid item xs={3} sx={{ alignItems: "end" }}>
@@ -130,8 +142,13 @@ const OrdersListing = () => {
               >
                 <Typography fontSize={14}>Create Excel</Typography>
               </Button>
-              <Button fullWidth variant={"contained"} size={"medium"}>
-                <Typography fontSize={14}>Create Order</Typography>
+              <Button
+                fullWidth
+                variant={"contained"}
+                size={"medium"}
+                onClick={inputShipping}
+              >
+                <Typography fontSize={14}>Input Shipping</Typography>
               </Button>
             </ButtonGroup>
           </Grid>
