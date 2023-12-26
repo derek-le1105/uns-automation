@@ -38,23 +38,24 @@ const parseData = async () => {
                 last_name: jsonData.customer.lastName,
               },
               items: [],
-              shipping: jsonData.shippingLine.title,
+              //shipping: jsonData.shippingLine.title == null ? "" : jsonData.shippingLine.title,
             });
           } else {
             dataContainer[dataContainer.length - 1].items.push({
               title: jsonData.name,
               quantity: jsonData.quantity,
+              fulfillment_number: fulfillment_number,
               customer_code: currCustomer.slice(0, currCustomer.indexOf(" - ")),
-              sku: jsonData.sku,
+              sku: jsonData.sku == null ? "" : jsonData.sku,
               vendor: jsonData.vendor,
-              barcode: jsonData.variant.barcode,
+              barcode: jsonData.variant == null ? "" : jsonData.variant.barcode,
               id: dataContainer[dataContainer.length - 1].items.length + 1,
             });
           }
         } catch (error) {
           //TODO: handle error when reading line stops abruptly
           console.error("Error parsing JSON:", error);
-          console.log(line, "\n");
+          console.log(currCustomer + " " + line, "\n");
         }
       });
 
@@ -72,6 +73,7 @@ const parseData = async () => {
 };
 
 router.post("/", async (req, res) => {
+  let fridays = getFridayDates();
   try {
     await axios({
       url: process.env.ORDER_RESOURCE_URL,
@@ -86,7 +88,7 @@ router.post("/", async (req, res) => {
           bulkOperationRunQuery(
           query: """
           {
-              orders(first: 75, query: "created_at:>'2023-11-10' created_at:<'2023-11-17' tag:'PlantOrder' -tag:'Edit Order'"){
+              orders(first: 75, query: "created_at:>'${fridays[1]}' created_at:<'${fridays[0]}' tag:'PlantOrder' -tag:'Edit Order'"){
                   edges{
                     node{
                         id
@@ -195,5 +197,45 @@ router.post("/", async (req, res) => {
     return res.status(404).json({ error: "Invalid" });
   }
 });
+
+const getFridayDates = () => {
+  var d = new Date(),
+    d2 = new Date(),
+    day = d.getDay(),
+    diff = day <= 5 ? 7 - 5 + day : day - 5;
+
+  d.setDate(d.getDate() - diff);
+  d.setHours(23, 59, 59);
+  d2.setDate(d.getDate() - 7);
+  d2.setHours(23, 59, 59);
+
+  return [toIsoString(d), toIsoString(d2)];
+};
+
+function toIsoString(date) {
+  var tzo = -date.getTimezoneOffset(),
+    dif = tzo >= 0 ? "+" : "-",
+    pad = function (num) {
+      return (num < 10 ? "0" : "") + num;
+    };
+
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes()) +
+    ":" +
+    pad(date.getSeconds()) +
+    dif +
+    pad(Math.floor(Math.abs(tzo) / 60)) +
+    ":" +
+    pad(Math.abs(tzo) % 60)
+  );
+}
 
 module.exports = router;
