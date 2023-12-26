@@ -5,6 +5,10 @@ import {
   TableCell,
   TableRow,
   Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
@@ -16,7 +20,14 @@ import { useState } from "react";
 
 const OrderRow = (props) => {
   const { order, handleDeleteRow } = props;
+  const [shipping, setShipping] = useState("Fedex");
   const [open, setOpen] = useState(false);
+
+  const handleChange = (event) => {
+    order.shipping = event.target.value;
+    setShipping(event.target.value);
+    console.log(order.shipping);
+  };
 
   return (
     <>
@@ -38,7 +49,22 @@ const OrderRow = (props) => {
         </TableCell>
         <TableCell align="center">{order.id}</TableCell>
         <TableCell align="left">{order.customer.first_name}</TableCell>
-        <TableCell align="left">{order.shipping}</TableCell>
+        <TableCell align="left">
+          <FormControl sx={{ m: 1 }} size="small" fullWidth>
+            <InputLabel id="demo-simple-select-label">Shipping</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={shipping}
+              label="Shipping"
+              onChange={handleChange}
+            >
+              <MenuItem value={"Airport"}>Airport</MenuItem>
+              <MenuItem value={"Fedex"}>Fedex</MenuItem>
+              <MenuItem value={"GLS"}>GLS</MenuItem>
+            </Select>
+          </FormControl>
+        </TableCell>
         <TableCell>
           <IconButton
             aria-label="delete row"

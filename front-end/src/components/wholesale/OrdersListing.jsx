@@ -115,13 +115,12 @@ const OrdersListing = () => {
         <Grid container sx={{ padding: "25px 50px" }}>
           <Grid item xs={9}>
             <Typography align="left" variant="h4">
-              Wholesale Orders{" "}
               {orders
-                ? `${format(new Date(fridayDates[1]), "MM/dd/yyyy")} - ${format(
-                    new Date(fridayDates[0]),
+                ? `Wholesale Orders | ${format(
+                    new Date(fridayDates[1]),
                     "MM/dd/yyyy"
-                  )}`
-                : ""}
+                  )} - ${format(new Date(fridayDates[0]), "MM/dd/yyyy")}`
+                : "Wholesale Orders"}
             </Typography>
           </Grid>
           <Grid item xs={3} sx={{ alignItems: "end" }}>
