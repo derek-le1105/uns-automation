@@ -1,15 +1,16 @@
-export function getFridayDates() {
-  var d = new Date(),
-    d2 = new Date(),
+export function getWholesaleDates() {
+  var d = new Date(), //most recent Friday
+    d2 = new Date(), //earliest Friday
+    d3 = new Date(), //most recent Wednesday
     day = d.getDay(),
     diff = day <= 5 ? 7 - 5 + day : day - 5;
-
+  // day: "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
   d.setDate(d.getDate() - diff);
   d.setHours(23, 59, 59);
   d2.setDate(d.getDate() - 7);
   d2.setHours(23, 59, 59);
-
-  return [toIsoString(d), toIsoString(d2)];
+  d3.setDate(d.getDate() + 5);
+  return [toIsoString(d), toIsoString(d2), toIsoString(d3).slice(0, 10)];
 }
 
 function toIsoString(date) {
