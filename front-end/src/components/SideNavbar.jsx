@@ -9,11 +9,14 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Button,
 } from "@mui/material/";
 import { useTheme } from "@mui/material/styles";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import HistoryIcon from "@mui/icons-material/History";
 import WarehouseIcon from "@mui/icons-material/Warehouse";
+
+import { supabase } from "../supabaseClient";
 const drawerWidth = 180;
 
 const Navbar = () => {
@@ -29,6 +32,10 @@ const Navbar = () => {
       default:
         return;
     }
+  };
+
+  const handleSignout = async (e) => {
+    await supabase.auth.signOut();
   };
 
   return (
@@ -64,6 +71,7 @@ const Navbar = () => {
           ))}
         </List>
         <Divider />
+        <Button onClick={handleSignout}>Signout</Button>
       </Drawer>
     </Box>
   );
