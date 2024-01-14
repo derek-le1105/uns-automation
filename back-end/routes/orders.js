@@ -38,7 +38,7 @@ const parseData = async () => {
                 last_name: jsonData.customer.lastName,
               },
               items: [],
-              //shipping: jsonData.shippingLine.title == null ? "" : jsonData.shippingLine.title,
+              shipping: "Fedex", //jsonData.shippingLine.title == null ? "" : jsonData.shippingLine.title,
             });
           } else {
             dataContainer[dataContainer.length - 1].items.push({
