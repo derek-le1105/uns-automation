@@ -1,25 +1,30 @@
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableHead from "@mui/material/TableHead";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import CircularProgress from "@mui/material/CircularProgress";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
+  Box,
+  Grid,
+  Typography,
+  Button,
+  ButtonGroup,
+  CircularProgress,
+  IconButton,
+  Checkbox,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import IconButton from "@mui/material/IconButton";
 import UndoIcon from "@mui/icons-material/Undo";
 
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import OrderRow from "./OrderRow";
 import { useSnackbar } from "notistack";
-import { getFridayDates } from "../../helper/getFridays";
+import { getWholesaleDates } from "../../helper/getWholesaleDates";
+
+import { supabase } from "../../supabaseClient";
 
 const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -27,24 +32,54 @@ const OrdersListing = () => {
   const [orders, setOrders] = useState(null);
   const [deleteStack, setDeleteStack] = useState([]);
   const [loading, setLoading] = useState(false);
-  const fridayDates = getFridayDates();
+  const [editting, setEditting] = useState(false);
+  const [checkedList, setCheckedList] = useState([]);
+  const wholesaleDates = getWholesaleDates();
 
   useEffect(() => {
-    if (orders !== null) console.log(orders.length);
-  }, [orders]);
+    getShopify();
+  }, []);
 
   const getShopify = async () => {
+    //TODO: account for case where saved data to the db does not contain all of the orders
+    //      i.e: data was saved before all 'edit order' tagged orders were completed
+    setLoading(true);
+    var response, json;
     try {
-      setLoading(true);
-      const response = await fetch("/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(fridayDates),
-      });
+      const { data } = await supabase //see if there's an entry in the db with the wed date as the key
+        .from("wholesale_shopify_dates")
+        .select()
+        .eq("wednesday_date", wholesaleDates[2]);
+
+      if (!data.length) {
+        //if no such entry is in db, returned 'data' value will be an empty array
+        enqueueSnackbar(
+          `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
+          {
+            variant: "success",
+          }
+        );
+        response = await fetch("/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(wholesaleDates),
+        });
+
+        json = await response.json();
+
+        await supabase.from("wholesale_shopify_dates").insert({
+          //create an entry in the db with the new wed date along with data from Shopify
+          wednesday_date: wholesaleDates[2],
+          is_shopify_data_pulled: true,
+          data: json,
+        });
+      } else {
+        json = data[0].data;
+      }
+
       setLoading(false);
-      const json = await response.json();
       setOrders(json);
     } catch (error) {
       console.log(error);
@@ -59,6 +94,10 @@ const OrdersListing = () => {
       },
       body: JSON.stringify(orders),
     });
+  };
+
+  const editOrders = async () => {
+    setEditting(!editting);
   };
 
   const inputShipping = async () => {};
@@ -102,6 +141,23 @@ const OrdersListing = () => {
     }
   };
 
+  const formatDate = (dates) => {
+    return `${format(new Date(dates[1]), "MM/dd/yyyy")} - ${format(
+      new Date(dates[0]),
+      "MM/dd/yyyy"
+    )}`;
+  };
+
+  const handleChecked = (event) => {
+    if (checkedList.includes(event.target.name)) {
+      setCheckedList(
+        checkedList.filter((checked) => checked !== event.target.name)
+      );
+    } else {
+      setCheckedList([...checkedList, event.target.name]);
+    }
+  };
+
   return (
     <>
       <Box
@@ -117,21 +173,22 @@ const OrdersListing = () => {
             <Typography align="left" variant="h4">
               {orders
                 ? `Wholesale Orders | ${format(
-                    new Date(fridayDates[1]),
+                    new Date(wholesaleDates[1]),
                     "MM/dd/yyyy"
-                  )} - ${format(new Date(fridayDates[0]), "MM/dd/yyyy")}`
+                  )} - ${format(new Date(wholesaleDates[0]), "MM/dd/yyyy")}`
                 : "Wholesale Orders"}
             </Typography>
           </Grid>
+
           <Grid item xs={3} sx={{ alignItems: "end" }}>
             <ButtonGroup fullWidth sx={{ height: "100%" }}>
               <Button
                 fullWidth
                 variant={"contained"}
                 size={"medium"}
-                onClick={getShopify}
+                onClick={editOrders}
               >
-                <Typography fontSize={14}>Shopify</Typography>
+                <Typography fontSize={14}>Edit</Typography>
               </Button>
               <Button
                 fullWidth
@@ -188,6 +245,8 @@ const OrdersListing = () => {
                             key={order.order_name}
                             order={order}
                             handleDeleteRow={handleDeleteRow}
+                            isEditting={editting}
+                            handleChecked={handleChecked}
                           />
                         );
                       })}
