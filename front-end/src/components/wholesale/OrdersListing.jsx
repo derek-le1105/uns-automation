@@ -23,6 +23,7 @@ import { useState, useEffect } from "react";
 import OrderRow from "./OrderRow";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
+import { compareData } from "../../helper/compareData";
 
 import { supabase } from "../../supabaseClient";
 
@@ -44,45 +45,59 @@ const OrdersListing = () => {
     //TODO: account for case where saved data to the db does not contain all of the orders
     //      i.e: data was saved before all 'edit order' tagged orders were completed
     setLoading(true);
-    var response, json;
+    var json;
     try {
       const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
         .eq("wednesday_date", wholesaleDates[2]);
 
-      if (!data.length) {
-        //if no such entry is in db, returned 'data' value will be an empty array
-        enqueueSnackbar(
-          `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
-          {
-            variant: "success",
+      enqueueSnackbar(
+        `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
+        {
+          variant: "success",
+        }
+      );
+
+      fetch("/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(wholesaleDates),
+      })
+        .then((res) => {
+          return res.json();
+        })
+        .then(async (res_data) => {
+          json = res_data;
+          setOrders(json);
+          if (data.length) {
+            if (compareData(data[0].data, json)) {
+              console.log("same");
+            } else {
+              //supabase upsert to update json information in db
+              console.log("not same");
+            }
+          } else {
+            await supabase.from("wholesale_shopify_dates").insert({
+              //create an entry in the db with the new wed date along with data from Shopify
+              wednesday_date: wholesaleDates[2],
+              is_shopify_data_pulled: true,
+              data: json,
+            });
           }
-        );
-        response = await fetch("/orders", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(wholesaleDates),
+          setLoading(false);
         });
 
-        json = await response.json();
-
-        await supabase.from("wholesale_shopify_dates").insert({
-          //create an entry in the db with the new wed date along with data from Shopify
-          wednesday_date: wholesaleDates[2],
-          is_shopify_data_pulled: true,
-          data: json,
-        });
-      } else {
-        json = data[0].data;
+      if (data.length) {
+        setLoading(false);
+        setOrders(data[0].data);
       }
-
-      setLoading(false);
-      setOrders(json);
     } catch (error) {
-      console.log(error);
+      enqueueSnackbar(error, {
+        variant: "error",
+      });
     }
   };
 
