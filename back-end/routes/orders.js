@@ -133,17 +133,16 @@ router.post("/", async (req, res) => {
       },
     });
 
-    if (!fs.existsSync("data.jsonl")) {
-      do {
-        var response2 = await axios({
-          url: process.env.ORDER_RESOURCE_URL,
-          method: "post",
-          headers: {
-            "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
-            "Content-Type": "application/json",
-          },
-          data: {
-            query: `query {
+    do {
+      var response2 = await axios({
+        url: process.env.ORDER_RESOURCE_URL,
+        method: "post",
+        headers: {
+          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+          "Content-Type": "application/json",
+        },
+        data: {
+          query: `query {
                 currentBulkOperation {
                   id
                   status
@@ -156,38 +155,37 @@ router.post("/", async (req, res) => {
                   partialDataUrl
                 }
               }`,
-          },
-        });
-        console.log(
-          "waiting " +
-            response2.data.data.currentBulkOperation.status +
-            response2.data.data.currentBulkOperation.id
-        );
-        await wait(2000);
-      } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
+        },
+      });
+      console.log(
+        "waiting " +
+          response2.data.data.currentBulkOperation.status +
+          response2.data.data.currentBulkOperation.id
+      );
+      await wait(2000);
+    } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
 
-      const url = response2.data.data.currentBulkOperation.url;
-      const writer = fs.createWriteStream("data.jsonl");
-      await axios.get(url, { responseType: "stream" }).then((response) => {
-        //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
-        return new Promise((resolve, reject) => {
-          response.data.pipe(writer);
-          let error = null;
-          writer.on("error", (err) => {
-            error = err;
-            writer.close();
-            reject(err);
-          });
-          writer.on("close", () => {
-            if (!error) {
-              resolve(true);
-            }
-            //no need to call the reject here, as it will have been called in the
-            //'error' stream;
-          });
+    const url = response2.data.data.currentBulkOperation.url;
+    const writer = fs.createWriteStream("data.jsonl");
+    await axios.get(url, { responseType: "stream" }).then((response) => {
+      //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
+      return new Promise((resolve, reject) => {
+        response.data.pipe(writer);
+        let error = null;
+        writer.on("error", (err) => {
+          error = err;
+          writer.close();
+          reject(err);
+        });
+        writer.on("close", () => {
+          if (!error) {
+            resolve(true);
+          }
+          //no need to call the reject here, as it will have been called in the
+          //'error' stream;
         });
       });
-    }
+    });
 
     var parsedShopifyData = await parseData();
 
