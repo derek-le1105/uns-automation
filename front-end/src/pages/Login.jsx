@@ -5,9 +5,6 @@ import {
   Stack,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
   InputAdornment,
   IconButton,
 } from "@mui/material/";
@@ -23,11 +20,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState(null);
   const [password, setPassword] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -36,7 +31,6 @@ const Login = () => {
     if (error) {
       alert(error.error_description || error.message);
     }
-    setLoading(false);
   };
 
   const handleClickShowPassword = () => {
@@ -68,30 +62,25 @@ const Login = () => {
             label="Email"
             onChange={(e) => setEmail(e.target.value)}
           />
-          <FormControl sx={{ m: 1, width: "25ch" }} variant="outlined">
-            <InputLabel
-              htmlFor="outlined-adornment-password"
-              onChange={(e) => setPassword(e.target.value)}
-            >
-              Password
-            </InputLabel>
-            <OutlinedInput
-              id="outlined-adornment-password"
-              type={showPassword ? "text" : "password"}
-              endAdornment={
+          <TextField
+            label="Some label"
+            variant="outlined"
+            type={showPassword ? "text" : "password"}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
                     aria-label="toggle password visibility"
                     onClick={handleClickShowPassword}
-                    edge="end"
+                    onMouseDown={handleClickShowPassword}
                   >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                    {showPassword ? <Visibility /> : <VisibilityOff />}
                   </IconButton>
                 </InputAdornment>
-              }
-              label="Password"
-            />
-          </FormControl>
+              ),
+            }}
+          />
           <Button type="submit">Submit</Button>
         </Stack>
       </Box>
