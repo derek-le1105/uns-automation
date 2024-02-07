@@ -9,6 +9,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Checkbox,
 } from "@mui/material";
 import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
@@ -16,33 +17,35 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const OrderRow = (props) => {
-  const { order, handleDeleteRow } = props;
-  const [shipping, setShipping] = useState("Fedex");
+  const { order, handleDeleteRow, isEditting, handleChecked } = props;
   const [open, setOpen] = useState(false);
 
   const handleChange = (event) => {
     order.shipping = event.target.value;
-    setShipping(event.target.value);
     console.log(order.shipping);
   };
 
   return (
     <>
-      <TableRow
-        sx={{ "& > *": { borderBottom: "none" } }}
-        onDoubleClick={() => setOpen(!open)}
-      >
+      <TableRow sx={{ "& > *": { borderBottom: "none" } }}>
         <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          {isEditting ? (
+            <Checkbox
+              name={order.id.toString()}
+              onChange={handleChecked}
+            ></Checkbox>
+          ) : (
+            <IconButton
+              aria-label="expand row"
+              size="small"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          )}
         </TableCell>
         <TableCell component="th" scope="row">
           {order.order_name}
@@ -55,7 +58,7 @@ const OrderRow = (props) => {
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
-              value={shipping}
+              value={order.shipping}
               label="Shipping"
               onChange={handleChange}
             >
