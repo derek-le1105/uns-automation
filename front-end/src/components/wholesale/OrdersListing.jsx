@@ -24,6 +24,7 @@ import OrderRow from "./OrderRow";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
 import { compareData } from "../../helper/compareData";
+import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
 
@@ -51,7 +52,6 @@ const OrdersListing = () => {
         .from("wholesale_shopify_dates")
         .select()
         .eq("wednesday_date", wholesaleDates[2]);
-
       enqueueSnackbar(
         `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
         {
@@ -71,13 +71,16 @@ const OrdersListing = () => {
         })
         .then(async (res_data) => {
           json = res_data;
-          setOrders(json);
+          if (json.length) setOrders(json);
           if (data.length) {
-            if (compareData(data[0].data, json)) {
-              console.log("same");
-            } else {
+            if (!compareData(data[0].data, json)) {
               //supabase upsert to update json information in db
               console.log("not same");
+              await supabase.from("wholesale_shopify_dates").upsert({
+                wednesday_date: wholesaleDates[2],
+                is_shopify_data_pulled: true,
+                data: json,
+              });
             }
           } else {
             await supabase.from("wholesale_shopify_dates").insert({
@@ -102,13 +105,7 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
-    const response = await fetch("/excels", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(orders),
-    });
+    await createWholesaleExcel(orders);
   };
 
   const editOrders = async () => {

@@ -1,24 +1,25 @@
-const axios = require("axios");
-const express = require("express");
-const router = express.Router();
-const excelJS = require("exceljs");
+import * as Excel from "exceljs";
+import { saveAs } from "file-saver";
 
-router.post("/", async (req, res) => {
+export async function createWholesaleExcel(data) {
   try {
-    const json = req.body;
     const regex = /\s-\s\d+\s+pack\s*/i;
-    const APC_WB = new excelJS.Workbook();
-    const WCA_WB = new excelJS.Workbook();
-    const MAIN_WB = new excelJS.Workbook();
+    const APC_WB = new Excel.Workbook();
+    const WCA_WB = new Excel.Workbook();
+    const MAIN_WB = new Excel.Workbook();
     const apc_sheet = APC_WB.addWorksheet("Sheet 1");
     const wca_sheet = WCA_WB.addWorksheet("Sheet 1");
     const main_sheet = MAIN_WB.addWorksheet("Sheet 1");
-
-    Object.keys(json).map((order, idx) => {
-      apc_sheet.addRow([order, , , json[order][0].fulfillment_number]);
-      wca_sheet.addRow([order, , , json[order][0].fulfillment_number]);
-
-      json[order].map((item, key) => {
+    const fileNames = {
+      APC_STORE_ORDER: APC_WB,
+      WCA_STORE_ORDER: WCA_WB,
+      MAIN_STORE_ORDER: MAIN_WB,
+    };
+    Object.keys(data).map((order, idx) => {
+      let customer = data[order].order_name;
+      apc_sheet.addRow([customer, "", "", parseInt(order) + 1]);
+      wca_sheet.addRow([customer, "", "", parseInt(order) + 1]);
+      data[order].items.map((item, key) => {
         let match = regex.exec(item.title);
         if (match) {
           const matchedSubstring = match[0]; // The entire matched substring
@@ -33,7 +34,7 @@ router.post("/", async (req, res) => {
           item.fulfillment_number,
           item.vendor,
           item.sku,
-          order.slice(0, 5), //customer code
+          customer.slice(0, 5), //customer code
         ];
         if (item.vendor == "CPA-TS") apc_sheet.addRow(curr_item);
         else if (item.vendor == "ACW-TS") wca_sheet.addRow(curr_item);
@@ -44,13 +45,17 @@ router.post("/", async (req, res) => {
       main_sheet.addRow([]);
     });
 
-    await APC_WB.xlsx.writeFile("./store files/APC_STORE_ORDER.xlsx");
-    await WCA_WB.xlsx.writeFile("./store files/WCA_STORE_ORDER.xlsx");
-    await MAIN_WB.xlsx.writeFile("./store files/MAIN_STORE_ORDER.xlsx");
-    return res.status(200);
+    for (const [key, value] of Object.entries(fileNames)) {
+      const buffer = await value.xlsx.writeBuffer();
+      const fileType =
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      const fileExtension = ".xlsx";
+
+      const blob = new Blob([buffer], { type: fileType });
+
+      saveAs(blob, `${key}` + fileExtension);
+    }
   } catch (error) {
     console.log(error);
   }
-});
-
-module.exports = router;
+}
