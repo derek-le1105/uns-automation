@@ -9,16 +9,27 @@ export async function createWholesaleExcel(data) {
     const MAIN_WB = new Excel.Workbook();
     const apc_sheet = APC_WB.addWorksheet("Sheet 1");
     const wca_sheet = WCA_WB.addWorksheet("Sheet 1");
-    const main_sheet = MAIN_WB.addWorksheet("Sheet 1");
+    const main_sheet = MAIN_WB.addWorksheet("Main");
     const fileNames = {
       APC_STORE_ORDER: APC_WB,
       WCA_STORE_ORDER: WCA_WB,
       MAIN_STORE_ORDER: MAIN_WB,
     };
+
+    let rows = [1, 1]; // main, wca, apc
+
+    //styling
+    apc_sheet.getColumn("B").font = { bold: true };
+    wca_sheet.getColumn("B").font = { bold: true };
+    main_sheet.getColumn("B").font = { bold: true };
+
     Object.keys(data).map((order, idx) => {
       let customer = data[order].order_name;
       apc_sheet.addRow([customer, "", "", parseInt(order) + 1]);
       wca_sheet.addRow([customer, "", "", parseInt(order) + 1]);
+
+      apc_sheet.getCell(`A${rows[0]}`).font = { size: 14, bold: true };
+      wca_sheet.getCell(`A${rows[1]}`).font = { size: 14, bold: true };
       data[order].items.map((item, key) => {
         let match = regex.exec(item.title);
         if (match) {
@@ -36,13 +47,19 @@ export async function createWholesaleExcel(data) {
           item.sku,
           customer.slice(0, 5), //customer code
         ];
-        if (item.vendor == "CPA-TS") apc_sheet.addRow(curr_item);
-        else if (item.vendor == "ACW-TS") wca_sheet.addRow(curr_item);
-        else main_sheet.addRow(curr_item);
+        if (item.vendor == "CPA-TS") {
+          apc_sheet.addRow(curr_item);
+          rows[0] += 1;
+        } else if (item.vendor == "ACW-TS") {
+          wca_sheet.addRow(curr_item);
+          rows[1] += 1;
+        } else {
+          main_sheet.addRow(curr_item);
+        }
       });
       apc_sheet.addRow([]);
       wca_sheet.addRow([]);
-      main_sheet.addRow([]);
+      rows = rows.map((row) => (row += 2));
     });
 
     for (const [key, value] of Object.entries(fileNames)) {
