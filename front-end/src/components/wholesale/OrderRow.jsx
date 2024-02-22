@@ -22,10 +22,11 @@ import { useState, useEffect } from "react";
 const OrderRow = (props) => {
   const { order, handleDeleteRow, isEditting, handleChecked } = props;
   const [open, setOpen] = useState(false);
+  const [shipping, setShipping] = useState("Fedex");
 
   const handleChange = (event) => {
+    setShipping(event.target.value);
     order.shipping = event.target.value;
-    console.log(order.shipping);
   };
 
   return (
@@ -58,7 +59,7 @@ const OrderRow = (props) => {
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
-              value={order.shipping}
+              value={shipping}
               label="Shipping"
               onChange={handleChange}
             >
