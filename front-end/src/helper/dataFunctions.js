@@ -1,4 +1,4 @@
-export function compareData(obj1, obj2) {
+export const compareData = (obj1, obj2) => {
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
 
@@ -19,8 +19,18 @@ export function compareData(obj1, obj2) {
   }
 
   return true;
-}
+};
 
 function isObject(object) {
   return object != null && typeof object === "object";
 }
+
+export const objectUnion = (arr1, arr2) => {
+  const combinedArray = [...arr1, ...arr2];
+
+  // Use a Map to store unique objects based on their string representation
+  const map = new Map(combinedArray.map((obj) => [JSON.stringify(obj), obj]));
+
+  // Return the values from the Map as the union
+  return Array.from(map.values());
+};
