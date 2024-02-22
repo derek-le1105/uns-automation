@@ -160,39 +160,45 @@ router.post("/", async (req, res) => {
       console.log(
         "waiting " +
           response2.data.data.currentBulkOperation.status +
+          " " +
           response2.data.data.currentBulkOperation.id
       );
-      await wait(2000);
+      await wait(1000);
     } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
 
     const url = response2.data.data.currentBulkOperation.url;
     const writer = fs.createWriteStream("data.jsonl");
-    await axios.get(url, { responseType: "stream" }).then((response) => {
-      //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
-      return new Promise((resolve, reject) => {
-        response.data.pipe(writer);
-        let error = null;
-        writer.on("error", (err) => {
-          error = err;
-          writer.close();
-          reject(err);
+    await axios
+      .get(url, { responseType: "stream" })
+      .then((response) => {
+        //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
+        return new Promise((resolve, reject) => {
+          response.data.pipe(writer);
+          let error = null;
+          writer.on("error", (err) => {
+            error = err;
+            writer.close();
+            reject(err);
+          });
+          writer.on("close", () => {
+            if (!error) {
+              resolve(true);
+            }
+            //no need to call the reject here, as it will have been called in the
+            //'error' stream;
+          });
         });
-        writer.on("close", () => {
-          if (!error) {
-            resolve(true);
-          }
-          //no need to call the reject here, as it will have been called in the
-          //'error' stream;
-        });
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    });
 
     var parsedShopifyData = await parseData();
 
     return res.status(200).json(parsedShopifyData);
   } catch (error) {
     console.log("error at 142: " + error.code);
-    return res.status(404).json({ error: "Invalid" });
+    return res.status(404).json([]);
   }
 });
 
