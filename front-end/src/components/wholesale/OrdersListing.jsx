@@ -23,7 +23,7 @@ import { useState, useEffect } from "react";
 import OrderRow from "./OrderRow";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
-import { compareData } from "../../helper/compareData";
+import { compareData, objectUnion } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
@@ -51,7 +51,16 @@ const OrdersListing = () => {
       const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
-        .eq("wednesday_date", wholesaleDates[2]);
+        .eq("wednesday_date", wholesaleDates[2])
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        var supabase_data = data.data;
+        setLoading(false);
+        setOrders(supabase_data);
+      }
+
       enqueueSnackbar(
         `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
         {
@@ -71,15 +80,20 @@ const OrdersListing = () => {
         })
         .then(async (res_data) => {
           json = res_data;
+
           if (json.length) setOrders(json);
-          if (data.length) {
-            if (!compareData(data[0].data, json)) {
+          if (data) {
+            //if data already exists in db, don't 'insert'
+            if (
+              !compareData(supabase_data, json) &&
+              data.updated_at < new Date(wholesaleDates[2])
+            ) {
+              //if data is not the same, update
               //supabase upsert to update json information in db
-              console.log("not same");
               await supabase.from("wholesale_shopify_dates").upsert({
                 wednesday_date: wholesaleDates[2],
-                is_shopify_data_pulled: true,
                 data: json,
+                updated_at: new Date().toISOString(),
               });
             }
           } else {
@@ -87,25 +101,32 @@ const OrdersListing = () => {
               //create an entry in the db with the new wed date along with data from Shopify
               wednesday_date: wholesaleDates[2],
               is_shopify_data_pulled: true,
+              is_excel_file_created: false,
               data: json,
+              updated_at: new Date().toISOString(),
             });
           }
           setLoading(false);
         });
-
-      if (data.length) {
-        setLoading(false);
-        setOrders(data[0].data);
-      }
     } catch (error) {
       enqueueSnackbar(error, {
         variant: "error",
       });
+      console.log(error);
     }
   };
 
   const generateExcel = async () => {
-    await createWholesaleExcel(orders);
+    try {
+      await createWholesaleExcel(orders);
+      await supabase.from("wholesale_shopify_dates").upsert({
+        //create an entry in the db with the new wed date along with data from Shopify
+        wednesday_date: wholesaleDates[2],
+        is_excel_file_created: true,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const editOrders = async () => {
