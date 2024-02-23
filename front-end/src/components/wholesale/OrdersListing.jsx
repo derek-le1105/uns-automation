@@ -81,7 +81,7 @@ const OrdersListing = () => {
         .then(async (res_data) => {
           json = res_data;
 
-          if (json.length) setOrders(json);
+          //if (json.length) setOrders(json);
           if (data) {
             //if data already exists in db, don't 'insert'
             if (
@@ -107,6 +107,7 @@ const OrdersListing = () => {
             });
           }
           setLoading(false);
+          setOrders(json);
         });
     } catch (error) {
       enqueueSnackbar(error, {
@@ -267,6 +268,7 @@ const OrdersListing = () => {
                           <UndoIcon />
                         </IconButton>
                       </TableCell>
+                      <TableCell />
                     </TableRow>
                   </TableHead>
 
