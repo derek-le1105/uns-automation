@@ -48,6 +48,7 @@ const OrdersListing = () => {
     setLoading(true);
     var json;
     try {
+      var is_recent_updated = false;
       const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
@@ -59,6 +60,9 @@ const OrdersListing = () => {
         var supabase_data = data.data;
         setLoading(false);
         setOrders(supabase_data);
+        if ((new Date() - new Date(data.updated_at)) / 60000 < 5) {
+          is_recent_updated = true;
+        }
       }
 
       enqueueSnackbar(
@@ -67,48 +71,46 @@ const OrdersListing = () => {
           variant: "success",
         }
       );
-
-      fetch("/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(wholesaleDates),
-      })
-        .then((res) => {
-          return res.json();
+      if (!is_recent_updated) {
+        fetch("/orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(wholesaleDates),
         })
-        .then(async (res_data) => {
-          json = res_data;
+          .then((res) => {
+            return res.json();
+          })
+          .then(async (res_data) => {
+            json = res_data;
 
-          //if (json.length) setOrders(json);
-          if (data) {
-            //if data already exists in db, don't 'insert'
-            if (
-              !compareData(supabase_data, json) &&
-              data.updated_at < new Date(wholesaleDates[2])
-            ) {
-              //if data is not the same, update
-              //supabase upsert to update json information in db
-              await supabase.from("wholesale_shopify_dates").upsert({
+            //if (json.length) setOrders(json);
+            if (data) {
+              //if data already exists in db, don't 'insert'
+              if (new Date(data.updated_at) < new Date(wholesaleDates[2])) {
+                //if data is not the same, update
+                //supabase upsert to update json information in db
+                await supabase.from("wholesale_shopify_dates").upsert({
+                  wednesday_date: wholesaleDates[2],
+                  data: json,
+                  updated_at: new Date().toISOString(),
+                });
+              }
+            } else {
+              await supabase.from("wholesale_shopify_dates").insert({
+                //create an entry in the db with the new wed date along with data from Shopify
                 wednesday_date: wholesaleDates[2],
+                is_shopify_data_pulled: true,
+                is_excel_file_created: false,
                 data: json,
                 updated_at: new Date().toISOString(),
               });
             }
-          } else {
-            await supabase.from("wholesale_shopify_dates").insert({
-              //create an entry in the db with the new wed date along with data from Shopify
-              wednesday_date: wholesaleDates[2],
-              is_shopify_data_pulled: true,
-              is_excel_file_created: false,
-              data: json,
-              updated_at: new Date().toISOString(),
-            });
-          }
-          setLoading(false);
-          setOrders(json);
-        });
+            setLoading(false);
+            setOrders(json);
+          });
+      }
     } catch (error) {
       enqueueSnackbar(error, {
         variant: "error",
@@ -128,10 +130,6 @@ const OrdersListing = () => {
     } catch (error) {
       console.log(error);
     }
-  };
-
-  const editOrders = async () => {
-    setEditting(!editting);
   };
 
   const inputShipping = async () => {};
@@ -220,7 +218,7 @@ const OrdersListing = () => {
                 fullWidth
                 variant={"contained"}
                 size={"medium"}
-                onClick={editOrders}
+                onClick={() => {}}
               >
                 <Typography fontSize={14}>Edit</Typography>
               </Button>
