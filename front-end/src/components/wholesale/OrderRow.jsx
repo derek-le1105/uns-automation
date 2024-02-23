@@ -33,20 +33,10 @@ const OrderRow = (props) => {
     <>
       <TableRow sx={{ "& > *": { borderBottom: "none" } }}>
         <TableCell>
-          {isEditting ? (
-            <Checkbox
-              name={order.id.toString()}
-              onChange={handleChecked}
-            ></Checkbox>
-          ) : (
-            <IconButton
-              aria-label="expand row"
-              size="small"
-              onClick={() => setOpen(!open)}
-            >
-              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
-          )}
+          <Checkbox
+            name={order.id.toString()}
+            onChange={handleChecked}
+          ></Checkbox>
         </TableCell>
         <TableCell component="th" scope="row">
           {order.order_name}
@@ -76,6 +66,15 @@ const OrderRow = (props) => {
             onClick={() => handleDeleteRow(order.id)}
           >
             <DeleteIcon />
+          </IconButton>
+        </TableCell>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
       </TableRow>
