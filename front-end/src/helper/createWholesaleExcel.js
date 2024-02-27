@@ -55,16 +55,16 @@ export async function createWholesaleExcel(data) {
           item.quantity,
           item.title,
           item.barcode,
-          item.fulfillment_number,
+          order.id,
           item.vendor,
           item.sku,
           customer.slice(0, 5), //customer code
         ];
         if (item.vendor === "CPA-TS") {
-          apc_sheet.addRow(curr_item.slice(0, 4));
+          apc_sheet.addRow(curr_item.slice(0, 5));
           rows[0] += 1;
         } else if (item.vendor === "ACW-TS") {
-          wca_sheet.addRow(curr_item.slice(0, 4));
+          wca_sheet.addRow(curr_item.slice(0, 5));
           rows[1] += 1;
         } else {
           //main_sticker_sheet.addRow(curr_item);
