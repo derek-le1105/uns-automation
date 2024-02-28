@@ -44,12 +44,12 @@ const parseData = async () => {
             dataContainer[dataContainer.length - 1].items.push({
               title: jsonData.name,
               quantity: jsonData.quantity,
-              fulfillment_number: fulfillment_number,
+              //fulfillment_number: fulfillment_number,
               customer_code: currCustomer.slice(0, currCustomer.indexOf(" - ")),
               sku: jsonData.sku == null ? "" : jsonData.sku,
               vendor: jsonData.vendor,
               barcode: jsonData.variant == null ? "" : jsonData.variant.barcode,
-              id: dataContainer[dataContainer.length - 1].items.length + 1,
+              //id: dataContainer[dataContainer.length - 1].items.length + 1,
             });
           }
         } catch (error) {
@@ -74,6 +74,7 @@ const parseData = async () => {
 
 router.post("/", async (req, res) => {
   let fridays = req.body;
+  console.log(fridays);
   try {
     await axios({
       url: process.env.ORDER_RESOURCE_URL,

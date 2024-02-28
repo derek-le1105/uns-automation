@@ -1,36 +1,21 @@
 export function getWholesaleDates() {
-  var friday2 = new Date(), //most recent Friday
-    friday1 = new Date(), //earliest Friday
-    wed1 = new Date(), //most recent Wednesday
-    wed2 = new Date(), //earliest Wednesday
+  var recent_friday = new Date(), //most recent Friday
+    earliest_friday = new Date(), //earliest Friday
+    recent_wed = new Date(), //most recent Wednesday
+    earliest_wed = new Date(), //earliest Wednesday
     day = new Date().getDay();
   var wednesdayDiff = day <= 3 ? 7 - 3 + day : day - 3;
   // day: "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
-  wed1.setDate(wed1.getDate() - wednesdayDiff);
-  wed2.setDate(wed2.getDate() - wednesdayDiff + 7);
-  friday2.setDate(wed1.getDate() + 2);
-  friday2.setHours(0, 0, 0);
-  friday1.setDate(wed1.getDate() - 5);
-  friday1.setHours(0, 0, 0);
+  recent_wed.setDate(recent_wed.getDate() - wednesdayDiff);
+  earliest_wed.setDate(earliest_wed.getDate() - wednesdayDiff + 7);
+  recent_friday.setDate(recent_wed.getDate() + 2);
+  recent_friday.setHours(0, 0, 0);
+  earliest_friday.setDate(recent_wed.getDate() - 5);
+  earliest_friday.setHours(0, 0, 0);
 
-  //return wed2, friday1, and friday2
-  return [
-    toIsoString(friday2),
-    toIsoString(friday1),
-    toIsoString(wed2).slice(0, 10),
-  ];
-}
+  recent_friday = new Date();
+  earliest_friday = new Date(2024, 1, 23);
+  earliest_wed = new Date();
 
-function toIsoString(date) {
-  var pad = function (num) {
-    return (num < 10 ? "0" : "") + num;
-  };
-
-  return (
-    date.getFullYear() +
-    "-" +
-    pad(date.getMonth() + 1) +
-    "-" +
-    pad(date.getDate())
-  );
+  return [recent_friday, earliest_friday, earliest_wed];
 }

@@ -13,9 +13,12 @@ import {
   ButtonGroup,
   CircularProgress,
   IconButton,
-  Checkbox,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import UndoIcon from "@mui/icons-material/Undo";
 
 import { format } from "date-fns";
@@ -28,6 +31,8 @@ import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
 
+import dayjs from "dayjs";
+
 const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
@@ -37,6 +42,9 @@ const OrdersListing = () => {
   const [editting, setEditting] = useState(false);
   const [checkedList, setCheckedList] = useState([]);
   const wholesaleDates = getWholesaleDates();
+  const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[1]));
+  const [afterDate, setAfterDate] = useState(dayjs(wholesaleDates[0]));
+  const [dateChanged, setDateChanged] = useState(false);
 
   useEffect(() => {
     getShopify();
@@ -52,7 +60,7 @@ const OrdersListing = () => {
       const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
-        .eq("wednesday_date", wholesaleDates[2])
+        .eq("wednesday_date", format(wholesaleDates[2], "yyyy-MM-dd"))
         .limit(1)
         .maybeSingle();
 
@@ -60,7 +68,7 @@ const OrdersListing = () => {
         var supabase_data = data.data;
         setLoading(false);
         setOrders(supabase_data);
-        if ((new Date() - new Date(data.updated_at)) / 60000 < 5) {
+        if ((new Date() - new Date(data.updated_at)) / 60000 < 1) {
           is_recent_updated = true;
         }
       }
@@ -77,7 +85,7 @@ const OrdersListing = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(wholesaleDates),
+          body: JSON.stringify([afterDate, beforeDate]),
         })
           .then((res) => {
             return res.json();
@@ -92,7 +100,7 @@ const OrdersListing = () => {
                 //if data is not the same, update
                 //supabase upsert to update json information in db
                 await supabase.from("wholesale_shopify_dates").upsert({
-                  wednesday_date: wholesaleDates[2],
+                  wednesday_date: format(wholesaleDates[2], "yyyy-MM-dd"),
                   data: json,
                   updated_at: new Date().toISOString(),
                 });
@@ -100,7 +108,7 @@ const OrdersListing = () => {
             } else {
               await supabase.from("wholesale_shopify_dates").insert({
                 //create an entry in the db with the new wed date along with data from Shopify
-                wednesday_date: wholesaleDates[2],
+                wednesday_date: format(wholesaleDates[2], "yyyy-MM-dd"),
                 is_shopify_data_pulled: true,
                 is_excel_file_created: false,
                 data: json,
@@ -124,7 +132,7 @@ const OrdersListing = () => {
       await createWholesaleExcel(orders);
       await supabase.from("wholesale_shopify_dates").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
-        wednesday_date: wholesaleDates[2],
+        wednesday_date: format(wholesaleDates[2], "yyyy-MM-dd"),
         is_excel_file_created: true,
       });
     } catch (error) {
@@ -200,16 +208,53 @@ const OrdersListing = () => {
           background: `${theme.palette.grey[100]}`,
         }}
       >
-        <Grid container sx={{ padding: "25px 50px" }}>
+        <Grid container spacing={2} sx={{ padding: "25px 50px" }}>
           <Grid item xs={9}>
-            <Typography align="left" variant="h4">
-              {orders
-                ? `Wholesale Orders | ${format(
-                    new Date(wholesaleDates[1]),
-                    "MM/dd/yyyy"
-                  )} - ${format(new Date(wholesaleDates[0]), "MM/dd/yyyy")}`
-                : "Wholesale Orders"}
-            </Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
+                <Grid container spacing={4} sx={{ maxWidth: "100%" }}>
+                  <Grid item xs={3}>
+                    <Typography align="left" variant="h4">
+                      {"Wholesale Orders"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <DateTimePicker
+                      label="Start"
+                      defaultValue={dayjs(wholesaleDates[1])}
+                      onChange={(newValue) => {
+                        setBeforeDate(newValue);
+                        setDateChanged(true);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <DateTimePicker
+                      label="End"
+                      value={afterDate}
+                      onChange={(newValue) => {
+                        setAfterDate(newValue);
+                        setDateChanged(true);
+                      }}
+                    />
+                  </Grid>
+                  {dateChanged && (
+                    <Grid item xs={3}>
+                      <Button
+                        sx={{ height: "100%" }}
+                        variant={"contained"}
+                        size={"medium"}
+                        onClick={() => {
+                          getShopify();
+                        }}
+                      >
+                        <Typography fontSize={14}>Edit</Typography>
+                      </Button>
+                    </Grid>
+                  )}
+                </Grid>
+              </DemoContainer>
+            </LocalizationProvider>
           </Grid>
 
           <Grid item xs={3} sx={{ alignItems: "end" }}>
