@@ -61,11 +61,24 @@ export async function createWholesaleExcel(data) {
           customer.slice(0, 5), //customer code
         ];
         if (item.vendor === "CPA-TS") {
-          apc_sheet.addRow(curr_item.slice(0, 4));
-          rows[0] += 1;
+          if (
+            item.title.toLowerCase().includes("cup") ||
+            item.title.toLowerCase().includes("tissue culture")
+          ) {
+            wca_sheet.addRow(curr_item.slice(0, 5));
+            rows[1] += 1;
+          } else {
+            apc_sheet.addRow(curr_item.slice(0, 5));
+            rows[0] += 1;
+          }
         } else if (item.vendor === "ACW-TS") {
-          wca_sheet.addRow(curr_item.slice(0, 4));
-          rows[1] += 1;
+          if (item.title.toLowerCase().includes("mother")) {
+            apc_sheet.addRow(curr_item.slice(0, 5));
+            rows[0] += 1;
+          } else {
+            wca_sheet.addRow(curr_item.slice(0, 5));
+            rows[1] += 1;
+          }
         } else {
           //main_sticker_sheet.addRow(curr_item);
           //main_sheet.addRow(curr_item);
