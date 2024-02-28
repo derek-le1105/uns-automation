@@ -55,7 +55,7 @@ export async function createWholesaleExcel(data) {
           item.quantity,
           item.title,
           item.barcode,
-          item.fulfillment_number,
+          order.id,
           item.vendor,
           item.sku,
           customer.slice(0, 5), //customer code
