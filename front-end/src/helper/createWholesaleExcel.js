@@ -65,18 +65,18 @@ export async function createWholesaleExcel(data) {
             item.title.toLowerCase().includes("cup") ||
             item.title.toLowerCase().includes("tissue culture")
           ) {
-            wca_sheet.addRow(curr_item);
+            wca_sheet.addRow(curr_item.slice(0, 5));
             rows[1] += 1;
           } else {
-            apc_sheet.addRow(curr_item);
+            apc_sheet.addRow(curr_item.slice(0, 5));
             rows[0] += 1;
           }
         } else if (item.vendor === "ACW-TS") {
           if (item.title.toLowerCase().includes("mother")) {
-            apc_sheet.addRow(curr_item);
+            apc_sheet.addRow(curr_item.slice(0, 5));
             rows[0] += 1;
           } else {
-            wca_sheet.addRow(curr_item);
+            wca_sheet.addRow(curr_item.slice(0, 5));
             rows[1] += 1;
           }
         } else {
