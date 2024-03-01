@@ -35,7 +35,7 @@ const OrdersListing = () => {
   const [deleteStack, setDeleteStack] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editting, setEditting] = useState(false);
-  const [checkedList, setCheckedList] = useState([]);
+  const [batchList, setBatchList] = useState([]);
   const wholesaleDates = getWholesaleDates();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const OrdersListing = () => {
     var json;
     try {
       var is_recent_updated = false;
-      const { data } = await supabase //see if there's an entry in the db with the wed date as the key
+      /*const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
         .eq("wednesday_date", wholesaleDates[2])
@@ -63,7 +63,7 @@ const OrdersListing = () => {
         if ((new Date() - new Date(data.updated_at)) / 60000 < 5) {
           is_recent_updated = true;
         }
-      }
+      }*/
 
       enqueueSnackbar(
         `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
@@ -86,7 +86,7 @@ const OrdersListing = () => {
             json = res_data;
 
             //if (json.length) setOrders(json);
-            if (data) {
+            /*if (data) {
               //if data already exists in db, don't 'insert'
               if (new Date(data.updated_at) < new Date(wholesaleDates[2])) {
                 //if data is not the same, update
@@ -106,7 +106,7 @@ const OrdersListing = () => {
                 data: json,
                 updated_at: new Date().toISOString(),
               });
-            }
+            }*/
             setLoading(false);
             setOrders(json);
           });
@@ -120,8 +120,13 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
+    //TODO: fix fulfillment codes on each order
+    //      allow users to specify where they want to fulfillment code to start on
+    //      e.g: 0 being default and start of beginning of batch
+    //           position 5 meaning there were 4 orders created in a prior batch
+
     try {
-      await createWholesaleExcel(orders);
+      await createWholesaleExcel(batchList);
       await supabase.from("wholesale_shopify_dates").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
         wednesday_date: wholesaleDates[2],
@@ -181,12 +186,12 @@ const OrdersListing = () => {
   };
 
   const handleChecked = (event) => {
-    if (checkedList.includes(event.target.name)) {
-      setCheckedList(
-        checkedList.filter((checked) => checked !== event.target.name)
+    if (batchList.includes(orders[event.target.name - 1])) {
+      setBatchList(
+        batchList.filter((checked) => checked !== orders[event.target.name - 1])
       );
     } else {
-      setCheckedList([...checkedList, event.target.name]);
+      setBatchList([...batchList, orders[event.target.name - 1]]);
     }
   };
 

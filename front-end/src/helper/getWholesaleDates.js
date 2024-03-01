@@ -10,27 +10,14 @@ export function getWholesaleDates() {
   wed2.setDate(wed2.getDate() - wednesdayDiff + 7);
   friday2.setDate(wed1.getDate() + 2);
   friday2.setHours(0, 0, 0);
-  friday1.setDate(wed1.getDate() - 5);
+  friday1.setDate(wed1.getDate() - 12);
   friday1.setHours(0, 0, 0);
 
   //return wed2, friday1, and friday2
-  return [
+  /*return [
     toIsoString(friday2),
     toIsoString(friday1),
     toIsoString(wed2).slice(0, 10),
-  ];
-}
-
-function toIsoString(date) {
-  var pad = function (num) {
-    return (num < 10 ? "0" : "") + num;
-  };
-
-  return (
-    date.getFullYear() +
-    "-" +
-    pad(date.getMonth() + 1) +
-    "-" +
-    pad(date.getDate())
-  );
+  ];*/
+  return [friday2, friday1, wed2];
 }

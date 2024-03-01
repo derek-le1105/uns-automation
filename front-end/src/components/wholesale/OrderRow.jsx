@@ -22,11 +22,39 @@ import { useState, useEffect } from "react";
 const OrderRow = (props) => {
   const { order, handleDeleteRow, isEditting, handleChecked } = props;
   const [open, setOpen] = useState(false);
-  const [shipping, setShipping] = useState("Fedex");
+  const [shipping, setShipping] = useState(order.shipping);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    document.addEventListener("keydown", detectKeydown);
+    return () => document.removeEventListener("keydown", detectKeydown);
+  }, [checked]);
+
+  const detectKeydown = (e) => {
+    if (checked) {
+      if (e.key === "a" || e.key === "A") {
+        setShipping("Airport");
+        order.shipping = "Airport";
+      } else if (e.key === "f" || e.key === "F") {
+        setShipping("Fedex");
+        order.shipping = "Fedex";
+      } else if (e.key === "g" || e.key === "G") {
+        setShipping("GLS");
+        order.shipping = "GLS";
+      } else if (e.key === "Space") {
+        setChecked((current) => !current);
+      }
+    }
+  };
 
   const handleChange = (event) => {
     setShipping(event.target.value);
     order.shipping = event.target.value;
+  };
+
+  const handleChecking = (e) => {
+    setChecked((curr) => !curr);
+    handleChecked(e);
   };
 
   return (
@@ -35,7 +63,8 @@ const OrderRow = (props) => {
         <TableCell>
           <Checkbox
             name={order.id.toString()}
-            onChange={handleChecked}
+            onChange={handleChecking}
+            inputProps={{ "aria-label": "controlled" }}
           ></Checkbox>
         </TableCell>
         <TableCell component="th" scope="row">
