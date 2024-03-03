@@ -6,9 +6,35 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { List, ListItem } from "@mui/material";
 
-import { useState } from "react";
+import { supabase } from "../../supabaseClient";
+import { useState, useEffect } from "react";
 
-const BatchModal = ({ openModal, onClose, batch }) => {
+const BatchModal = ({ openModal, onClose, batch, row_date }) => {
+  const [prevBatchLength, setPrevBatchLength] = useState();
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data } = await supabase
+        .from("batch_data")
+        .select()
+        .eq("wednesday_date", row_date, "MM/dd/yyyy")
+        .limit(1)
+        .maybeSingle();
+
+      var batchLength = 1;
+
+      for (let batch in data) {
+        if (batch === "wednesday_date") continue;
+        if (data[batch]) batchLength += data[batch].length;
+      }
+
+      setPrevBatchLength(batchLength);
+    }
+    fetchData().catch((error) => {
+      console.log(error);
+    });
+  }, []);
+
   const handleClose = () => {
     onClose(false);
   };
@@ -38,7 +64,9 @@ const BatchModal = ({ openModal, onClose, batch }) => {
               );
             })}
         </List>
-        <DialogContentText id="alert-dialog-description"></DialogContentText>
+        <DialogContentText id="alert-dialog-description">
+          {`The fulfillment code for this batch will start with code: ${prevBatchLength}`}
+        </DialogContentText>
       </DialogContent>
 
       <DialogActions>

@@ -65,7 +65,10 @@ const OrdersListing = () => {
       }
 
       enqueueSnackbar(
-        `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
+        `Pulling Shopify orders between dates ${format(
+          wholesaleDates[1],
+          "MM/dd/yyyy"
+        )} - ${format(wholesaleDates[0], "MM/dd/yyy")}`,
         {
           variant: "success",
         }
@@ -122,35 +125,23 @@ const OrdersListing = () => {
     //      allow users to specify where they want to fulfillment code to start on
     //      e.g: 0 being default and start of beginning of batch
     //           position 5 meaning there were 4 orders created in a prior batch
-    if (batchList.length < 1) {
-      enqueueSnackbar("Please select at least one order", {
-        variant: "error",
-      });
-    } else {
-      try {
-        await createWholesaleExcel(batchList, 1);
 
-        await supabase.from("batch_data").upsert({
-          //create an entry in the db with the new wed date along with data from Shopify
-          wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
-          [new Date().getDay()]: batchList.map((order, index) => {
-            return { ...order, id: index + 1 };
-          }),
-        });
-      } catch (error) {
-        console.log(error);
-      }
+    try {
+      await createWholesaleExcel(batchList, 1);
+
+      await supabase.from("batch_data").upsert({
+        //create an entry in the db with the new wed date along with data from Shopify
+        wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
+        [new Date().getDay()]: batchList.map((order, index) => {
+          return { ...order, id: index + 1 };
+        }),
+      });
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const inputShipping = async () => {};
-
-  const formatDate = (dates) => {
-    return `${format(new Date(dates[1]), "MM/dd/yyyy")} - ${format(
-      new Date(dates[0]),
-      "MM/dd/yyyy"
-    )}`;
-  };
 
   const handleChecked = (event) => {
     if (batchList.includes(orders[event.target.name - 1])) {
@@ -196,16 +187,12 @@ const OrdersListing = () => {
                 variant={"contained"}
                 size={"medium"}
                 onClick={() => {
-                  setOpenModal(true);
+                  if (batchList.length < 1) {
+                    enqueueSnackbar("Please select at least one order", {
+                      variant: "error",
+                    });
+                  } else setOpenModal(true);
                 }}
-              >
-                <Typography fontSize={14}>Edit</Typography>
-              </Button>
-              <Button
-                fullWidth
-                variant={"contained"}
-                size={"medium"}
-                onClick={generateExcel}
               >
                 <Typography fontSize={14}>Create Excel</Typography>
               </Button>
@@ -253,6 +240,7 @@ const OrdersListing = () => {
                     openModal={openModal}
                     onClose={handleDialogClose}
                     batch={batchList}
+                    row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
                   />
                 </Table>
               </TableContainer>
