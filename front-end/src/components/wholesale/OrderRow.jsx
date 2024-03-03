@@ -19,8 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { useState, useEffect } from "react";
 
-const OrderRow = (props) => {
-  const { order, handleDeleteRow, isEditting, handleChecked } = props;
+const OrderRow = ({ order, handleChecked }) => {
   const [open, setOpen] = useState(false);
   const [shipping, setShipping] = useState(order.shipping);
   const [checked, setChecked] = useState(false);
@@ -70,7 +69,7 @@ const OrderRow = (props) => {
         <TableCell component="th" scope="row">
           {order.order_name}
         </TableCell>
-        <TableCell align="center">{order.id}</TableCell>
+        {/* <TableCell align="center">{order.id}</TableCell> */}
         <TableCell align="left">{order.customer.first_name}</TableCell>
         <TableCell align="left">
           <FormControl sx={{ m: 1 }} size="small" fullWidth>
@@ -88,7 +87,7 @@ const OrderRow = (props) => {
             </Select>
           </FormControl>
         </TableCell>
-        <TableCell>
+        {/* <TableCell>
           <IconButton
             aria-label="delete row"
             size="small"
@@ -96,7 +95,7 @@ const OrderRow = (props) => {
           >
             <DeleteIcon />
           </IconButton>
-        </TableCell>
+        </TableCell> */}
         <TableCell>
           <IconButton
             aria-label="expand row"
