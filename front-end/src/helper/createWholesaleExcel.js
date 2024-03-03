@@ -1,7 +1,8 @@
 import * as Excel from "exceljs";
 import { saveAs } from "file-saver";
 
-export async function createWholesaleExcel(data) {
+export async function createWholesaleExcel(data, batch_length) {
+  console.log(batch_length);
   try {
     const regex = /\s-\s\d+\s+pack\s*/i;
     const APC_WB = new Excel.Workbook();
@@ -29,12 +30,12 @@ export async function createWholesaleExcel(data) {
 
     Object.values(data).map((order, idx) => {
       let customer = order.order_name;
-      apc_sheet.addRow([customer, "", "", order.id]);
-      wca_sheet.addRow([customer, "", "", order.id]);
+      apc_sheet.addRow([customer, "", "", batch_length]);
+      wca_sheet.addRow([customer, "", "", batch_length]);
       apc_sheet.addRow();
       wca_sheet.addRow();
       store_order_sheet.addRow([
-        order.id,
+        batch_length,
         customer,
         `1 1 1 ${order.shipping}`,
         "-",
@@ -55,7 +56,7 @@ export async function createWholesaleExcel(data) {
           item.quantity,
           item.title,
           item.barcode,
-          order.id,
+          batch_length,
           item.vendor,
           item.sku,
           customer.slice(0, 5), //customer code
@@ -92,6 +93,7 @@ export async function createWholesaleExcel(data) {
       apc_sheet.addRow([]);
       wca_sheet.addRow([]);
       rows = rows.map((row) => (row += 2));
+      batch_length += 1;
     });
     for (let category of main_data) {
       category.sort((a, b) => {
