@@ -125,6 +125,19 @@ const OrdersListing = () => {
     //      allow users to specify where they want to fulfillment code to start on
     //      e.g: 0 being default and start of beginning of batch
     //           position 5 meaning there were 4 orders created in a prior batch
+    const { data } = await supabase
+      .from("batch_data")
+      .select()
+      .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
+      .limit(1)
+      .maybeSingle();
+
+    var new_batch = batchList.map((order, index) => {
+      return { ...order, id: index + 1 };
+    });
+
+    if (data[new Date().getDay()])
+      new_batch = [...data[new Date().getDay()], ...new_batch];
 
     try {
       await createWholesaleExcel(batchList, 1);
@@ -132,9 +145,7 @@ const OrdersListing = () => {
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
         wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
-        [new Date().getDay()]: batchList.map((order, index) => {
-          return { ...order, id: index + 1 };
-        }),
+        [new Date().getDay()]: new_batch,
       });
     } catch (error) {
       console.log(error);
@@ -144,13 +155,24 @@ const OrdersListing = () => {
   const inputShipping = async () => {};
 
   const handleChecked = (event) => {
-    if (batchList.includes(orders[event.target.name - 1])) {
-      setBatchList(
-        batchList.filter((checked) => checked !== orders[event.target.name - 1])
+    let new_batch_list = [...batchList, orders[event.target.name - 1]];
+
+    const isIncluded = () => {
+      for (let order of batchList) {
+        if (order.order_name === orders[event.target.name - 1].order_name) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (isIncluded()) {
+      new_batch_list = new_batch_list.filter(
+        (checked) =>
+          checked.order_name !== orders[event.target.name - 1].order_name
       );
-    } else {
-      setBatchList([...batchList, orders[event.target.name - 1]]);
     }
+    setBatchList(new_batch_list);
   };
 
   const handleDialogClose = (value) => {
@@ -236,12 +258,14 @@ const OrdersListing = () => {
                         );
                       })}
                   </TableBody>
-                  <BatchModal
-                    openModal={openModal}
-                    onClose={handleDialogClose}
-                    batch={batchList}
-                    row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
-                  />
+                  {openModal && (
+                    <BatchModal
+                      openModal={openModal}
+                      onClose={handleDialogClose}
+                      batch={batchList}
+                      row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
+                    />
+                  )}
                 </Table>
               </TableContainer>
             )

@@ -17,7 +17,7 @@ const BatchModal = ({ openModal, onClose, batch, row_date }) => {
       const { data } = await supabase
         .from("batch_data")
         .select()
-        .eq("wednesday_date", row_date, "MM/dd/yyyy")
+        .eq("wednesday_date", row_date)
         .limit(1)
         .maybeSingle();
 
@@ -44,7 +44,7 @@ const BatchModal = ({ openModal, onClose, batch, row_date }) => {
   return (
     <Dialog
       open={openModal}
-      onClose={onClose}
+      onClose={handleClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
