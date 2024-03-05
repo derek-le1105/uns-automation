@@ -24,11 +24,7 @@ import OrderRow from "./OrderRow";
 import BatchModal from "./BatchModal";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
-import {
-  compareData,
-  objectUnion,
-  isObjectIncluded,
-} from "../../helper/dataFunctions";
+import { isObjectIncluded, objectLength } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
@@ -135,16 +131,17 @@ const OrdersListing = () => {
       .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
       .limit(1)
       .maybeSingle();
+    var [batch_length] = objectLength(data);
 
     var new_batch = batchList.map((order, index) => {
-      return { ...order, id: index + 1 };
+      return { ...order, id: index + batch_length };
     });
 
     if (data[new Date().getDay()])
       new_batch = [...data[new Date().getDay()], ...new_batch];
 
     try {
-      await createWholesaleExcel(batchList, 1);
+      await createWholesaleExcel(batchList, batch_length);
 
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
