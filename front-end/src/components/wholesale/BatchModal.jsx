@@ -9,10 +9,14 @@ import { List, ListItem } from "@mui/material";
 import { supabase } from "../../supabaseClient";
 import { useState, useEffect } from "react";
 
+import { isObjectIncluded } from "../../helper/dataFunctions";
+
 const BatchModal = ({ openModal, onClose, batch, row_date }) => {
   const [prevBatchLength, setPrevBatchLength] = useState();
+  const [supabaseData, setSupabaseData] = useState([]);
 
   useEffect(() => {
+    //TODO: add precaution if selected order was in a previous batch
     async function fetchData() {
       const { data } = await supabase
         .from("batch_data")
@@ -22,12 +26,16 @@ const BatchModal = ({ openModal, onClose, batch, row_date }) => {
         .maybeSingle();
 
       var batchLength = 1;
-
+      var all_batches = [];
       for (let batch in data) {
         if (batch === "wednesday_date") continue;
-        if (data[batch]) batchLength += data[batch].length;
+        if (data[batch]) {
+          all_batches = [...all_batches, ...data[batch]];
+          batchLength += data[batch].length;
+        }
       }
-
+      console.log(all_batches);
+      setSupabaseData(all_batches);
       setPrevBatchLength(batchLength);
     }
     fetchData().catch((error) => {
@@ -57,8 +65,12 @@ const BatchModal = ({ openModal, onClose, batch, row_date }) => {
             batch.map((order, index) => {
               return (
                 <ListItem key={order.order_name}>
-                  <DialogContentText id="alert-dialog-description">
-                    {order.order_name}
+                  <DialogContentText>
+                    {`${order.order_name} ${
+                      isObjectIncluded(supabaseData, order)
+                        ? "This order already exists in a previous batch"
+                        : ""
+                    }`}
                   </DialogContentText>
                 </ListItem>
               );

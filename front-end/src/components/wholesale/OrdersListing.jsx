@@ -24,7 +24,11 @@ import OrderRow from "./OrderRow";
 import BatchModal from "./BatchModal";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
-import { compareData, objectUnion } from "../../helper/dataFunctions";
+import {
+  compareData,
+  objectUnion,
+  isObjectIncluded,
+} from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
@@ -157,16 +161,7 @@ const OrdersListing = () => {
   const handleChecked = (event) => {
     let new_batch_list = [...batchList, orders[event.target.name - 1]];
 
-    const isIncluded = () => {
-      for (let order of batchList) {
-        if (order.order_name === orders[event.target.name - 1].order_name) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    if (isIncluded()) {
+    if (isObjectIncluded(batchList, orders[event.target.name - 1])) {
       new_batch_list = new_batch_list.filter(
         (checked) =>
           checked.order_name !== orders[event.target.name - 1].order_name
