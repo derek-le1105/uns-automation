@@ -12,7 +12,12 @@ import {
   Button,
   ButtonGroup,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useTheme } from "@mui/material/styles";
 
 import { format } from "date-fns";
@@ -26,12 +31,17 @@ import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
 
+import dayjs from "dayjs";
+
 const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
   const wholesaleDates = getWholesaleDates();
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[1]));
+  const [afterDate, setAfterDate] = useState(dayjs(wholesaleDates[0]));
+  const [dateChanged, setDateChanged] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [batchList, setBatchList] = useState([]);
 
@@ -75,7 +85,7 @@ const OrdersListing = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(wholesaleDates),
+          body: JSON.stringify([afterDate, beforeDate]),
         })
           .then((res) => {
             return res.json();
@@ -173,16 +183,53 @@ const OrdersListing = () => {
           background: `${theme.palette.grey[100]}`,
         }}
       >
-        <Grid container sx={{ padding: "25px 50px" }}>
+        <Grid container spacing={2} sx={{ padding: "25px 50px" }}>
           <Grid item xs={9}>
-            <Typography align="left" variant="h4">
-              {orders
-                ? `Wholesale Orders | ${format(
-                    new Date(wholesaleDates[1]),
-                    "MM/dd/yyyy"
-                  )} - ${format(new Date(wholesaleDates[0]), "MM/dd/yyyy")}`
-                : "Wholesale Orders"}
-            </Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
+                <Grid container spacing={4} sx={{ maxWidth: "100%" }}>
+                  <Grid item xs={3}>
+                    <Typography align="left" variant="h4">
+                      {"Wholesale Orders"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <DateTimePicker
+                      label="Start"
+                      defaultValue={dayjs(wholesaleDates[1])}
+                      onChange={(newValue) => {
+                        setBeforeDate(newValue);
+                        setDateChanged(true);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={3}>
+                    <DateTimePicker
+                      label="End"
+                      value={afterDate}
+                      onChange={(newValue) => {
+                        setAfterDate(newValue);
+                        setDateChanged(true);
+                      }}
+                    />
+                  </Grid>
+                  {dateChanged && (
+                    <Grid item xs={3}>
+                      <Button
+                        sx={{ height: "100%" }}
+                        variant={"contained"}
+                        size={"medium"}
+                        onClick={() => {
+                          getShopify();
+                        }}
+                      >
+                        <Typography fontSize={14}>Edit</Typography>
+                      </Button>
+                    </Grid>
+                  )}
+                </Grid>
+              </DemoContainer>
+            </LocalizationProvider>
           </Grid>
 
           <Grid item xs={3} sx={{ alignItems: "end" }}>

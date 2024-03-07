@@ -74,6 +74,7 @@ const parseData = async () => {
 
 router.post("/", async (req, res) => {
   let fridays = req.body;
+  console.log(fridays);
   try {
     await axios({
       url: process.env.ORDER_RESOURCE_URL,

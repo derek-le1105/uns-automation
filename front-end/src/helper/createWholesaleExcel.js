@@ -83,9 +83,9 @@ export async function createWholesaleExcel(data, batch_length) {
           //main_sticker_sheet.addRow(curr_item);
           //main_sheet.addRow(curr_item);
           //main_data.push(curr_item);
-          if (curr_item[4].includes("CPA") || curr_item[4].includes("WCA"))
+          if (item.vendor.includes("CPA") || item.vendor.includes("WCA"))
             main_data[0].push(curr_item);
-          else if (curr_item[4].includes("BBA")) main_data[2].push(curr_item);
+          else if (item.vendor.includes("BBA")) main_data[2].push(curr_item);
           else main_data[1].push(curr_item);
         }
       });

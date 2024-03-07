@@ -1,10 +1,10 @@
 import { add, sub } from "date-fns";
 
 export function getWholesaleDates() {
-  var friday2 = new Date(), //most recent Friday
-    friday1 = new Date(), //earliest Friday
-    wed1 = new Date(), //most recent Wednesday
-    wed2 = new Date(), //earliest Wednesday
+  var recent_friday = new Date(), //most recent Friday
+    earliest_friday = new Date(), //earliest Friday
+    recent_wed = new Date(), //most recent Wednesday
+    earliest_wed = new Date(), //earliest Wednesday
     day = new Date().getDay();
   var wednesdayDiff = day <= 3 ? 7 - 3 + day : day - 3;
   // day: "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
