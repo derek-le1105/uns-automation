@@ -12,11 +12,8 @@ import {
   Button,
   ButtonGroup,
   CircularProgress,
-  IconButton,
-  Checkbox,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import UndoIcon from "@mui/icons-material/Undo";
 
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -43,8 +40,6 @@ const OrdersListing = () => {
   }, []);
 
   const getShopify = async () => {
-    //TODO: account for case where saved data to the db does not contain all of the orders
-    //      i.e: data was saved before all 'edit order' tagged orders were completed
     setLoading(true);
     var json;
     try {
@@ -88,7 +83,6 @@ const OrdersListing = () => {
           .then(async (res_data) => {
             json = res_data;
 
-            //if (json.length) setOrders(json);
             if (data) {
               //if data already exists in db, don't 'insert'
               if (new Date(data.updated_at) < new Date(wholesaleDates[2])) {
@@ -121,10 +115,7 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
-    //TODO: fix fulfillment codes on each order
-    //      allow users to specify where they want to fulfillment code to start on
-    //      e.g: 0 being default and start of beginning of batch
-    //           position 5 meaning there were 4 orders created in a prior batch
+    //TODO: uncheck all checked boxes after generating
     const { data } = await supabase
       .from("batch_data")
       .select()
@@ -167,9 +158,9 @@ const OrdersListing = () => {
     setBatchList(new_batch_list);
   };
 
-  const handleDialogClose = (value) => {
+  const handleDialogClose = (valid_confirmation) => {
     setOpenModal(false);
-    if (value) generateExcel();
+    if (valid_confirmation) generateExcel();
   };
 
   return (

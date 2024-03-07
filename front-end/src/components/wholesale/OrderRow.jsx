@@ -15,7 +15,6 @@ import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import DeleteIcon from "@mui/icons-material/Delete";
 
 import { useState, useEffect } from "react";
 
@@ -69,7 +68,6 @@ const OrderRow = ({ order, handleChecked }) => {
         <TableCell component="th" scope="row">
           {order.order_name}
         </TableCell>
-        {/* <TableCell align="center">{order.id}</TableCell> */}
         <TableCell align="left">{order.customer.first_name}</TableCell>
         <TableCell align="left">
           <FormControl sx={{ m: 1 }} size="small" fullWidth>
@@ -87,15 +85,6 @@ const OrderRow = ({ order, handleChecked }) => {
             </Select>
           </FormControl>
         </TableCell>
-        {/* <TableCell>
-          <IconButton
-            aria-label="delete row"
-            size="small"
-            onClick={() => handleDeleteRow(order.id)}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </TableCell> */}
         <TableCell>
           <IconButton
             aria-label="expand row"

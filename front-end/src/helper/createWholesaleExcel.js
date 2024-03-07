@@ -2,7 +2,6 @@ import * as Excel from "exceljs";
 import { saveAs } from "file-saver";
 
 export async function createWholesaleExcel(data, batch_length) {
-  console.log(batch_length);
   try {
     const regex = /\s-\s\d+\s+pack\s*/i;
     const APC_WB = new Excel.Workbook();
