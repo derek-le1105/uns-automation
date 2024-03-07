@@ -12,18 +12,16 @@ import {
   Button,
   ButtonGroup,
   CircularProgress,
-  IconButton,
-  Checkbox,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import UndoIcon from "@mui/icons-material/Undo";
 
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import OrderRow from "./OrderRow";
+import BatchModal from "./BatchModal";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
-import { compareData, objectUnion } from "../../helper/dataFunctions";
+import { isObjectIncluded, objectLength } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
@@ -31,20 +29,17 @@ import { supabase } from "../../supabaseClient";
 const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
-  const [orders, setOrders] = useState(null);
-  const [deleteStack, setDeleteStack] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [editting, setEditting] = useState(false);
-  const [checkedList, setCheckedList] = useState([]);
   const wholesaleDates = getWholesaleDates();
+  const [orders, setOrders] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [batchList, setBatchList] = useState([]);
 
   useEffect(() => {
     getShopify();
   }, []);
 
   const getShopify = async () => {
-    //TODO: account for case where saved data to the db does not contain all of the orders
-    //      i.e: data was saved before all 'edit order' tagged orders were completed
     setLoading(true);
     var json;
     try {
@@ -52,25 +47,28 @@ const OrdersListing = () => {
       const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
-        .eq("wednesday_date", wholesaleDates[2])
+        .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
         .limit(1)
         .maybeSingle();
 
       if (data) {
-        var supabase_data = data.data;
         setLoading(false);
-        setOrders(supabase_data);
+        setOrders(data.data);
         if ((new Date() - new Date(data.updated_at)) / 60000 < 5) {
           is_recent_updated = true;
         }
       }
 
       enqueueSnackbar(
-        `Pulling Shopify orders between dates ${formatDate(wholesaleDates)}`,
+        `Pulling Shopify orders between dates ${format(
+          wholesaleDates[1],
+          "MM/dd/yyyy"
+        )} - ${format(wholesaleDates[0], "MM/dd/yyy")}`,
         {
           variant: "success",
         }
       );
+
       if (!is_recent_updated) {
         fetch("/orders", {
           method: "POST",
@@ -85,14 +83,13 @@ const OrdersListing = () => {
           .then(async (res_data) => {
             json = res_data;
 
-            //if (json.length) setOrders(json);
             if (data) {
               //if data already exists in db, don't 'insert'
               if (new Date(data.updated_at) < new Date(wholesaleDates[2])) {
                 //if data is not the same, update
                 //supabase upsert to update json information in db
                 await supabase.from("wholesale_shopify_dates").upsert({
-                  wednesday_date: wholesaleDates[2],
+                  wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
                   data: json,
                   updated_at: new Date().toISOString(),
                 });
@@ -100,9 +97,7 @@ const OrdersListing = () => {
             } else {
               await supabase.from("wholesale_shopify_dates").insert({
                 //create an entry in the db with the new wed date along with data from Shopify
-                wednesday_date: wholesaleDates[2],
-                is_shopify_data_pulled: true,
-                is_excel_file_created: false,
+                wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
                 data: json,
                 updated_at: new Date().toISOString(),
               });
@@ -120,12 +115,29 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
+    //TODO: uncheck all checked boxes after generating
+    const { data } = await supabase
+      .from("batch_data")
+      .select()
+      .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
+      .limit(1)
+      .maybeSingle();
+    var [batch_length] = objectLength(data);
+
+    var new_batch = batchList.map((order, index) => {
+      return { ...order, id: index + batch_length };
+    });
+
+    if (data[new Date().getDay()])
+      new_batch = [...data[new Date().getDay()], ...new_batch];
+
     try {
-      await createWholesaleExcel(orders);
-      await supabase.from("wholesale_shopify_dates").upsert({
+      await createWholesaleExcel(batchList, batch_length);
+
+      await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
-        wednesday_date: wholesaleDates[2],
-        is_excel_file_created: true,
+        wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
+        [new Date().getDay()]: new_batch,
       });
     } catch (error) {
       console.log(error);
@@ -134,60 +146,21 @@ const OrdersListing = () => {
 
   const inputShipping = async () => {};
 
-  const handleDeleteRow = (order_id) => {
-    try {
-      let new_delete = orders[order_id - 1];
-
-      enqueueSnackbar(`Deleted ${orders[order_id].order_name}`, {
-        variant: "success",
-      });
-      const updatedArray = orders
-        .filter((item, index) => index !== order_id - 1)
-        .map((item, index) => ({
-          ...item,
-          id: index + 1, // Update the id based on the new order
-        }));
-      setOrders(updatedArray);
-      setDeleteStack([...deleteStack, new_delete]);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const undoDelete = () => {
-    try {
-      const top = deleteStack[deleteStack.length - 1];
-      const newArray = [
-        ...orders.slice(0, top.id - 1),
-        top,
-        ...orders.slice(top.id - 1),
-      ];
-      setOrders(newArray.map((item, index) => ({ ...item, id: index + 1 })));
-      setDeleteStack(deleteStack.slice(0, -1));
-      enqueueSnackbar(`Recovered ${top.order_name}`, { variant: "success" });
-    } catch (error) {
-      if (error instanceof TypeError) {
-        enqueueSnackbar(`Nothing to delete`, { variant: "error" });
-      }
-      console.log(error);
-    }
-  };
-
-  const formatDate = (dates) => {
-    return `${format(new Date(dates[1]), "MM/dd/yyyy")} - ${format(
-      new Date(dates[0]),
-      "MM/dd/yyyy"
-    )}`;
-  };
-
   const handleChecked = (event) => {
-    if (checkedList.includes(event.target.name)) {
-      setCheckedList(
-        checkedList.filter((checked) => checked !== event.target.name)
+    let new_batch_list = [...batchList, orders[event.target.name - 1]];
+
+    if (isObjectIncluded(batchList, orders[event.target.name - 1])) {
+      new_batch_list = new_batch_list.filter(
+        (checked) =>
+          checked.order_name !== orders[event.target.name - 1].order_name
       );
-    } else {
-      setCheckedList([...checkedList, event.target.name]);
     }
+    setBatchList(new_batch_list);
+  };
+
+  const handleDialogClose = (valid_confirmation) => {
+    setOpenModal(false);
+    if (valid_confirmation) generateExcel();
   };
 
   return (
@@ -218,15 +191,13 @@ const OrdersListing = () => {
                 fullWidth
                 variant={"contained"}
                 size={"medium"}
-                onClick={() => {}}
-              >
-                <Typography fontSize={14}>Edit</Typography>
-              </Button>
-              <Button
-                fullWidth
-                variant={"contained"}
-                size={"medium"}
-                onClick={generateExcel}
+                onClick={() => {
+                  if (batchList.length < 1) {
+                    enqueueSnackbar("Please select at least one order", {
+                      variant: "error",
+                    });
+                  } else setOpenModal(true);
+                }}
               >
                 <Typography fontSize={14}>Create Excel</Typography>
               </Button>
@@ -252,20 +223,8 @@ const OrdersListing = () => {
                     <TableRow>
                       <TableCell />
                       <TableCell>{`Customer (${orders.length})`}</TableCell>
-                      <TableCell align="center">Fulfillment Number</TableCell>
                       <TableCell align="left">Store Name</TableCell>
                       <TableCell align="left">Shipping Method</TableCell>
-                      <TableCell>
-                        <IconButton
-                          disabled={!deleteStack.length}
-                          aria-label="undo"
-                          onClick={() => {
-                            undoDelete();
-                          }}
-                        >
-                          <UndoIcon />
-                        </IconButton>
-                      </TableCell>
                       <TableCell />
                     </TableRow>
                   </TableHead>
@@ -277,13 +236,19 @@ const OrdersListing = () => {
                           <OrderRow
                             key={order.order_name}
                             order={order}
-                            handleDeleteRow={handleDeleteRow}
-                            isEditting={editting}
                             handleChecked={handleChecked}
                           />
                         );
                       })}
                   </TableBody>
+                  {openModal && (
+                    <BatchModal
+                      openModal={openModal}
+                      onClose={handleDialogClose}
+                      batch={batchList}
+                      row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
+                    />
+                  )}
                 </Table>
               </TableContainer>
             )

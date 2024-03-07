@@ -34,3 +34,26 @@ export const objectUnion = (arr1, arr2) => {
   // Return the values from the Map as the union
   return Array.from(map.values());
 };
+
+export const isObjectIncluded = (new_data, compared_order) => {
+  for (let order of new_data) {
+    if (order.order_name === compared_order.order_name) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const objectLength = (data) => {
+  let batch_length = 1,
+    all_batches = [];
+  for (let batch in data) {
+    if (batch === "wednesday_date") continue;
+    if (data[batch]) {
+      all_batches = [...all_batches, ...data[batch]];
+      batch_length += data[batch].length;
+    }
+  }
+
+  return [batch_length, all_batches];
+};
