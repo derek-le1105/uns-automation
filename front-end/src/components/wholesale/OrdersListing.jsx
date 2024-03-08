@@ -12,7 +12,6 @@ import {
   Button,
   ButtonGroup,
   CircularProgress,
-  IconButton,
 } from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -46,7 +45,10 @@ const OrdersListing = () => {
   const [batchList, setBatchList] = useState([]);
 
   useEffect(() => {
-    getShopify();
+    setOrders(JSON.parse(sessionStorage.getItem("orders")));
+
+    getWholesaleDates(afterDate.$d, beforeDate.$d);
+    if (JSON.parse(sessionStorage.getItem("orders")) === null) getShopify();
   }, []);
 
   const getShopify = async () => {
@@ -54,7 +56,7 @@ const OrdersListing = () => {
     var json;
     try {
       var is_recent_updated = false;
-      const { data } = await supabase //see if there's an entry in the db with the wed date as the key
+      /*const { data } = await supabase //see if there's an entry in the db with the wed date as the key
         .from("wholesale_shopify_dates")
         .select()
         .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
@@ -65,35 +67,34 @@ const OrdersListing = () => {
         setLoading(false);
         setOrders(data.data);
         if ((new Date() - new Date(data.updated_at)) / 60000 < 5) {
-          is_recent_updated = true;
+          //is_recent_updated = true;
         }
-      }
+      }*/
 
       enqueueSnackbar(
         `Pulling Shopify orders between dates ${format(
-          wholesaleDates[1],
+          beforeDate.$d,
           "MM/dd/yyyy"
-        )} - ${format(wholesaleDates[0], "MM/dd/yyy")}`,
+        )} - ${format(afterDate.$d, "MM/dd/yyy")}`,
         {
           variant: "success",
         }
       );
 
-      if (!is_recent_updated) {
-        fetch("/orders", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify([afterDate, beforeDate]),
+      await fetch("/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([afterDate, beforeDate]),
+      })
+        .then((res) => {
+          return res.json();
         })
-          .then((res) => {
-            return res.json();
-          })
-          .then(async (res_data) => {
-            json = res_data;
+        .then(async (res_data) => {
+          json = res_data;
 
-            if (data) {
+          /*if (data) {
               //if data already exists in db, don't 'insert'
               if (new Date(data.updated_at) < new Date(wholesaleDates[2])) {
                 //if data is not the same, update
@@ -111,11 +112,11 @@ const OrdersListing = () => {
                 data: json,
                 updated_at: new Date().toISOString(),
               });
-            }
-            setLoading(false);
-            setOrders(json);
-          });
-      }
+            }*/
+          setLoading(false);
+          setOrders(json);
+          sessionStorage.setItem("orders", JSON.stringify(json));
+        });
     } catch (error) {
       enqueueSnackbar(error, {
         variant: "error",
@@ -132,14 +133,14 @@ const OrdersListing = () => {
       .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
       .limit(1)
       .maybeSingle();
+
     var [batch_length] = objectLength(data);
 
     var new_batch = batchList.map((order, index) => {
       return { ...order, id: index + batch_length };
     });
 
-    if (data[new Date().getDay()])
-      new_batch = [...data[new Date().getDay()], ...new_batch];
+    if (data !== null) new_batch = [...data[new Date().getDay()], ...new_batch];
 
     try {
       await createWholesaleExcel(batchList, batch_length);
@@ -223,7 +224,7 @@ const OrdersListing = () => {
                           getShopify();
                         }}
                       >
-                        <Typography fontSize={14}>Edit</Typography>
+                        <Typography fontSize={14}>Update</Typography>
                       </Button>
                     </Grid>
                   )}
