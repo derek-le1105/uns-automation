@@ -1,31 +1,25 @@
 import {
-  Table,
-  TableBody,
-  TableHead,
-  TableCell,
-  TableContainer,
-  TableRow,
-  Paper,
   Box,
   Grid,
   Typography,
   Button,
   ButtonGroup,
-  CircularProgress,
+  LinearProgress,
 } from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { DataGrid } from "@mui/x-data-grid";
+
 import { useTheme } from "@mui/material/styles";
 
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
-import OrderRow from "./OrderRow";
 import BatchModal from "./BatchModal";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
-import { isObjectIncluded, objectLength } from "../../helper/dataFunctions";
+import { objectLength } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
@@ -48,7 +42,8 @@ const OrdersListing = () => {
     setOrders(JSON.parse(sessionStorage.getItem("orders")));
 
     getWholesaleDates(afterDate.$d, beforeDate.$d);
-    if (JSON.parse(sessionStorage.getItem("orders")) === null) getShopify();
+    if (JSON.parse(sessionStorage.getItem("orders")) === null || dateChanged)
+      getShopify();
   }, []);
 
   const getShopify = async () => {
@@ -157,18 +152,6 @@ const OrdersListing = () => {
 
   const inputShipping = async () => {};
 
-  const handleChecked = (event) => {
-    let new_batch_list = [...batchList, orders[event.target.name - 1]];
-
-    if (isObjectIncluded(batchList, orders[event.target.name - 1])) {
-      new_batch_list = new_batch_list.filter(
-        (checked) =>
-          checked.order_name !== orders[event.target.name - 1].order_name
-      );
-    }
-    setBatchList(new_batch_list);
-  };
-
   const handleDialogClose = (valid_confirmation) => {
     setOpenModal(false);
     if (valid_confirmation) generateExcel();
@@ -261,45 +244,43 @@ const OrdersListing = () => {
           </Grid>
         </Grid>
         <Box sx={{ padding: "0px 50px 50px 50px" }}>
-          {loading ? (
-            <CircularProgress size={100} />
-          ) : (
-            orders && (
-              <TableContainer component={Paper}>
-                <Table aria-label="collapsible table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell />
-                      <TableCell>{`Customer (${orders.length})`}</TableCell>
-                      <TableCell align="left">Store Name</TableCell>
-                      <TableCell align="left">Shipping Method</TableCell>
-                      <TableCell />
-                    </TableRow>
-                  </TableHead>
-
-                  <TableBody>
-                    {orders &&
-                      orders.map((order) => {
-                        return (
-                          <OrderRow
-                            key={order.order_name}
-                            order={order}
-                            handleChecked={handleChecked}
-                          />
-                        );
-                      })}
-                  </TableBody>
-                  {openModal && (
-                    <BatchModal
-                      openModal={openModal}
-                      onClose={handleDialogClose}
-                      batch={batchList}
-                      row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
-                    />
-                  )}
-                </Table>
-              </TableContainer>
-            )
+          {orders && (
+            <>
+              <DataGrid
+                loading={loading}
+                slots={{
+                  loadingOverlay: LinearProgress,
+                }}
+                rows={orders.map((order, idx) => {
+                  return {
+                    id: idx,
+                    name: order.order_name,
+                    customer: order.customer.first_name,
+                    shipping: order.shipping,
+                  };
+                })}
+                columns={[
+                  { field: "name", headerName: "Order Name", flex: 1 },
+                  { field: "customer", headerName: "Customer", flex: 1 },
+                  {
+                    field: "shipping",
+                    headerName: "Shipping Method",
+                    flex: 1,
+                  },
+                ]}
+                checkboxSelection={true}
+                onRowSelectionModelChange={(newRowSelectionModel) => {
+                  setBatchList(newRowSelectionModel);
+                }}
+                rowSelectionModel={batchList}
+              ></DataGrid>
+              <BatchModal
+                openModal={openModal}
+                onClose={handleDialogClose}
+                batch={orders.filter((_, idx) => batchList.includes(idx))}
+                row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
+              />
+            </>
           )}
         </Box>
       </Box>
