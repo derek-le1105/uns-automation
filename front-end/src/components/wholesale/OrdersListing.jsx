@@ -4,6 +4,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { DataGrid } from "@mui/x-data-grid";
+import CloseIcon from "@mui/icons-material/Close";
+import CheckIcon from "@mui/icons-material/Check";
 
 import { useTheme } from "@mui/material/styles";
 
@@ -27,8 +29,16 @@ const OrdersListing = () => {
     JSON.parse(sessionStorage.getItem("orders"))
   );
   const [loading, setLoading] = useState(false);
-  const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[1]));
-  const [afterDate, setAfterDate] = useState(dayjs(wholesaleDates[0]));
+  const [beforeDate, setBeforeDate] = useState(
+    sessionStorage.getItem("before_date")
+      ? sessionStorage.getItem("before_date")
+      : dayjs(wholesaleDates[1])
+  );
+  const [afterDate, setAfterDate] = useState(
+    sessionStorage.getItem("after_date")
+      ? sessionStorage.getItem("after_date")
+      : dayjs(wholesaleDates[0])
+  );
   const [dateChanged, setDateChanged] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [batchList, setBatchList] = useState([]);
@@ -139,79 +149,89 @@ const OrdersListing = () => {
           background: `${theme.palette.grey[100]}`,
         }}
       >
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
-            <Grid container sx={{ padding: "25px 50px" }}>
-              <Grid item xs={3}>
-                <Typography align="left" variant="h3">
-                  {"Wholesale Orders"}
-                </Typography>
-              </Grid>
-              <Grid item xs={2}>
+        <Grid container sx={{ padding: "25px 50px" }}>
+          <Grid item xs={3}>
+            <Typography align="left" variant="h3">
+              {"Wholesale Orders"}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={2}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
                 <DateTimePicker
                   label="Start"
-                  defaultValue={dayjs(wholesaleDates[1])}
+                  defaultValue={
+                    sessionStorage.getItem("before_date")
+                      ? dayjs(sessionStorage.getItem("before_date"))
+                      : dayjs(wholesaleDates[1])
+                  }
                   onChange={(newValue) => {
+                    sessionStorage.setItem("before_date", newValue);
                     setBeforeDate(newValue);
                     setDateChanged(true);
                   }}
                 />
-              </Grid>
-              <Grid item xs={2}>
+              </DemoContainer>
+            </LocalizationProvider>
+          </Grid>
+
+          <Grid item xs={2}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
                 <DateTimePicker
                   label="End"
                   value={afterDate}
                   onChange={(newValue) => {
+                    sessionStorage.setItem("after_date", newValue);
                     setAfterDate(newValue);
                     setDateChanged(true);
                   }}
                 />
-              </Grid>
-              <Grid item xs={1}>
-                <Button
-                  disabled={!dateChanged}
-                  sx={{ height: "100%" }}
-                  variant={"contained"}
-                  size={"medium"}
-                  onClick={() => {
-                    getShopify();
-                  }}
-                >
-                  <Typography fontSize={14}>Update</Typography>
-                </Button>
-              </Grid>
-              <Grid item xs={2}>
-                <Button
-                  sx={{ height: "100%" }}
-                  variant={"contained"}
-                  size={"medium"}
-                  onClick={() => {
-                    if (batchList.length < 1) {
-                      enqueueSnackbar("Please select at least one order", {
-                        variant: "error",
-                      });
-                    } else setOpenModal(true);
-                  }}
-                >
-                  <Typography fontSize={14}>Create Excel</Typography>
-                </Button>
-              </Grid>
-            </Grid>
-          </DemoContainer>
-        </LocalizationProvider>
+              </DemoContainer>
+            </LocalizationProvider>
+          </Grid>
+          <Grid item xs={0.5}></Grid>
+
+          <Grid item xs={1}>
+            <Button
+              disabled={!dateChanged}
+              sx={{ height: "100%" }}
+              variant={"contained"}
+              size={"medium"}
+              onClick={() => {
+                if (beforeDate - afterDate > 0) {
+                  enqueueSnackbar("Please pick a valid date range", {
+                    variant: "error",
+                  });
+                } else getShopify();
+              }}
+            >
+              <Typography fontSize={14}>Update</Typography>
+            </Button>
+          </Grid>
+          <Grid item xs={2}>
+            <Button
+              sx={{ height: "100%" }}
+              variant={"contained"}
+              size={"medium"}
+              onClick={() => {
+                if (batchList.length < 1) {
+                  enqueueSnackbar("Please select at least one order", {
+                    variant: "error",
+                  });
+                } else setOpenModal(true);
+              }}
+            >
+              <Typography fontSize={14}>Create Excel</Typography>
+            </Button>
+          </Grid>
+        </Grid>
 
         <Box sx={{ padding: "0px 50px 50px 50px" }}>
           {orders && (
             <>
               <DataGrid
-                sx={{
-                  boxShadow: 2,
-                  border: 2,
-                  borderColor: "primary.light",
-                  "& .MuiDataGrid-cell:hover": {
-                    color: "primary.main",
-                  },
-                }}
                 editMode="row"
                 loading={loading}
                 slots={{
@@ -223,7 +243,6 @@ const OrdersListing = () => {
                     name: order.order_name,
                     customer: order.customer.first_name,
                     shipping: order.shipping,
-                    status: "no",
                   };
                 })}
                 columns={[
@@ -241,10 +260,16 @@ const OrdersListing = () => {
                   },
                   {
                     field: "status",
-                    headerName: "Status",
+                    headerName: "Is in previous batch?",
                     flex: 0.5,
-                    align: "left",
-                    headerAlign: "left",
+                    align: "center",
+                    headerAlign: "center",
+                    renderCell: (params) =>
+                      isObjectIncluded(supabaseData[1], params.row) ? (
+                        <CheckIcon color="success" />
+                      ) : (
+                        <CloseIcon color="error" />
+                      ),
                   },
                   {
                     field: "shipping",

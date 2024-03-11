@@ -11,6 +11,7 @@ export function getWholesaleDates(friday2 = new Date(), friday1 = new Date()) {
 
   friday2 = add(wed1, { days: 2 });
   friday1 = sub(wed1, { days: 12 });
+  friday1.setHours(16, 0, 0);
 
   return [friday2, friday1, wed2];
 }

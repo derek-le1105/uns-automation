@@ -35,13 +35,19 @@ export const objectUnion = (arr1, arr2) => {
   return Array.from(map.values());
 };
 
+const nameToOrderNo = (name) => {
+  //assumes order name passed in has the following template [Customer Code] - [Order Number]
+  return parseInt(name.slice(-5));
+};
+
 export const isObjectIncluded = (new_data, compared_order) => {
   //Assumes 'new_data' contains all orders appended together
-  if (new_data.length) {
+  if (new_data) {
     for (let order of new_data) {
-      if (order.order_name === compared_order.order_name) {
-        return true;
-      }
+      if (order.order_name === compared_order.name) return true;
+
+      if (nameToOrderNo(order.order_name) > nameToOrderNo(compared_order.name))
+        return false;
     }
   }
   return false;
