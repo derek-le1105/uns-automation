@@ -36,9 +36,12 @@ export const objectUnion = (arr1, arr2) => {
 };
 
 export const isObjectIncluded = (new_data, compared_order) => {
-  for (let order of new_data) {
-    if (order.order_name === compared_order.order_name) {
-      return true;
+  //Assumes 'new_data' contains all orders appended together
+  if (new_data.length) {
+    for (let order of new_data) {
+      if (order.order_name === compared_order.order_name) {
+        return true;
+      }
     }
   }
   return false;
@@ -49,8 +52,12 @@ export const objectLength = (data) => {
     all_batches = [];
   for (let batch in data) {
     if (batch === "wednesday_date") continue;
+
     if (data[batch]) {
-      all_batches = [...all_batches, ...data[batch]];
+      for (let order of data[batch]) {
+        order = { ...order, batch: batch };
+        all_batches = [...all_batches, order];
+      }
       batch_length += data[batch].length;
     }
   }

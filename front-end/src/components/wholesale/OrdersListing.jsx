@@ -1,11 +1,4 @@
-import {
-  Box,
-  Grid,
-  Typography,
-  Button,
-  ButtonGroup,
-  LinearProgress,
-} from "@mui/material";
+import { Box, Grid, Typography, Button, LinearProgress } from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -19,7 +12,7 @@ import { useState, useEffect } from "react";
 import BatchModal from "./BatchModal";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
-import { objectLength } from "../../helper/dataFunctions";
+import { objectLength, isObjectIncluded } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
@@ -30,16 +23,31 @@ const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
   const wholesaleDates = getWholesaleDates();
-  const [orders, setOrders] = useState(null);
+  const [orders, setOrders] = useState(
+    JSON.parse(sessionStorage.getItem("orders"))
+  );
   const [loading, setLoading] = useState(false);
   const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[1]));
   const [afterDate, setAfterDate] = useState(dayjs(wholesaleDates[0]));
   const [dateChanged, setDateChanged] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [batchList, setBatchList] = useState([]);
+  const [supabaseData, setSupabaseData] = useState([]);
 
   useEffect(() => {
-    setOrders(JSON.parse(sessionStorage.getItem("orders")));
+    async function fetchData() {
+      const { data } = await supabase
+        .from("batch_data")
+        .select()
+        .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
+        .limit(1)
+        .maybeSingle();
+
+      setSupabaseData(objectLength(data));
+    }
+    fetchData().catch((error) => {
+      console.log(error);
+    });
 
     getWholesaleDates(afterDate.$d, beforeDate.$d);
     if (JSON.parse(sessionStorage.getItem("orders")) === null || dateChanged)
@@ -48,24 +56,7 @@ const OrdersListing = () => {
 
   const getShopify = async () => {
     setLoading(true);
-    var json;
     try {
-      var is_recent_updated = false;
-      /*const { data } = await supabase //see if there's an entry in the db with the wed date as the key
-        .from("wholesale_shopify_dates")
-        .select()
-        .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
-        .limit(1)
-        .maybeSingle();
-
-      if (data) {
-        setLoading(false);
-        setOrders(data.data);
-        if ((new Date() - new Date(data.updated_at)) / 60000 < 5) {
-          //is_recent_updated = true;
-        }
-      }*/
-
       enqueueSnackbar(
         `Pulling Shopify orders between dates ${format(
           beforeDate.$d,
@@ -87,27 +78,7 @@ const OrdersListing = () => {
           return res.json();
         })
         .then(async (res_data) => {
-          json = res_data;
-
-          /*if (data) {
-              //if data already exists in db, don't 'insert'
-              if (new Date(data.updated_at) < new Date(wholesaleDates[2])) {
-                //if data is not the same, update
-                //supabase upsert to update json information in db
-                await supabase.from("wholesale_shopify_dates").upsert({
-                  wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
-                  data: json,
-                  updated_at: new Date().toISOString(),
-                });
-              }
-            } else {
-              await supabase.from("wholesale_shopify_dates").insert({
-                //create an entry in the db with the new wed date along with data from Shopify
-                wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
-                data: json,
-                updated_at: new Date().toISOString(),
-              });
-            }*/
+          let json = res_data;
           setLoading(false);
           setOrders(json);
           sessionStorage.setItem("orders", JSON.stringify(json));
@@ -121,36 +92,37 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
-    //TODO: uncheck all checked boxes after generating
-    const { data } = await supabase
-      .from("batch_data")
-      .select()
-      .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
-      .limit(1)
-      .maybeSingle();
-
-    var [batch_length] = objectLength(data);
-
+    let batch_day = [new Date().getDay()].toString();
+    var batch_length = supabaseData[0];
     var new_batch = batchList.map((order, index) => {
-      return { ...order, id: index + batch_length };
+      return {
+        ...orders[order],
+        id: index + batch_length,
+      };
     });
 
-    if (data !== null) new_batch = [...data[new Date().getDay()], ...new_batch];
-
+    if (supabaseData !== null) {
+      let curr_batch = supabaseData[1].filter(
+        (order) => order.batch === batch_day
+      );
+      new_batch =
+        curr_batch.length < 1 ? [...new_batch] : [...curr_batch, ...new_batch];
+    }
     try {
-      await createWholesaleExcel(batchList, batch_length);
+      await createWholesaleExcel(
+        orders.filter((_, idx) => batchList.includes(idx)),
+        batch_length
+      );
 
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
         wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
-        [new Date().getDay()]: new_batch,
+        [batch_day]: new_batch,
       });
     } catch (error) {
       console.log(error);
     }
   };
-
-  const inputShipping = async () => {};
 
   const handleDialogClose = (valid_confirmation) => {
     setOpenModal(false);
@@ -167,86 +139,80 @@ const OrdersListing = () => {
           background: `${theme.palette.grey[100]}`,
         }}
       >
-        <Grid container spacing={2} sx={{ padding: "25px 50px" }}>
-          <Grid item xs={9}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
-                <Grid container spacing={4} sx={{ maxWidth: "100%" }}>
-                  <Grid item xs={3}>
-                    <Typography align="left" variant="h4">
-                      {"Wholesale Orders"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <DateTimePicker
-                      label="Start"
-                      defaultValue={dayjs(wholesaleDates[1])}
-                      onChange={(newValue) => {
-                        setBeforeDate(newValue);
-                        setDateChanged(true);
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={3}>
-                    <DateTimePicker
-                      label="End"
-                      value={afterDate}
-                      onChange={(newValue) => {
-                        setAfterDate(newValue);
-                        setDateChanged(true);
-                      }}
-                    />
-                  </Grid>
-                  {dateChanged && (
-                    <Grid item xs={3}>
-                      <Button
-                        sx={{ height: "100%" }}
-                        variant={"contained"}
-                        size={"medium"}
-                        onClick={() => {
-                          getShopify();
-                        }}
-                      >
-                        <Typography fontSize={14}>Update</Typography>
-                      </Button>
-                    </Grid>
-                  )}
-                </Grid>
-              </DemoContainer>
-            </LocalizationProvider>
-          </Grid>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
+            <Grid container sx={{ padding: "25px 50px" }}>
+              <Grid item xs={3}>
+                <Typography align="left" variant="h3">
+                  {"Wholesale Orders"}
+                </Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <DateTimePicker
+                  label="Start"
+                  defaultValue={dayjs(wholesaleDates[1])}
+                  onChange={(newValue) => {
+                    setBeforeDate(newValue);
+                    setDateChanged(true);
+                  }}
+                />
+              </Grid>
+              <Grid item xs={2}>
+                <DateTimePicker
+                  label="End"
+                  value={afterDate}
+                  onChange={(newValue) => {
+                    setAfterDate(newValue);
+                    setDateChanged(true);
+                  }}
+                />
+              </Grid>
+              <Grid item xs={1}>
+                <Button
+                  disabled={!dateChanged}
+                  sx={{ height: "100%" }}
+                  variant={"contained"}
+                  size={"medium"}
+                  onClick={() => {
+                    getShopify();
+                  }}
+                >
+                  <Typography fontSize={14}>Update</Typography>
+                </Button>
+              </Grid>
+              <Grid item xs={2}>
+                <Button
+                  sx={{ height: "100%" }}
+                  variant={"contained"}
+                  size={"medium"}
+                  onClick={() => {
+                    if (batchList.length < 1) {
+                      enqueueSnackbar("Please select at least one order", {
+                        variant: "error",
+                      });
+                    } else setOpenModal(true);
+                  }}
+                >
+                  <Typography fontSize={14}>Create Excel</Typography>
+                </Button>
+              </Grid>
+            </Grid>
+          </DemoContainer>
+        </LocalizationProvider>
 
-          <Grid item xs={3} sx={{ alignItems: "end" }}>
-            <ButtonGroup fullWidth sx={{ height: "100%" }}>
-              <Button
-                fullWidth
-                variant={"contained"}
-                size={"medium"}
-                onClick={() => {
-                  if (batchList.length < 1) {
-                    enqueueSnackbar("Please select at least one order", {
-                      variant: "error",
-                    });
-                  } else setOpenModal(true);
-                }}
-              >
-                <Typography fontSize={14}>Create Excel</Typography>
-              </Button>
-              <Button
-                fullWidth
-                variant={"contained"}
-                size={"medium"}
-                onClick={inputShipping}
-              >
-                <Typography fontSize={14}>Input Shipping</Typography>
-              </Button>
-            </ButtonGroup>
-          </Grid>
-        </Grid>
         <Box sx={{ padding: "0px 50px 50px 50px" }}>
           {orders && (
             <>
               <DataGrid
+                sx={{
+                  boxShadow: 2,
+                  border: 2,
+                  borderColor: "primary.light",
+                  "& .MuiDataGrid-cell:hover": {
+                    color: "primary.main",
+                  },
+                }}
+                editMode="row"
                 loading={loading}
                 slots={{
                   loadingOverlay: LinearProgress,
@@ -257,15 +223,38 @@ const OrdersListing = () => {
                     name: order.order_name,
                     customer: order.customer.first_name,
                     shipping: order.shipping,
+                    status: "no",
                   };
                 })}
                 columns={[
-                  { field: "name", headerName: "Order Name", flex: 1 },
-                  { field: "customer", headerName: "Customer", flex: 1 },
+                  {
+                    field: "name",
+                    headerName: "Order Name",
+                    flex: 0.5,
+                    align: "right",
+                    headerAlign: "right",
+                  },
+                  {
+                    field: "customer",
+                    headerName: "Customer",
+                    flex: 1,
+                  },
+                  {
+                    field: "status",
+                    headerName: "Status",
+                    flex: 0.5,
+                    align: "left",
+                    headerAlign: "left",
+                  },
                   {
                     field: "shipping",
                     headerName: "Shipping Method",
                     flex: 1,
+                    editable: true,
+                    type: "singleSelect",
+                    valueOptions: ["Fedex", "GLS", "Airport", "Local"],
+                    align: "left",
+                    headerAlign: "left",
                   },
                 ]}
                 checkboxSelection={true}
@@ -278,7 +267,7 @@ const OrdersListing = () => {
                 openModal={openModal}
                 onClose={handleDialogClose}
                 batch={orders.filter((_, idx) => batchList.includes(idx))}
-                row_date={format(wholesaleDates[2], "MM/dd/yyyy")}
+                supabaseData={supabaseData}
               />
             </>
           )}
