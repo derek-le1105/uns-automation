@@ -3,6 +3,7 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
@@ -29,16 +30,9 @@ const OrdersListing = () => {
     JSON.parse(sessionStorage.getItem("orders"))
   );
   const [loading, setLoading] = useState(false);
-  const [beforeDate, setBeforeDate] = useState(
-    sessionStorage.getItem("before_date")
-      ? sessionStorage.getItem("before_date")
-      : dayjs(wholesaleDates[1])
-  );
-  const [afterDate, setAfterDate] = useState(
-    sessionStorage.getItem("after_date")
-      ? sessionStorage.getItem("after_date")
-      : dayjs(wholesaleDates[0])
-  );
+  const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[0]));
+  const [afterDate, setAfterDate] = useState(dayjs(new Date()));
+  const [shipoutDate, setShipoutDate] = useState(dayjs(wholesaleDates[1]));
   const [dateChanged, setDateChanged] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [batchList, setBatchList] = useState([]);
@@ -49,7 +43,7 @@ const OrdersListing = () => {
       const { data } = await supabase
         .from("batch_data")
         .select()
-        .eq("wednesday_date", format(wholesaleDates[2], "MM/dd/yyyy"))
+        .eq("wednesday_date", format(wholesaleDates[1], "MM/dd/yyyy"))
         .limit(1)
         .maybeSingle();
 
@@ -59,7 +53,6 @@ const OrdersListing = () => {
       console.log(error);
     });
 
-    getWholesaleDates(afterDate.$d, beforeDate.$d);
     if (JSON.parse(sessionStorage.getItem("orders")) === null || dateChanged)
       getShopify();
   }, []);
@@ -67,6 +60,7 @@ const OrdersListing = () => {
   const getShopify = async () => {
     setLoading(true);
     try {
+      getWholesaleDates(afterDate, beforeDate);
       enqueueSnackbar(
         `Pulling Shopify orders between dates ${format(
           beforeDate.$d,
@@ -102,6 +96,7 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
+    //TODO: allow user to download excel files without uploading to db
     let batch_day = [new Date().getDay()].toString();
     var batch_length = supabaseData[0];
     var new_batch = batchList.map((order, index) => {
@@ -126,7 +121,7 @@ const OrdersListing = () => {
 
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
-        wednesday_date: format(wholesaleDates[2], "MM/dd/yyyy"),
+        wednesday_date: format(wholesaleDates[1], "MM/dd/yyyy"),
         [batch_day]: new_batch,
       });
     } catch (error) {
@@ -150,12 +145,6 @@ const OrdersListing = () => {
         }}
       >
         <Grid container sx={{ padding: "25px 50px" }}>
-          <Grid item xs={3}>
-            <Typography align="left" variant="h3">
-              {"Wholesale Orders"}
-            </Typography>
-          </Grid>
-
           <Grid item xs={2}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
@@ -164,7 +153,7 @@ const OrdersListing = () => {
                   defaultValue={
                     sessionStorage.getItem("before_date")
                       ? dayjs(sessionStorage.getItem("before_date"))
-                      : dayjs(wholesaleDates[1])
+                      : dayjs(wholesaleDates[0])
                   }
                   onChange={(newValue) => {
                     sessionStorage.setItem("before_date", newValue);
@@ -185,6 +174,21 @@ const OrdersListing = () => {
                   onChange={(newValue) => {
                     sessionStorage.setItem("after_date", newValue);
                     setAfterDate(newValue);
+                    setDateChanged(true);
+                  }}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </Grid>
+          <Grid item xs={2}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DatePicker", "DatePicker"]}>
+                <DatePicker
+                  label="Shipout Date"
+                  value={shipoutDate}
+                  onChange={(newValue) => {
+                    sessionStorage.setItem("shipout_date", newValue);
+                    setShipoutDate(newValue);
                     setDateChanged(true);
                   }}
                 />
@@ -240,14 +244,14 @@ const OrdersListing = () => {
                 rows={orders.map((order, idx) => {
                   return {
                     id: idx,
-                    name: order.order_name,
+                    order_name: order.order_name,
                     customer: order.customer.first_name,
                     shipping: order.shipping,
                   };
                 })}
                 columns={[
                   {
-                    field: "name",
+                    field: "order_name",
                     headerName: "Order Name",
                     flex: 0.5,
                     align: "right",

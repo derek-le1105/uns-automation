@@ -6,7 +6,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { List, ListItem } from "@mui/material";
 
-import { isObjectIncluded, objectLength } from "../../helper/dataFunctions";
+import { isObjectIncluded } from "../../helper/dataFunctions";
 
 const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
   const handleClose = () => {
@@ -23,7 +23,9 @@ const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        {"Generating excel files for the following orders"}
+        {
+          "Generating excel files for the following orders and saving to database"
+        }
       </DialogTitle>
       <DialogContent>
         <List>
@@ -33,7 +35,7 @@ const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
                 <ListItem key={order.order_name}>
                   <DialogContentText>
                     {`${order.order_name} ${
-                      isObjectIncluded(supabaseData, order)
+                      isObjectIncluded(supabaseData[1], order)
                         ? "This order already exists in a previous batch"
                         : ""
                     }`}

@@ -1,17 +1,21 @@
 import { add, sub } from "date-fns";
 
-export function getWholesaleDates(friday2 = new Date(), friday1 = new Date()) {
-  var wed1 = new Date(), //most recent Wednesday
-    wed2 = new Date(), //earliest Wednesday
-    day = new Date().getDay();
-  var wednesdayDiff = day <= 3 ? 7 - 3 + day : day - 3;
-  // day: "Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
-  wed1.setDate(wed1.getDate() - wednesdayDiff);
-  wed2.setDate(wed2.getDate() - wednesdayDiff + 7);
+export function getWholesaleDates() {
+  var date1 = sub(new Date().setHours(16, 0, 0), { days: 14 }),
+    day = new Date().getDay(),
+    shipoutDate = new Date();
+  if (day < 5 || (day === 5 && new Date().getHours() < 16)) {
+    shipoutDate =
+      day <= 3
+        ? add(add(shipoutDate, { days: 7 }), { days: 3 - day })
+        : sub(add(shipoutDate, { days: 7 }), {
+            days: day - 3,
+          });
+  } else {
+    shipoutDate = sub(add(shipoutDate, { days: 14 }), {
+      days: day - 3,
+    });
+  }
 
-  friday2 = add(wed1, { days: 2 });
-  friday1 = sub(wed1, { days: 12 });
-  friday1.setHours(16, 0, 0);
-
-  return [friday2, friday1, wed2];
+  return [date1, shipoutDate];
 }

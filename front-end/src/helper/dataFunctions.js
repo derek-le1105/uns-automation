@@ -44,9 +44,12 @@ export const isObjectIncluded = (new_data, compared_order) => {
   //Assumes 'new_data' contains all orders appended together
   if (new_data) {
     for (let order of new_data) {
-      if (order.order_name === compared_order.name) return true;
+      if (order.order_name === compared_order.order_name) return true;
 
-      if (nameToOrderNo(order.order_name) > nameToOrderNo(compared_order.name))
+      if (
+        nameToOrderNo(order.order_name) >
+        nameToOrderNo(compared_order.order_name)
+      )
         return false;
     }
   }
