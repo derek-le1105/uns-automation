@@ -102,7 +102,7 @@ const OrdersListing = () => {
     var new_batch = batchList.map((order, index) => {
       return {
         ...orders[order],
-        id: index + batch_length,
+        batch: batch_day,
       };
     });
 
@@ -113,15 +113,20 @@ const OrdersListing = () => {
       new_batch =
         curr_batch.length < 1 ? [...new_batch] : [...curr_batch, ...new_batch];
     }
+    new_batch.sort((a, b) => {
+      return (
+        parseInt(a.order_name.slice(-5)) - parseInt(b.order_name.slice(-5))
+      );
+    });
     try {
       await createWholesaleExcel(
         orders.filter((_, idx) => batchList.includes(idx)),
-        batch_length
+        batch_length,
+        format(shipoutDate, "MM/dd/yyyy")
       );
-
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
-        wednesday_date: format(wholesaleDates[1], "MM/dd/yyyy"),
+        wednesday_date: format(shipoutDate, "MM/dd/yyyy"),
         [batch_day]: new_batch,
       });
     } catch (error) {
