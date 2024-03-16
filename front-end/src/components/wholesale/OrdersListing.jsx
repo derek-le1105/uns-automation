@@ -13,6 +13,7 @@ import { useTheme } from "@mui/material/styles";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 import BatchModal from "./BatchModal";
+import CustomNoRowsOverlay from "./CustomNoRowsOverlay";
 import { useSnackbar } from "notistack";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
 import { objectLength, isObjectIncluded } from "../../helper/dataFunctions";
@@ -237,14 +238,22 @@ const OrdersListing = () => {
           </Grid>
         </Grid>
 
-        <Box sx={{ padding: "0px 50px 50px 50px" }}>
+        <Box
+          sx={{
+            padding: "0px 50px 50px 50px",
+            display: "grid",
+          }}
+        >
           {orders && (
             <>
               <DataGrid
+                hideFooter
+                autoHeight
                 editMode="row"
                 loading={loading}
                 slots={{
                   loadingOverlay: LinearProgress,
+                  noRowsOverlay: CustomNoRowsOverlay,
                 }}
                 rows={orders.map((order, idx) => {
                   return {
