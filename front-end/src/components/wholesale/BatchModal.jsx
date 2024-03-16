@@ -6,34 +6,9 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { List, ListItem } from "@mui/material";
 
-import { supabase } from "../../supabaseClient";
-import { useState, useEffect } from "react";
+import { isObjectIncluded } from "../../helper/dataFunctions";
 
-import { isObjectIncluded, objectLength } from "../../helper/dataFunctions";
-
-const BatchModal = ({ openModal, onClose, batch, row_date }) => {
-  const [prevBatchLength, setPrevBatchLength] = useState();
-  const [supabaseData, setSupabaseData] = useState([]);
-
-  useEffect(() => {
-    //TODO: add precaution if selected order was in a previous batch
-    async function fetchData() {
-      const { data } = await supabase
-        .from("batch_data")
-        .select()
-        .eq("wednesday_date", row_date)
-        .limit(1)
-        .maybeSingle();
-
-      var [batchLength, all_batches] = objectLength(data);
-      setSupabaseData(all_batches);
-      setPrevBatchLength(batchLength);
-    }
-    fetchData().catch((error) => {
-      console.log(error);
-    });
-  }, []);
-
+const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
   const handleClose = () => {
     onClose(false);
   };
@@ -48,17 +23,19 @@ const BatchModal = ({ openModal, onClose, batch, row_date }) => {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        {"Generating excel files for the following orders"}
+        {
+          "Generating excel files for the following orders and saving to database"
+        }
       </DialogTitle>
       <DialogContent>
         <List>
           {batch &&
-            batch.map((order, index) => {
+            batch.map((order, _) => {
               return (
                 <ListItem key={order.order_name}>
                   <DialogContentText>
                     {`${order.order_name} ${
-                      isObjectIncluded(supabaseData, order)
+                      isObjectIncluded(supabaseData[1], order)
                         ? "This order already exists in a previous batch"
                         : ""
                     }`}
@@ -68,7 +45,7 @@ const BatchModal = ({ openModal, onClose, batch, row_date }) => {
             })}
         </List>
         <DialogContentText id="alert-dialog-description">
-          {`The fulfillment code for this batch will start with code: ${prevBatchLength}`}
+          {`The fulfillment code for this batch will start with code: ${supabaseData[0]}`}
         </DialogContentText>
       </DialogContent>
 
