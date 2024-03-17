@@ -4,6 +4,9 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 
 import { useTheme } from "@mui/material/styles";
 
+import { useState } from "react";
+import ShipStationModal from "./ShipStationModal";
+
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
   clipPath: "inset(50%)",
@@ -17,26 +20,39 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 const Tools = () => {
+  const [fileUpload, setFileUpload] = useState(null);
+  const [openModal, setOpenModal] = useState(true);
+
+  const modalClose = () => {
+    setOpenModal(false);
+  };
+
   const theme = useTheme();
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        background: `${theme.palette.grey[100]}`,
-      }}
-    >
+    <>
       <Button
         component="label"
         role={undefined}
-        variant="contained"
+        variant="outlined"
         tabIndex={-1}
         startIcon={<FileUploadIcon />}
+        sx={{
+          margin: "50px",
+          padding: "100px",
+          width: "100%",
+          border: "1px dashed grey",
+          borderRadius: "5px",
+        }}
+        onChange={(e) => {
+          setFileUpload(e.target.files[0]);
+          setOpenModal(true);
+        }}
       >
-        Upload File <VisuallyHiddenInput type="file" />
+        Upload file
+        <VisuallyHiddenInput type="file" />
       </Button>
-    </Box>
+      <ShipStationModal openModal={openModal} modalClose={modalClose} />
+    </>
   );
 };
 
