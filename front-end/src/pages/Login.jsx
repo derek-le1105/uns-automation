@@ -63,7 +63,7 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)}
           />
           <TextField
-            label="Some label"
+            label="Password"
             variant="outlined"
             type={showPassword ? "text" : "password"}
             onChange={(e) => setPassword(e.target.value)}

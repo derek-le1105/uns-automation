@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useState } from "react";
 import {
   Box,
   Drawer,
@@ -11,7 +12,7 @@ import {
   ListItemText,
   Button,
 } from "@mui/material/";
-import { useTheme } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import HistoryIcon from "@mui/icons-material/History";
 import WarehouseIcon from "@mui/icons-material/Warehouse";
@@ -21,11 +22,12 @@ const drawerWidth = 180;
 
 const Navbar = () => {
   const theme = useTheme();
+  const [open, setOpen] = useState(false);
   const getIcon = (text) => {
     switch (text) {
       case "Wholesale":
         return <StorefrontIcon />;
-      case "Warehouse":
+      case "Retail":
         return <WarehouseIcon />;
       case "History":
         return <HistoryIcon />;
@@ -55,7 +57,7 @@ const Navbar = () => {
         <Toolbar />
         <Divider />
         <List>
-          {["Wholesale", "Warehouse", "History"].map((text, index) => (
+          {["Wholesale", "Retail", "History"].map((text, index) => (
             <NavLink
               to={`/${text.toLowerCase()}`}
               style={{ textDecoration: "none", color: "black" }}
