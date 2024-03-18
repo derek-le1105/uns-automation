@@ -12,76 +12,140 @@ import {
   DialogTitle,
   Grid,
   Typography,
+  ToggleButtonGroup,
+  ToggleButton,
+  List,
+  ListItem,
+  ListItemText,
+  Box,
 } from "@mui/material";
-
-import PlantPackList from "./PlantPackList";
 
 import { useState } from "react";
 
 const ShipStationModal = ({ openModal, modalClose }) => {
-  const anubiasList = [
-    "Anubias Congensis (AAP)",
-    "Anubias Congensis mini (AAP)",
-    "Anubias Minima (AAP)",
-    "Anubias Nana (AAP)",
-    "Anubias Nana Petite (AAP)",
-  ];
-
-  const beginnerList = [
-    "Anubias Nana - Pot (BPP)",
-    "Anubias Nana Petite - Pot  (BPP)",
-    "Crypt Beckettii  (BPP)",
-    "Java Fern Pot (BPP)",
-    "Java Fern Windelov (BPP)",
-  ];
-
-  const redStemList = [
-    "Limnophila Aromatica (RSP)",
-    "Ludwigia Diamond (RSP)",
-    "Ludwigia Ovalis   (RSP)",
-    "Ludwigia Super Red   (RSP)",
-    "Rotala Blood Red  (RSP)",
-  ];
-
-  const plantedBuceList = [
-    "Arrogant Blue (PBP)",
-    "Black Pearl (PBP)",
-    "Brownie Jade (PBP)",
-    "Lamandau Mini Purple (PBP)",
-    "Velvet 3 color (PBP)",
-  ];
+  const [packSelection, setPackSelection] = useState("Anubias Plant Pack");
+  const plantPacks = {
+    "Anubias Plant Pack": [
+      "Anubias Congensis (AAP)",
+      "Anubias Congensis mini (AAP)",
+      "Anubias Minima (AAP)",
+      "Anubias Nana (AAP)",
+      "Anubias Nana Petite (AAP)",
+    ],
+    "Beginner Plant Pack": [
+      "Anubias Nana - Pot (BPP)",
+      "Anubias Nana Petite - Pot  (BPP)",
+      "Crypt Beckettii  (BPP)",
+      "Java Fern Pot (BPP)",
+      "Java Fern Windelov (BPP)",
+    ],
+    "Red Stem Pack": [
+      "Limnophila Aromatica (RSP)",
+      "Ludwigia Diamond (RSP)",
+      "Ludwigia Ovalis   (RSP)",
+      "Ludwigia Super Red   (RSP)",
+      "Rotala Blood Red  (RSP)",
+    ],
+    "Planted Buce Pack": [
+      "Arrogant Blue (PBP)",
+      "Black Pearl (PBP)",
+      "Brownie Jade (PBP)",
+      "Lamandau Mini Purple (PBP)",
+      "Velvet 3 color (PBP)",
+    ],
+    "Assorted Echinodorus Pack": [
+      "Echinodorus Martii Major",
+      "Echinodorus Ozelot Green",
+      "Echinodorus Ozelot",
+      "Echinodorus Cordifolius",
+      "Echinodorus Rose",
+    ],
+    "Aquarium Moss Collector Pack": [
+      "Christmas Moss",
+      "Java Moss",
+      "Flame Moss",
+      "Peacock Moss",
+      "Spikey Moss",
+    ],
+  };
   const handleClose = () => {
-    modalClose;
+    modalClose();
+  };
+  const handleSelection = (e, newSelection) => {
+    setPackSelection(newSelection);
   };
   return (
     <>
-      <Dialog open={openModal} onClose={handleClose} sx={{ padding: "50px" }}>
+      <Dialog
+        fullWidth
+        open={openModal}
+        onClose={handleClose}
+        sx={{ padding: "50px", minHeight: "5vh" }}
+        maxWidth="sm"
+      >
         <DialogTitle>Input plants for plant packs</DialogTitle>
         <DialogContent>
-          <Grid container spacing={4}>
+          <Grid
+            container
+            sx={{ border: "1px solid black", borderRadius: "4px" }}
+          >
             <Grid item xs>
-              <PlantPackList
-                plantList={anubiasList}
-                listName={"Anubias Plant Pack"}
-              />
+              <ToggleButtonGroup
+                value={packSelection}
+                exclusive
+                onChange={handleSelection}
+                orientation="vertical"
+                sx={{ height: "100%" }}
+              >
+                {Object.keys(plantPacks).map((name) => {
+                  return (
+                    <ToggleButton
+                      value={name}
+                      sx={{
+                        "&.MuiToggleButtonGroup-grouped": {
+                          borderWidth: `1px ${
+                            name !== packSelection ? "1px" : "0px"
+                          } 1px 0px`,
+                          borderColor: "black",
+                          color: "black",
+                          borderRadius: "0px",
+                        },
+                        "&:last-of-type": {
+                          borderWidth: `1px ${
+                            name !== packSelection ? "1px" : "0px"
+                          } 0px 0px`,
+                        },
+                        "&:first-of-type": {
+                          borderWidth: `0px ${
+                            name !== packSelection ? "1px" : "0px"
+                          } 1px 0px`,
+                        },
+                      }}
+                    >
+                      {name}
+                    </ToggleButton>
+                  );
+                })}
+              </ToggleButtonGroup>
             </Grid>
-            <Grid item xs>
-              <PlantPackList
-                plantList={beginnerList}
-                listName={"Beginner Plant Pack"}
-              />
-            </Grid>
-            <Grid item xs>
-              <PlantPackList
-                plantList={redStemList}
-                listName={"Red Stem Pack"}
-              />
-            </Grid>
-            <Grid item xs>
-              <PlantPackList
-                plantList={plantedBuceList}
-                listName={"Planted Buce Pack"}
-              />
+            <Grid item xs={8}>
+              <Box>
+                {Object.entries(plantPacks).map(([name, list]) => {
+                  return (
+                    packSelection === name && (
+                      <List sx={{ maxHeight: "100%", padding: "0px" }}>
+                        {list.map((plant) => {
+                          return (
+                            <ListItem sx={{ padding: "auto" }}>
+                              <ListItemText primary={plant}></ListItemText>
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    )
+                  );
+                })}
+              </Box>
             </Grid>
           </Grid>
         </DialogContent>
