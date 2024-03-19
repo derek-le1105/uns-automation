@@ -16,6 +16,9 @@ export function getWholesaleDates() {
     });
   }
   let date1 = sub(new Date(shipoutDate).setHours(16, 0, 0), { days: 12 });
-
+  shipoutDate =
+    sessionStorage.getItem("shipout_date") === null
+      ? shipoutDate
+      : new Date(sessionStorage.getItem("shipout_date"));
   return [date1, shipoutDate];
 }

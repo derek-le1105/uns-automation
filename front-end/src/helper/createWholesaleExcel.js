@@ -20,8 +20,8 @@ export async function createWholesaleExcel(data, batch_length, date) {
     // CPA, AWC | ETC | BBA
 
     //styling
-    apc_sheet.getColumn("B").font = { bold: true };
-    wca_sheet.getColumn("B").font = { bold: true };
+    //apc_sheet.getColumn("B").font = { bold: true };
+    //wca_sheet.getColumn("B").font = { bold: true };
 
     Object.values(data).map((order, idx) => {
       let customer = order.order_name;
@@ -30,15 +30,17 @@ export async function createWholesaleExcel(data, batch_length, date) {
       apc_sheet.addRow();
       wca_sheet.addRow();
 
-      apc_sheet.getCell(`A${rows[0]}`).font = { size: 11, bold: true };
-      wca_sheet.getCell(`A${rows[1]}`).font = { size: 11, bold: true };
+      //apc_sheet.getCell(`A${rows[0]}`).font = { size: 11, bold: true };
+      //wca_sheet.getCell(`A${rows[1]}`).font = { size: 11, bold: true };
       order.items.map((item, key) => {
         let match = regex.exec(item.title);
+        //console.log(item);
         if (match) {
           const matchedSubstring = match[0]; // The entire matched substring
           const numberMatch = /\d+/.exec(matchedSubstring); // Match the number within the substring
           if (numberMatch) item.quantity *= parseInt(numberMatch[0], 10);
           item.title = item.title.slice(0, item.title.indexOf(match[0]));
+          //console.log(item);
         }
         let curr_item = [
           item.quantity,
@@ -111,6 +113,7 @@ export async function createWholesaleExcel(data, batch_length, date) {
 }
 
 export async function createMainExcel(main_data, order_names, date) {
+  console.log(main_data);
   const { data } = await supabase
     .from("main_excel_data")
     .select()
@@ -143,7 +146,6 @@ export async function createMainExcel(main_data, order_names, date) {
     store_order_sheet.addRow(store_row);
     main_sheet.addRow(store_row);
     if (stickers[idx + 1]) {
-      console.log(stickers[idx + 1]);
       stickers[idx + 1].forEach((item) => {
         main_sheet.addRow([idx + 1, item[0], item[1], item[4], item[6]]);
         main_sticker_sheet.addRow(item);
