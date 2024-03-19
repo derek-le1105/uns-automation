@@ -23,6 +23,7 @@ import {
 import { useState } from "react";
 
 const ShipStationModal = ({ openModal, modalClose }) => {
+  //detect plant packs with column B === 'zstem'
   const [packSelection, setPackSelection] = useState("Anubias Plant Pack");
   const plantPacks = {
     "Anubias Plant Pack": [

@@ -123,7 +123,7 @@ const OrdersListing = () => {
       await createWholesaleExcel(
         orders.filter((_, idx) => batchList.includes(idx)),
         batch_length,
-        format(shipoutDate, "MM/dd/yyyy")
+        format(shipoutDate.$d, "MM/dd/yyyy")
       );
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
@@ -151,7 +151,7 @@ const OrdersListing = () => {
         }}
       >
         <Grid container sx={{ padding: "25px 50px" }}>
-          <Grid item xs={2}>
+          <Grid item xs>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
                 <DateTimePicker
@@ -171,7 +171,7 @@ const OrdersListing = () => {
             </LocalizationProvider>
           </Grid>
 
-          <Grid item xs={2}>
+          <Grid item xs>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
                 <DateTimePicker
@@ -186,7 +186,7 @@ const OrdersListing = () => {
               </DemoContainer>
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DatePicker", "DatePicker"]}>
                 <DatePicker
