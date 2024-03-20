@@ -3,6 +3,36 @@ import { saveAs } from "file-saver";
 
 import { supabase } from "../supabaseClient";
 
+const assorted_pack = [
+  [10, "Anubias Barteri Round Golden Coin - Pot", "P920/1"],
+  [10, "Anubias Congensis - Pot", "P928"],
+  [10, "Anubias Lanceolata - Pot", "P930"],
+  [5, "Anubias Nana Golden - Pot", "P933"],
+  [5, "Anubias Nana Petite - Pot", "P935"],
+  [10, "Anubias Nana - Pot", "P932"],
+  [10, "Bacopa Caroliniana - Lead Bunch", "B880"],
+  [5, "Bolbitis Heteroclita Difformis (baby leaf)", "P814/1"],
+  [5, "Cryptocoryne Balansae - Pot", "P823"],
+  [5, "Cryptocoryne Hudoroi - Pot", "P822/1"],
+  [5, "Cryptocoryne Wendtii Brown - Pot", "P869"],
+  [5, "Cryptocoryne Wendtii Green - Pot", "P869/1"],
+  [10, "Echinodorus Bleheri", "P833"],
+  [5, "Echinodorus Red Rubin", "P1115/3"],
+  [5, "Echinodorus Xinguensis", "P1113"],
+  [10, "Egeria Densa - Lead Bunch", "B835"],
+  [10, "Lilaeopsis Novaezelandiae", "B1205/1"],
+  [10, "Ludwigia Arcuata - Lead Bunch", "B907/1"],
+  [10, "Ludwigia Natans Super Red - Lead Bunch", "B907/6"],
+  [5, "Micranthemum Micranthemoides - Lead Bunch", "B1119/1"],
+  [10, "Microsorum Pteropus", "P843"],
+  [5, "Microsorum Pteropus Windelov", "P843/1"],
+  [10, "Rotala Indica - Lead Bunch", "B888/4"],
+  [10, "Sagittaria Subulata - Lead Bunch", "B852"],
+  [10, "Vallisneria Americana - Lead Bunch", "B887"],
+  [10, "Vallisneria Spiralis - Lead Bunch", "B871"],
+  [20, "Java moss Golfball", "PT890"],
+];
+
 export async function createWholesaleExcel(data, batch_length, date) {
   try {
     const regex = /\s-\s\d+\s+pack\s*/i;
@@ -15,36 +45,26 @@ export async function createWholesaleExcel(data, batch_length, date) {
       WCA_STORE_ORDER: WCA_WB,
     };
 
-    let rows = [1, 1]; // wca, apc
     const main_data = [[], [], []]; // fill and then sort by vendor
-    // CPA, AWC | ETC | BBA
-
-    //styling
-    //apc_sheet.getColumn("B").font = { bold: true };
-    //wca_sheet.getColumn("B").font = { bold: true };
+    const wca_data = {},
+      apc_data = {};
 
     Object.values(data).map((order, idx) => {
       let customer = order.order_name;
-      apc_sheet.addRow([customer, "", "", batch_length]);
-      wca_sheet.addRow([customer, "", "", batch_length]);
-      apc_sheet.addRow();
-      wca_sheet.addRow();
+      apc_data[customer] = [[customer, "", "", batch_length], []];
+      wca_data[customer] = [[customer, "", "", batch_length], []];
 
-      //apc_sheet.getCell(`A${rows[0]}`).font = { size: 11, bold: true };
-      //wca_sheet.getCell(`A${rows[1]}`).font = { size: 11, bold: true };
       order.items.map((item, key) => {
         let match = regex.exec(item.title);
-        //console.log(item);
         if (match) {
           const matchedSubstring = match[0]; // The entire matched substring
           const numberMatch = /\d+/.exec(matchedSubstring); // Match the number within the substring
           if (numberMatch) item.quantity *= parseInt(numberMatch[0], 10);
           item.title = item.title.slice(0, item.title.indexOf(match[0]));
-          //console.log(item);
         }
         let curr_item = [
           item.quantity,
-          item.title,
+          item.title.includes("$500") ? item.title.slice(5) : item.title,
           item.barcode,
           batch_length,
           item.vendor,
@@ -56,19 +76,22 @@ export async function createWholesaleExcel(data, batch_length, date) {
             item.title.toLowerCase().includes("cup") ||
             item.title.toLowerCase().includes("tissue culture")
           ) {
-            wca_sheet.addRow(curr_item.slice(0, 5));
-            rows[1] += 1;
+            wca_data[customer].push(curr_item.slice(0, 5));
           } else {
-            apc_sheet.addRow(curr_item.slice(0, 5));
-            rows[0] += 1;
+            apc_data[customer].push(curr_item.slice(0, 5));
           }
         } else if (item.vendor === "ACW-TS") {
           if (item.title.toLowerCase().includes("mother")) {
-            apc_sheet.addRow(curr_item.slice(0, 5));
-            rows[0] += 1;
+            apc_data[customer].push(curr_item.slice(0, 5));
           } else {
-            wca_sheet.addRow(curr_item.slice(0, 5));
-            rows[1] += 1;
+            wca_data[customer].push(curr_item.slice(0, 5));
+
+            //wca_sheet.addRow(curr_item.slice(0, 5));
+            if (item.title.includes("$500")) {
+              for (let plant of assorted_pack) {
+                wca_data[customer].push([...plant, batch_length]);
+              }
+            }
           }
         } else {
           if (item.vendor.includes("CPA") || item.vendor.includes("WCA"))
@@ -77,13 +100,25 @@ export async function createWholesaleExcel(data, batch_length, date) {
           else main_data[1].push(curr_item);
         }
       });
-      apc_sheet.addRow([]);
-      wca_sheet.addRow([]);
-      rows = rows.map((row) => (row += 2));
+      wca_data[customer].push([]);
+      apc_data[customer].push([]);
       batch_length += 1;
     });
-    //create main excel before pushing data
-    // return data from new main excel function to upsert into supabase
+
+    for (const order_data of Object.values(wca_data)) {
+      if (order_data.length <= 3) continue;
+      order_data.map((row) => {
+        return wca_sheet.addRow(row);
+      });
+    }
+
+    for (const order_data of Object.values(apc_data)) {
+      if (order_data.length <= 3) continue;
+      order_data.map((row) => {
+        return apc_sheet.addRow(row);
+      });
+    }
+
     let names = data.map((order) => {
       return [order.order_name, order.shipping];
     });
@@ -133,7 +168,6 @@ export async function createMainExcel(main_data, order_names, date) {
   const main_sheet = MAIN_WB.addWorksheet("Main");
   const store_order_sheet = MAIN_WB.addWorksheet("Store Order");
 
-  main_sheet.getColumn("B").font = { bold: true };
   let stickers = sortAndCombine(new_data.slice(0, 3));
   new_data[3].map((order, idx) => {
     let store_row = [
