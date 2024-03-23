@@ -39,17 +39,18 @@ const OrdersListing = () => {
   const [batchList, setBatchList] = useState([]);
   const [supabaseData, setSupabaseData] = useState([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      const { data } = await supabase
-        .from("batch_data")
-        .select()
-        .eq("wednesday_date", format(wholesaleDates[1], "MM/dd/yyyy"))
-        .limit(1)
-        .maybeSingle();
+  async function fetchData() {
+    const { data } = await supabase
+      .from("batch_data")
+      .select()
+      .eq("wednesday_date", format(wholesaleDates[1], "MM/dd/yyyy"))
+      .limit(1)
+      .maybeSingle();
 
-      setSupabaseData(objectLength(data));
-    }
+    setSupabaseData(objectLength(data));
+  }
+
+  useEffect(() => {
     fetchData().catch((error) => {
       console.log(error);
     });
@@ -57,6 +58,13 @@ const OrdersListing = () => {
     if (JSON.parse(sessionStorage.getItem("orders")) === null || dateChanged)
       getShopify();
   }, []);
+
+  useEffect(() => {
+    console.log("change");
+    fetchData().catch((error) => {
+      console.log(error);
+    });
+  }, [shipoutDate]);
 
   const getShopify = async () => {
     setLoading(true);
@@ -97,39 +105,43 @@ const OrdersListing = () => {
   };
 
   const generateExcel = async () => {
-    //TODO: allow user to download excel files without uploading to db
-    let batch_day = [new Date().getDay()].toString();
-    var batch_length = supabaseData[0];
-    var new_batch = batchList.map((order, index) => {
-      return {
-        ...orders[order],
-        batch: batch_day,
-      };
-    });
-
-    if (supabaseData !== null) {
-      let curr_batch = supabaseData[1].filter(
-        (order) => order.batch === batch_day
-      );
-      new_batch =
-        curr_batch.length < 1 ? [...new_batch] : [...curr_batch, ...new_batch];
-    }
-    new_batch.sort((a, b) => {
-      return (
-        parseInt(a.order_name.slice(-5)) - parseInt(b.order_name.slice(-5))
-      );
-    });
     try {
+      //TODO: allow user to download excel files without uploading to db
+      let batch_day = [new Date().getDay()].toString();
+      var batch_length = supabaseData[0];
+      var new_batch = batchList.map((order, index) => {
+        return {
+          ...orders[order],
+          batch: batch_day,
+        };
+      });
+
+      if (supabaseData !== null) {
+        let curr_batch = supabaseData[1].filter(
+          (order) => order.batch === batch_day
+        );
+        new_batch =
+          curr_batch.length < 1
+            ? [...new_batch]
+            : [...curr_batch, ...new_batch];
+      }
+      new_batch.sort((a, b) => {
+        return (
+          parseInt(a.order_name.slice(-5)) - parseInt(b.order_name.slice(-5))
+        );
+      });
+
       await createWholesaleExcel(
         orders.filter((_, idx) => batchList.includes(idx)),
         batch_length,
-        format(shipoutDate, "MM/dd/yyyy")
+        format(shipoutDate.$d, "MM/dd/yyyy")
       );
       await supabase.from("batch_data").upsert({
         //create an entry in the db with the new wed date along with data from Shopify
-        wednesday_date: format(shipoutDate, "MM/dd/yyyy"),
+        wednesday_date: format(shipoutDate.$d, "MM/dd/yyyy"),
         [batch_day]: new_batch,
       });
+      fetchData();
     } catch (error) {
       console.log(error);
     }
@@ -151,7 +163,7 @@ const OrdersListing = () => {
         }}
       >
         <Grid container sx={{ padding: "25px 50px" }}>
-          <Grid item xs={2}>
+          <Grid item xs="auto">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
                 <DateTimePicker
@@ -171,7 +183,7 @@ const OrdersListing = () => {
             </LocalizationProvider>
           </Grid>
 
-          <Grid item xs={2}>
+          <Grid item xs="auto">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
                 <DateTimePicker
@@ -186,7 +198,7 @@ const OrdersListing = () => {
               </DemoContainer>
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DatePicker", "DatePicker"]}>
                 <DatePicker
