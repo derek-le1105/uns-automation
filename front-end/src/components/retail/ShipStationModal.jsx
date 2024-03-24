@@ -16,7 +16,12 @@ import {
   Box,
 } from "@mui/material";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+import {
+  readRetailExcel,
+  createFormattedExcel,
+} from "../../helper/readRetailExcel";
 
 const ShipStationModal = ({ file, openModal, modalClose }) => {
   //detect plant packs with column B === 'zstem'
@@ -43,7 +48,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
       "Ludwigia Super Red   (RSP)",
       "Rotala Blood Red  (RSP)",
     ],
-    "Planted Buce Pack": [
+    "Potted Buce Pack": [
       "Arrogant Blue (PBP)",
       "Black Pearl (PBP)",
       "Brownie Jade (PBP)",
@@ -65,7 +70,19 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
       "Spikey Moss",
     ],
   });
+  useEffect(() => {
+    if (file) {
+      async () => {
+        await readRetailExcel(file);
+      };
+    }
+  }, [file]);
+
   const handleClose = () => {
+    modalClose();
+  };
+  const handleAgree = async () => {
+    await createFormattedExcel();
     modalClose();
   };
   const handleSelection = (e, newSelection) => {
@@ -98,6 +115,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                   return (
                     <ToggleButton
                       value={name}
+                      key={name}
                       sx={{
                         "&.MuiToggleButtonGroup-grouped": {
                           borderWidth: `1px ${
@@ -135,6 +153,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                           return (
                             <ListItem sx={{ padding: "auto" }}>
                               <TextField
+                                id={plant}
                                 fullWidth
                                 variant="standard"
                                 defaultValue={plant}
@@ -162,8 +181,8 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={modalClose}>Disagree</Button>
-          <Button onClick={modalClose} autoFocus>
+          <Button onClick={handleClose}>Disagree</Button>
+          <Button onClick={handleAgree} autoFocus>
             Agree
           </Button>
         </DialogActions>
