@@ -1,9 +1,5 @@
 import {
-  FormControl,
-  FormLabel,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
+  TextField,
   Button,
   Dialog,
   DialogActions,
@@ -22,10 +18,10 @@ import {
 
 import { useState } from "react";
 
-const ShipStationModal = ({ openModal, modalClose }) => {
+const ShipStationModal = ({ file, openModal, modalClose }) => {
   //detect plant packs with column B === 'zstem'
   const [packSelection, setPackSelection] = useState("Anubias Plant Pack");
-  const plantPacks = {
+  const [plantPacks, setPlantPacks] = useState({
     "Anubias Plant Pack": [
       "Anubias Congensis (AAP)",
       "Anubias Congensis mini (AAP)",
@@ -68,7 +64,7 @@ const ShipStationModal = ({ openModal, modalClose }) => {
       "Peacock Moss",
       "Spikey Moss",
     ],
-  };
+  });
   const handleClose = () => {
     modalClose();
   };
@@ -135,10 +131,25 @@ const ShipStationModal = ({ openModal, modalClose }) => {
                   return (
                     packSelection === name && (
                       <List sx={{ maxHeight: "100%", padding: "0px" }}>
-                        {list.map((plant) => {
+                        {list.map((plant, idx) => {
                           return (
                             <ListItem sx={{ padding: "auto" }}>
-                              <ListItemText primary={plant}></ListItemText>
+                              <TextField
+                                fullWidth
+                                variant="standard"
+                                defaultValue={plant}
+                                sx={{ color: "black" }}
+                                onChange={(e) => {
+                                  let new_list = plantPacks[name];
+                                  new_list[idx] = e.target.value;
+                                  setPlantPacks({
+                                    ...plantPacks,
+                                    [name]: new_list,
+                                  });
+                                }}
+                              >
+                                {" "}
+                              </TextField>
                             </ListItem>
                           );
                         })}
