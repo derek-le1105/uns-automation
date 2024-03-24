@@ -17,16 +17,16 @@ jobs:
       - name: Log in to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD}}
       - name: Build Docker image
-        run: docker build -t uns-application/react-app .
+        run: docker build -t derekcs1105/react-app .
       - name: Publish image to Docker Hub
-        run: docker push uns-application/react-app:latest
+        run: docker push derekcs1105/react-app:latest
 
   deploy:
     needs: build
     runs-on: self-hosted
     steps:
       - name: Pull image from Docker Hub
-        run: docker pull uns-application/react-app:latest
+        run: docker pull derekcs1105/react-app:latest
       - name: Delete old container
         run: docker rm -f react-app-container
       - name: Run Docker Container
