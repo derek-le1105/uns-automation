@@ -32,4 +32,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f react-app-container
       - name: Run Docker Container
-        run: docker run -d -p 5174:80 --name react-app-container derekcs1105/react-app
+        run: docker run -d -p 5175:5175 --name react-app-container derekcs1105/react-app
