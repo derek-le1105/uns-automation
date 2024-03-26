@@ -21,7 +21,6 @@ export default defineConfig({
   server: {
     host: true,
     port: 5175,
-    origin: "http://0.0.0.0:5175",
     proxy: {
       "/orders": {
         target: "http://localhost:4000",

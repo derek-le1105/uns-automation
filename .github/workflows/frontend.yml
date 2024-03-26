@@ -17,7 +17,7 @@ jobs:
       - name: Log in to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD}}
       - name: Build Docker image
-        run: docker build -t derekcs1105/react-app .
+        run: docker build -t derekcs1105/react-app --build-arg VITE_SUPABASE_URL='${{secrets.VITE_SUPABASE_URL}}' --build-arg VITE_SUPABASE_ANON_KEY='${{secrets.VITE_SUPABASE_ANON_KEY}}' .
       - name: Publish image to Docker Hub
         run: docker push derekcs1105/react-app:latest
 
@@ -30,4 +30,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f react-app-container
       - name: Run Docker Container
-        run: docker run -d -p 5175:5175 --name react-app-container -e VITE_SUPABASE_URL='${{secrets.VITE_SUPABASE_URL}}' -e VITE_SUPABASE_ANON_KEY='${{secrets.VITE_SUPABASE_ANON_KEY}}' derekcs1105/react-app
+        run: docker run -d -p 5175:5175 --name react-app-container derekcs1105/react-app
