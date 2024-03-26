@@ -77,7 +77,7 @@ router.post("/", async (req, res) => {
   console.log(fridays);
   try {
     await axios({
-      url: process.env.ORDER_RESOURCE_URL,
+      url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
       method: "post",
       headers: {
         "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
@@ -136,7 +136,7 @@ router.post("/", async (req, res) => {
 
     do {
       var response2 = await axios({
-        url: process.env.ORDER_RESOURCE_URL,
+        url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
         method: "post",
         headers: {
           "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,

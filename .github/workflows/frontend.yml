@@ -1,0 +1,33 @@
+name: Deploy React Application
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front-end
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD}}
+      - name: Build Docker image
+        run: docker build -t derekcs1105/react-app --build-arg VITE_SUPABASE_URL='${{secrets.VITE_SUPABASE_URL}}' --build-arg VITE_SUPABASE_ANON_KEY='${{secrets.VITE_SUPABASE_ANON_KEY}}' .
+      - name: Publish image to Docker Hub
+        run: docker push derekcs1105/react-app:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull image from Docker Hub
+        run: docker pull derekcs1105/react-app:latest
+      - name: Delete old container
+        run: docker rm -f react-app-container
+      - name: Run Docker Container
+        run: docker run -d -p 5175:5175 --name react-app-container derekcs1105/react-app
