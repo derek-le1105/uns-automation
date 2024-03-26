@@ -30,4 +30,4 @@ jobs:
       - name: Delete old container
         run: docker rm -f express-app-container
       - name: Run Docker Container
-        run: docker run -d -p 4000:4000 --name express-app-container -e SHOPIFY_ACCESS_TOKEN='${{secrets.SHOPIFY_ACCESS_TOKEN}}' derekcs1105/express-app
+        run: docker run -d -p 4000:4000 --name express-app-container -e PORT='${{secrets.PORT}}' -e SHOPIFY_ACCESS_TOKEN='${{secrets.SHOPIFY_ACCESS_TOKEN}}' derekcs1105/express-app
