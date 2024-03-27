@@ -60,7 +60,6 @@ const OrdersListing = () => {
   }, []);
 
   useEffect(() => {
-    console.log("change");
     fetchData().catch((error) => {
       console.log(error);
     });

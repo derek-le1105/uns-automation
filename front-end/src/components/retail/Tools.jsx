@@ -21,7 +21,7 @@ const VisuallyHiddenInput = styled("input")({
 
 const Tools = () => {
   const [fileUpload, setFileUpload] = useState(null);
-  const [openModal, setOpenModal] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
 
   const modalClose = () => {
     setOpenModal(false);
@@ -44,14 +44,18 @@ const Tools = () => {
           borderRadius: "5px",
         }}
         onChange={(e) => {
-          setFileUpload(e.target.files[0]);
+          setFileUpload(e.target.files[e.target.files.length - 1]);
           setOpenModal(true);
         }}
       >
         Upload file
         <VisuallyHiddenInput type="file" />
       </Button>
-      <ShipStationModal openModal={openModal} modalClose={modalClose} />
+      <ShipStationModal
+        file={fileUpload}
+        openModal={openModal}
+        modalClose={modalClose}
+      />
     </>
   );
 };

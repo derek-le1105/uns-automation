@@ -55,12 +55,10 @@ const parseData = async () => {
         } catch (error) {
           //TODO: handle error when reading line stops abruptly
           console.error("Error parsing JSON:", error);
-          console.log(currCustomer + " " + line, "\n");
         }
       });
 
       readStream.on("close", () => {
-        console.log("Finished processing JSONL data.");
         resolve(dataContainer); // Resolve the Promise when processing is complete
       });
     });
@@ -74,7 +72,6 @@ const parseData = async () => {
 
 router.post("/", async (req, res) => {
   let fridays = req.body;
-  console.log(fridays);
   try {
     await axios({
       url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
@@ -158,12 +155,6 @@ router.post("/", async (req, res) => {
               }`,
         },
       });
-      console.log(
-        "waiting " +
-          response2.data.data.currentBulkOperation.status +
-          " " +
-          response2.data.data.currentBulkOperation.id
-      );
       await wait(1000);
     } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
 

@@ -1,9 +1,5 @@
 import {
-  FormControl,
-  FormLabel,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
+  TextField,
   Button,
   Dialog,
   DialogActions,
@@ -20,12 +16,17 @@ import {
   Box,
 } from "@mui/material";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ShipStationModal = ({ openModal, modalClose }) => {
+import {
+  readRetailExcel,
+  createFormattedExcel,
+} from "../../helper/readRetailExcel";
+
+const ShipStationModal = ({ file, openModal, modalClose }) => {
   //detect plant packs with column B === 'zstem'
   const [packSelection, setPackSelection] = useState("Anubias Plant Pack");
-  const plantPacks = {
+  const [plantPacks, setPlantPacks] = useState({
     "Anubias Plant Pack": [
       "Anubias Congensis (AAP)",
       "Anubias Congensis mini (AAP)",
@@ -47,7 +48,7 @@ const ShipStationModal = ({ openModal, modalClose }) => {
       "Ludwigia Super Red   (RSP)",
       "Rotala Blood Red  (RSP)",
     ],
-    "Planted Buce Pack": [
+    "Potted Buce Pack": [
       "Arrogant Blue (PBP)",
       "Black Pearl (PBP)",
       "Brownie Jade (PBP)",
@@ -68,8 +69,20 @@ const ShipStationModal = ({ openModal, modalClose }) => {
       "Peacock Moss",
       "Spikey Moss",
     ],
-  };
+  });
+  useEffect(() => {
+    if (file) {
+      async () => {
+        await readRetailExcel(file);
+      };
+    }
+  }, [file]);
+
   const handleClose = () => {
+    modalClose();
+  };
+  const handleAgree = async () => {
+    await createFormattedExcel();
     modalClose();
   };
   const handleSelection = (e, newSelection) => {
@@ -102,6 +115,7 @@ const ShipStationModal = ({ openModal, modalClose }) => {
                   return (
                     <ToggleButton
                       value={name}
+                      key={name}
                       sx={{
                         "&.MuiToggleButtonGroup-grouped": {
                           borderWidth: `1px ${
@@ -135,10 +149,26 @@ const ShipStationModal = ({ openModal, modalClose }) => {
                   return (
                     packSelection === name && (
                       <List sx={{ maxHeight: "100%", padding: "0px" }}>
-                        {list.map((plant) => {
+                        {list.map((plant, idx) => {
                           return (
                             <ListItem sx={{ padding: "auto" }}>
-                              <ListItemText primary={plant}></ListItemText>
+                              <TextField
+                                id={plant}
+                                fullWidth
+                                variant="standard"
+                                defaultValue={plant}
+                                sx={{ color: "black" }}
+                                onChange={(e) => {
+                                  let new_list = plantPacks[name];
+                                  new_list[idx] = e.target.value;
+                                  setPlantPacks({
+                                    ...plantPacks,
+                                    [name]: new_list,
+                                  });
+                                }}
+                              >
+                                {" "}
+                              </TextField>
                             </ListItem>
                           );
                         })}
@@ -151,8 +181,8 @@ const ShipStationModal = ({ openModal, modalClose }) => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={modalClose}>Disagree</Button>
-          <Button onClick={modalClose} autoFocus>
+          <Button onClick={handleClose}>Disagree</Button>
+          <Button onClick={handleAgree} autoFocus>
             Agree
           </Button>
         </DialogActions>
