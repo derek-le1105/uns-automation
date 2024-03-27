@@ -26,55 +26,16 @@ import {
 const ShipStationModal = ({ file, openModal, modalClose }) => {
   //detect plant packs with column B === 'zstem'
   const [packSelection, setPackSelection] = useState("Anubias Plant Pack");
-  const [plantPacks, setPlantPacks] = useState({
-    "Anubias Plant Pack": [
-      "Anubias Congensis (AAP)",
-      "Anubias Congensis mini (AAP)",
-      "Anubias Minima (AAP)",
-      "Anubias Nana (AAP)",
-      "Anubias Nana Petite (AAP)",
-    ],
-    "Beginner Plant Pack": [
-      "Anubias Nana - Pot (BPP)",
-      "Anubias Nana Petite - Pot  (BPP)",
-      "Crypt Beckettii  (BPP)",
-      "Java Fern Pot (BPP)",
-      "Java Fern Windelov (BPP)",
-    ],
-    "Red Stem Pack": [
-      "Limnophila Aromatica (RSP)",
-      "Ludwigia Diamond (RSP)",
-      "Ludwigia Ovalis   (RSP)",
-      "Ludwigia Super Red   (RSP)",
-      "Rotala Blood Red  (RSP)",
-    ],
-    "Potted Buce Pack": [
-      "Arrogant Blue (PBP)",
-      "Black Pearl (PBP)",
-      "Brownie Jade (PBP)",
-      "Lamandau Mini Purple (PBP)",
-      "Velvet 3 color (PBP)",
-    ],
-    "Assorted Echinodorus Pack": [
-      "Echinodorus Martii Major",
-      "Echinodorus Ozelot Green",
-      "Echinodorus Ozelot",
-      "Echinodorus Cordifolius",
-      "Echinodorus Rose",
-    ],
-    "Aquarium Moss Collector Pack": [
-      "Christmas Moss",
-      "Java Moss",
-      "Flame Moss",
-      "Peacock Moss",
-      "Spikey Moss",
-    ],
-  });
+  const [plantPacks, setPlantPacks] = useState([]);
+  const [excelData, setExcelData] = useState([]);
   useEffect(() => {
     if (file) {
-      async () => {
-        await readRetailExcel(file);
-      };
+      async function importData() {
+        let [data, packs] = await readRetailExcel(file);
+        setExcelData(...data);
+        setPlantPacks(...packs);
+      }
+      importData();
     }
   }, [file]);
 
@@ -82,7 +43,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
     modalClose();
   };
   const handleAgree = async () => {
-    await createFormattedExcel();
+    await createFormattedExcel(excelData, plantPacks);
     modalClose();
   };
   const handleSelection = (e, newSelection) => {

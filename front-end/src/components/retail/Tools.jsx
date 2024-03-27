@@ -2,8 +2,6 @@ import { Container, Box, Grid, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 
-import { useTheme } from "@mui/material/styles";
-
 import { useState } from "react";
 import ShipStationModal from "./ShipStationModal";
 
@@ -27,7 +25,6 @@ const Tools = () => {
     setOpenModal(false);
   };
 
-  const theme = useTheme();
   return (
     <>
       <Button
@@ -48,7 +45,7 @@ const Tools = () => {
           setOpenModal(true);
         }}
       >
-        Upload file
+        Shipstation Upload
         <VisuallyHiddenInput type="file" />
       </Button>
       <ShipStationModal

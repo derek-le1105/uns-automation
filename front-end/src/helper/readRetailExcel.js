@@ -1,5 +1,49 @@
 import * as Excel from "exceljs";
 import { saveAs } from "file-saver";
+const plantPacks = {
+  "Anubias Plant Pack": [
+    "Anubias Congensis (AAP)",
+    "Anubias Congensis mini (AAP)",
+    "Anubias Minima (AAP)",
+    "Anubias Nana (AAP)",
+    "Anubias Nana Petite (AAP)",
+  ],
+  "Beginner Plant Pack": [
+    "Anubias Nana - Pot (BPP)",
+    "Anubias Nana Petite - Pot  (BPP)",
+    "Crypt Beckettii  (BPP)",
+    "Java Fern Pot (BPP)",
+    "Java Fern Windelov (BPP)",
+  ],
+  "Red Stem Pack": [
+    "Limnophila Aromatica (RSP)",
+    "Ludwigia Diamond (RSP)",
+    "Ludwigia Ovalis   (RSP)",
+    "Ludwigia Super Red   (RSP)",
+    "Rotala Blood Red  (RSP)",
+  ],
+  "Potted Buce Pack": [
+    "Arrogant Blue (PBP)",
+    "Black Pearl (PBP)",
+    "Brownie Jade (PBP)",
+    "Lamandau Mini Purple (PBP)",
+    "Velvet 3 color (PBP)",
+  ],
+  "Assorted Echinodorus Pack": [
+    "Echinodorus Martii Major",
+    "Echinodorus Ozelot Green",
+    "Echinodorus Ozelot",
+    "Echinodorus Cordifolius",
+    "Echinodorus Rose",
+  ],
+  "Aquarium Moss Collector Pack": [
+    "Christmas Moss",
+    "Java Moss",
+    "Flame Moss",
+    "Peacock Moss",
+    "Spikey Moss",
+  ],
+};
 
 export async function readRetailExcel(file) {
   const wb = new Excel.Workbook();
@@ -16,7 +60,6 @@ export async function readRetailExcel(file) {
         let rows = [];
         let code = 1;
         sheet.eachRow((row, rowIdx) => {
-          //console.log(row.values, rowIdx);
           if (rowIdx === 1) return;
           rows.push(row.values);
           if (!row.values[2]) return;
