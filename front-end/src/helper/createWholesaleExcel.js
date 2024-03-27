@@ -148,7 +148,6 @@ export async function createWholesaleExcel(data, batch_length, date) {
 }
 
 export async function createMainExcel(main_data, order_names, date) {
-  console.log(main_data);
   const { data } = await supabase
     .from("main_excel_data")
     .select()
@@ -165,7 +164,6 @@ export async function createMainExcel(main_data, order_names, date) {
   new_data.push(prev_data[3].concat(order_names));
   const MAIN_WB = new Excel.Workbook();
   const main_sticker_sheet = MAIN_WB.addWorksheet("Main Sticker");
-  const main_sheet = MAIN_WB.addWorksheet("Main");
   const store_order_sheet = MAIN_WB.addWorksheet("Store Order");
 
   let stickers = sortAndCombine(new_data.slice(0, 3));
@@ -178,10 +176,8 @@ export async function createMainExcel(main_data, order_names, date) {
       order[0].slice(0, order[0].indexOf(" - ")),
     ];
     store_order_sheet.addRow(store_row);
-    main_sheet.addRow(store_row);
     if (stickers[idx + 1]) {
       stickers[idx + 1].forEach((item) => {
-        main_sheet.addRow([idx + 1, item[0], item[1], item[4], item[6]]);
         main_sticker_sheet.addRow(item);
       });
     }
