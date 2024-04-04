@@ -1,18 +1,11 @@
 import {
-  TextField,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Grid,
-  Typography,
   ToggleButtonGroup,
-  ToggleButton,
-  List,
-  ListItem,
-  ListItemText,
   Box,
 } from "@mui/material";
 
@@ -72,7 +65,8 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                 orientation="vertical"
                 sx={{ height: "100%" }}
               >
-                {Object.keys(plantPacks).map((name) => {
+                {/* {plantPacks.forEach((pack) => {
+                  let name = Object.keys(pack);
                   return (
                     <ToggleButton
                       value={name}
@@ -101,12 +95,12 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                       {name}
                     </ToggleButton>
                   );
-                })}
+                })} */}
               </ToggleButtonGroup>
             </Grid>
             <Grid item xs={8}>
               <Box>
-                {Object.entries(plantPacks).map(([name, list]) => {
+                {/* {Object.entries(plantPacks).map(([name, list]) => {
                   return (
                     packSelection === name && (
                       <List sx={{ maxHeight: "100%", padding: "0px" }}>
@@ -136,7 +130,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                       </List>
                     )
                   );
-                })}
+                })} */}
               </Box>
             </Grid>
           </Grid>

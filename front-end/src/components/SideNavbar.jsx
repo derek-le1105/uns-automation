@@ -57,7 +57,7 @@ const Navbar = () => {
         <Toolbar />
         <Divider />
         <List>
-          {["Wholesale"].map((text, index) => (
+          {["Wholesale", "Retail"].map((text, index) => (
             <NavLink
               to={`/${text.toLowerCase()}`}
               style={{ textDecoration: "none", color: "black" }}

@@ -46,7 +46,7 @@ const Tools = () => {
         }}
       >
         Shipstation Upload
-        <VisuallyHiddenInput type="file" />
+        <VisuallyHiddenInput type="file" accept=".xlsx, .xls, .csv" />
       </Button>
       <ShipStationModal
         file={fileUpload}

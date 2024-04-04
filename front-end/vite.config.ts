@@ -26,13 +26,7 @@ export default defineConfig({
         secure: false,
         ws: true,
       },
-      "/order": {
-        target: "http://localhost:4000",
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },
-      "/excels": {
+      "/shipstation": {
         target: "http://localhost:4000",
         changeOrigin: true,
         secure: false,
