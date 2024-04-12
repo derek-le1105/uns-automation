@@ -27,7 +27,6 @@ const Tools = () => {
     setOpenModal(false);
   };
 
-  const theme = useTheme();
   return (
     <>
       <Button

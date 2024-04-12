@@ -4,15 +4,12 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Grid,
-  Typography,
   ToggleButtonGroup,
   ToggleButton,
   List,
   ListItem,
-  ListItemText,
   Box,
 } from "@mui/material";
 
@@ -70,13 +67,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
       "Spikey Moss",
     ],
   });
-  useEffect(() => {
-    if (file) {
-      async () => {
-        await readRetailExcel(file);
-      };
-    }
-  }, [file]);
+  useEffect(() => {}, [file]);
 
   const handleClose = () => {
     modalClose();
