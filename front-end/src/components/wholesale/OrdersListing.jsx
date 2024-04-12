@@ -27,9 +27,7 @@ const OrdersListing = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
   const wholesaleDates = getWholesaleDates();
-  const [orders, setOrders] = useState(
-    JSON.parse(sessionStorage.getItem("orders"))
-  );
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[0]));
   const [afterDate, setAfterDate] = useState(dayjs(new Date()));
@@ -55,8 +53,9 @@ const OrdersListing = () => {
       console.log(error);
     });
 
-    if (JSON.parse(sessionStorage.getItem("orders")) === null || dateChanged)
-      getShopify();
+    if (JSON.parse(sessionStorage.getItem("orders")) !== null)
+      setOrders(JSON.parse(sessionStorage.getItem("orders")));
+    else getShopify();
   }, []);
 
   useEffect(() => {
@@ -255,76 +254,72 @@ const OrdersListing = () => {
             display: "grid",
           }}
         >
-          {orders && (
-            <>
-              <DataGrid
-                hideFooter
-                autoHeight
-                editMode="row"
-                loading={loading}
-                slots={{
-                  loadingOverlay: LinearProgress,
-                  noRowsOverlay: CustomNoRowsOverlay,
-                }}
-                rows={orders.map((order, idx) => {
-                  return {
-                    id: idx,
-                    order_name: order.order_name,
-                    customer: order.customer.first_name,
-                    shipping: order.shipping,
-                  };
-                })}
-                columns={[
-                  {
-                    field: "order_name",
-                    headerName: "Order Name",
-                    flex: 0.5,
-                    align: "right",
-                    headerAlign: "right",
-                  },
-                  {
-                    field: "customer",
-                    headerName: "Customer",
-                    flex: 1,
-                  },
-                  {
-                    field: "status",
-                    headerName: "Is in previous batch?",
-                    flex: 0.5,
-                    align: "center",
-                    headerAlign: "center",
-                    renderCell: (params) =>
-                      isObjectIncluded(supabaseData[1], params.row) ? (
-                        <CheckIcon color="success" />
-                      ) : (
-                        <CloseIcon color="error" />
-                      ),
-                  },
-                  {
-                    field: "shipping",
-                    headerName: "Shipping Method",
-                    flex: 1,
-                    editable: true,
-                    type: "singleSelect",
-                    valueOptions: ["Fedex", "GLS", "Airport", "Local"],
-                    align: "left",
-                    headerAlign: "left",
-                  },
-                ]}
-                checkboxSelection={true}
-                onRowSelectionModelChange={(newRowSelectionModel) => {
-                  setBatchList(newRowSelectionModel);
-                }}
-                rowSelectionModel={batchList}
-              ></DataGrid>
-              <BatchModal
-                openModal={openModal}
-                onClose={handleDialogClose}
-                batch={orders.filter((_, idx) => batchList.includes(idx))}
-                supabaseData={supabaseData}
-              />
-            </>
-          )}
+          <DataGrid
+            hideFooter
+            autoHeight
+            editMode="row"
+            loading={loading}
+            slots={{
+              loadingOverlay: LinearProgress,
+              noRowsOverlay: CustomNoRowsOverlay,
+            }}
+            rows={orders.map((order, idx) => {
+              return {
+                id: idx,
+                order_name: order.order_name,
+                customer: order.customer.first_name,
+                shipping: order.shipping,
+              };
+            })}
+            columns={[
+              {
+                field: "order_name",
+                headerName: "Order Name",
+                flex: 0.5,
+                align: "right",
+                headerAlign: "right",
+              },
+              {
+                field: "customer",
+                headerName: "Customer",
+                flex: 1,
+              },
+              {
+                field: "status",
+                headerName: "Is in previous batch?",
+                flex: 0.5,
+                align: "center",
+                headerAlign: "center",
+                renderCell: (params) =>
+                  isObjectIncluded(supabaseData[1], params.row) ? (
+                    <CheckIcon color="success" />
+                  ) : (
+                    <CloseIcon color="error" />
+                  ),
+              },
+              {
+                field: "shipping",
+                headerName: "Shipping Method",
+                flex: 1,
+                editable: true,
+                type: "singleSelect",
+                valueOptions: ["Fedex", "GLS", "Airport", "Local"],
+                align: "left",
+                headerAlign: "left",
+              },
+            ]}
+            checkboxSelection={true}
+            onRowSelectionModelChange={(newRowSelectionModel) => {
+              setBatchList(newRowSelectionModel);
+            }}
+            rowSelectionModel={batchList}
+          ></DataGrid>
+          <BatchModal
+            openModal={openModal}
+            onClose={handleDialogClose}
+            batch={orders.filter((_, idx) => batchList.includes(idx))}
+            supabaseData={supabaseData}
+          />
         </Box>
       </Box>
     </>
