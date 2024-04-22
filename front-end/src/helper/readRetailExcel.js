@@ -1,7 +1,8 @@
 import * as Excel from "exceljs";
 import { saveAs } from "file-saver";
+
 const plantPacks = {
-  "Anubias Plant Pack": [
+  "Assorted Anubias Plant Pack": [
     "Anubias Congensis (AAP)",
     "Anubias Congensis mini (AAP)",
     "Anubias Minima (AAP)",
@@ -22,7 +23,7 @@ const plantPacks = {
     "Ludwigia Super Red   (RSP)",
     "Rotala Blood Red  (RSP)",
   ],
-  "Potted Buce Pack": [
+  "Team Buce Plant Potted Starter Pack": [
     "Arrogant Blue (PBP)",
     "Black Pearl (PBP)",
     "Brownie Jade (PBP)",
@@ -46,21 +47,50 @@ const plantPacks = {
 };
 
 export async function readRetailExcel(file) {
+  const packRegex = / - \d+ Pack/;
+  const potPackRegex = / - \d+ Pot Package/;
   const wb = new Excel.Workbook();
   const reader = new FileReader();
 
-  const formData = new FormData();
-  formData.append("file", file);
+  const excelData = [];
+  const plant_packs_detects = {};
 
-  await fetch("/shipstation", {
-    method: "POST",
-    body: formData,
-  }).then((res) => {
-    console.log(res.json());
+  return new Promise((resolve, reject) => {
+    reader.readAsText(file);
+
+    reader.onload = function (e) {
+      const text = e.target.result;
+      text.split("\r\n").forEach((row) => {
+        let order_split = row.split(",");
+        if (order_split[1] === "zstem") {
+          let pack_qty =
+            order_split[3].match(/\d+/g) === null
+              ? 5
+              : parseInt(order_split[3].match(/\d+/g)[0]);
+          let pack_name = order_split[3].includes("Pot Package")
+            ? order_split[3].replace(potPackRegex, "")
+            : order_split[3].replace(packRegex, "");
+          if (!Object.keys(plant_packs_detects).includes(pack_name))
+            plantPackQtyAssignment(plant_packs_detects, pack_name, pack_qty);
+        } else {
+          excelData.push(order_split);
+        }
+      });
+    };
+
+    reader.onloadend = function (e) {
+      console.log(excelData);
+      resolve(plant_packs_detects);
+    };
   });
 
-  const excelData = [];
-  const packsDetected = new Set();
+  // const formData = new FormData();
+  // formData.append("file", file);
+
+  // await fetch("/shipstation", {
+  //   method: "POST",
+  //   body: formData,
+  // });
   // reader.readAsArrayBuffer(file);
   // reader.onload = () => {
   //   const buffer = reader.result;
@@ -106,7 +136,14 @@ export async function readRetailExcel(file) {
   //     });
   //   });
   // };
-  return [excelData, packsDetected];
+}
+
+function plantPackQtyAssignment(packsDetected, pack_name, quantity) {
+  let qty_packs = [];
+  plantPacks[pack_name].forEach((item) => {
+    qty_packs.push([quantity / 5, item]);
+  });
+  packsDetected[pack_name] = qty_packs;
 }
 
 export async function createFormattedExcel(data) {
