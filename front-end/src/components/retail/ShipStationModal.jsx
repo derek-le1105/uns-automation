@@ -21,7 +21,6 @@ import {
 } from "../../helper/readRetailExcel";
 
 const ShipStationModal = ({ file, openModal, modalClose }) => {
-  //detect plant packs with column B === 'zstem'
   const [packSelection, setPackSelection] = useState(
     "Assorted Anubias Plant Pack"
   );
@@ -30,7 +29,10 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
   useEffect(() => {
     if (file) {
       async function importData() {
-        await readRetailExcel(file).then((data) => setPlantPacks(data));
+        await readRetailExcel(file).then((data) => {
+          setExcelData(data[0]);
+          setPlantPacks(data[1]);
+        });
       }
       importData();
     }
@@ -41,7 +43,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
   };
 
   const handleAgree = async () => {
-    await createFormattedExcel(excelData, plantPacks);
+    await createFormattedExcel(excelData);
     modalClose();
   };
   const handleSelection = (e, newSelection) => {
@@ -108,31 +110,33 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                   {Object.keys(plantPacks).map((pack) => {
                     return (
                       packSelection === pack && (
-                        <List sx={{ maxHeight: "100%", padding: "0px" }}>
-                          {plantPacks[pack].map((plant, idx) => {
-                            return (
-                              <ListItem sx={{ padding: "auto" }} key={plant[1]}>
-                                <TextField
-                                  id={plant[1]}
-                                  fullWidth
-                                  variant="standard"
-                                  defaultValue={plant[1]}
-                                  sx={{ color: "black" }}
-                                  // onChange={(e) => {
-                                  //   let new_list = plantPacks[name];
-                                  //   new_list[idx] = e.target.value;
-                                  //   setPlantPacks({
-                                  //     ...plantPacks,
-                                  //     [name]: new_list,
-                                  //   });
-                                  // }}
-                                >
-                                  {" "}
-                                </TextField>
-                              </ListItem>
-                            );
-                          })}
-                        </List>
+                        <>
+                          <List sx={{ maxHeight: "100%", padding: "0px" }}>
+                            {plantPacks[pack].map((plant, idx) => {
+                              return (
+                                <ListItem sx={{ padding: "auto" }} key={plant}>
+                                  <TextField
+                                    id={plant}
+                                    fullWidth
+                                    variant="standard"
+                                    defaultValue={plant}
+                                    sx={{ color: "black" }}
+                                    onChange={(e) => {
+                                      let new_list = plantPacks[pack];
+                                      new_list[idx] = e.target.value;
+                                      setPlantPacks({
+                                        ...plantPacks,
+                                        [pack]: new_list,
+                                      });
+                                    }}
+                                  >
+                                    {" "}
+                                  </TextField>
+                                </ListItem>
+                              );
+                            })}
+                          </List>
+                        </>
                       )
                     );
                   })}
