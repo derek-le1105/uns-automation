@@ -1,5 +1,4 @@
 import {
-  TextField,
   Button,
   Dialog,
   DialogActions,
@@ -8,72 +7,63 @@ import {
   Grid,
   ToggleButtonGroup,
   ToggleButton,
-  List,
-  ListItem,
-  Box,
+  Stack,
+  TextField,
 } from "@mui/material";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import {
   readRetailExcel,
   createFormattedExcel,
 } from "../../helper/readRetailExcel";
 
+import { supabase } from "../../supabaseClient";
+
 const ShipStationModal = ({ file, openModal, modalClose }) => {
-  //detect plant packs with column B === 'zstem'
-  const [packSelection, setPackSelection] = useState("Anubias Plant Pack");
-  const [plantPacks, setPlantPacks] = useState({
-    "Anubias Plant Pack": [
-      "Anubias Congensis (AAP)",
-      "Anubias Congensis mini (AAP)",
-      "Anubias Minima (AAP)",
-      "Anubias Nana (AAP)",
-      "Anubias Nana Petite (AAP)",
-    ],
-    "Beginner Plant Pack": [
-      "Anubias Nana - Pot (BPP)",
-      "Anubias Nana Petite - Pot  (BPP)",
-      "Crypt Beckettii  (BPP)",
-      "Java Fern Pot (BPP)",
-      "Java Fern Windelov (BPP)",
-    ],
-    "Red Stem Pack": [
-      "Limnophila Aromatica (RSP)",
-      "Ludwigia Diamond (RSP)",
-      "Ludwigia Ovalis   (RSP)",
-      "Ludwigia Super Red   (RSP)",
-      "Rotala Blood Red  (RSP)",
-    ],
-    "Potted Buce Pack": [
-      "Arrogant Blue (PBP)",
-      "Black Pearl (PBP)",
-      "Brownie Jade (PBP)",
-      "Lamandau Mini Purple (PBP)",
-      "Velvet 3 color (PBP)",
-    ],
-    "Assorted Echinodorus Pack": [
-      "Echinodorus Martii Major",
-      "Echinodorus Ozelot Green",
-      "Echinodorus Ozelot",
-      "Echinodorus Cordifolius",
-      "Echinodorus Rose",
-    ],
-    "Aquarium Moss Collector Pack": [
-      "Christmas Moss",
-      "Java Moss",
-      "Flame Moss",
-      "Peacock Moss",
-      "Spikey Moss",
-    ],
-  });
-  useEffect(() => {}, [file]);
+  const [packSelection, setPackSelection] = useState(
+    "Assorted Anubias Plant Pack"
+  );
+  const [detectedPacks, setDetectedPacks] = useState({});
+  const excelRef = useRef(null);
+  const supabaseRef = useRef(null);
+
+  useEffect(() => {
+    if (file) {
+      async function importData() {
+        let { data: plant_packs, error } = await supabase
+          .from("plant_packs")
+          .select("*");
+        console.log(plant_packs);
+        await readRetailExcel(file, plant_packs).then((data) => {
+          excelRef.current = data[0];
+          setDetectedPacks(data[1]);
+        });
+        supabaseRef.current = plant_packs;
+      }
+      importData();
+    }
+  }, [file]);
 
   const handleClose = () => {
     modalClose();
   };
+
   const handleAgree = async () => {
-    await createFormattedExcel();
+    const { error } = await supabase
+      .from("plant_packs")
+      .upsert(
+        Object.keys(detectedPacks).map((pack) => {
+          let _ = { "Plant Pack": pack };
+          detectedPacks[pack].forEach((plant, idx) => {
+            _[`Plant ${idx + 1}`] = plant;
+          });
+          return _;
+        })
+      )
+      .select();
+    await createFormattedExcel(excelRef.current, detectedPacks);
+
     modalClose();
   };
   const handleSelection = (e, newSelection) => {
@@ -89,88 +79,83 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
         maxWidth="sm"
       >
         <DialogTitle>Input plants for plant packs</DialogTitle>
-        <DialogContent>
-          <Grid
-            container
-            sx={{ border: "1px solid black", borderRadius: "4px" }}
-          >
-            <Grid item xs>
-              <ToggleButtonGroup
-                value={packSelection}
-                exclusive
-                onChange={handleSelection}
-                orientation="vertical"
-                sx={{ height: "100%" }}
-              >
-                {Object.keys(plantPacks).map((name) => {
-                  return (
-                    <ToggleButton
-                      value={name}
-                      key={name}
-                      sx={{
-                        "&.MuiToggleButtonGroup-grouped": {
-                          borderWidth: `1px ${
-                            name !== packSelection ? "1px" : "0px"
-                          } 1px 0px`,
-                          borderColor: "black",
-                          color: "black",
-                          borderRadius: "0px",
-                        },
-                        "&:last-of-type": {
-                          borderWidth: `1px ${
-                            name !== packSelection ? "1px" : "0px"
-                          } 0px 0px`,
-                        },
-                        "&:first-of-type": {
-                          borderWidth: `0px ${
-                            name !== packSelection ? "1px" : "0px"
-                          } 1px 0px`,
-                        },
-                      }}
-                    >
-                      {name}
-                    </ToggleButton>
-                  );
-                })}
-              </ToggleButtonGroup>
+        {detectedPacks && (
+          <DialogContent>
+            <Grid
+              container
+              sx={{ border: "1px solid black", borderRadius: "4px" }}
+            >
+              <Grid item xs>
+                <ToggleButtonGroup
+                  value={packSelection}
+                  exclusive
+                  onChange={handleSelection}
+                  orientation="vertical"
+                  sx={{ height: "100%" }}
+                >
+                  {Object.keys(detectedPacks).map((pack) => {
+                    return (
+                      <ToggleButton
+                        value={pack}
+                        key={pack}
+                        sx={{
+                          "&.MuiToggleButtonGroup-grouped": {
+                            borderWidth: `1px ${
+                              pack !== packSelection ? "1px" : "0px"
+                            } 1px 0px`,
+                            borderColor: "black",
+                            color: "black",
+                            borderRadius: "0px",
+                          },
+                          "&:last-of-type": {
+                            borderWidth: `1px ${
+                              pack !== packSelection ? "1px" : "0px"
+                            } 0px 0px`,
+                          },
+                          "&:first-of-type": {
+                            borderWidth: `0px ${
+                              pack !== packSelection ? "1px" : "0px"
+                            } 1px 0px`,
+                          },
+                        }}
+                      >
+                        {pack}
+                      </ToggleButton>
+                    );
+                  })}
+                </ToggleButtonGroup>
+              </Grid>
+              <Grid item xs={8}>
+                <Stack spacing={2} useFlexGap flexWrap="wrap">
+                  {Object.keys(detectedPacks).map((pack) => {
+                    return (
+                      packSelection === pack &&
+                      detectedPacks[pack].map((plant, idx) => {
+                        return (
+                          <TextField
+                            id={plant}
+                            fullWidth
+                            variant="standard"
+                            defaultValue={plant}
+                            sx={{ color: "black", padding: "5px" }}
+                            onChange={(e) => {
+                              let new_list = detectedPacks[pack];
+                              new_list[idx] = e.target.value;
+                              setDetectedPacks({
+                                ...detectedPacks,
+                                [pack]: new_list,
+                              });
+                            }}
+                          />
+                        );
+                      })
+                    );
+                  })}
+                </Stack>
+              </Grid>
             </Grid>
-            <Grid item xs={8}>
-              <Box>
-                {Object.entries(plantPacks).map(([name, list]) => {
-                  return (
-                    packSelection === name && (
-                      <List sx={{ maxHeight: "100%", padding: "0px" }}>
-                        {list.map((plant, idx) => {
-                          return (
-                            <ListItem sx={{ padding: "auto" }}>
-                              <TextField
-                                id={plant}
-                                fullWidth
-                                variant="standard"
-                                defaultValue={plant}
-                                sx={{ color: "black" }}
-                                onChange={(e) => {
-                                  let new_list = plantPacks[name];
-                                  new_list[idx] = e.target.value;
-                                  setPlantPacks({
-                                    ...plantPacks,
-                                    [name]: new_list,
-                                  });
-                                }}
-                              >
-                                {" "}
-                              </TextField>
-                            </ListItem>
-                          );
-                        })}
-                      </List>
-                    )
-                  );
-                })}
-              </Box>
-            </Grid>
-          </Grid>
-        </DialogContent>
+          </DialogContent>
+        )}
         <DialogActions>
           <Button onClick={handleClose}>Disagree</Button>
           <Button onClick={handleAgree} autoFocus>
