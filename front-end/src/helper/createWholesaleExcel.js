@@ -41,8 +41,8 @@ export async function createWholesaleExcel(data, batch_length, date) {
     const apc_sheet = APC_WB.addWorksheet("Sheet 1");
     const wca_sheet = WCA_WB.addWorksheet("Sheet 1");
     const fileNames = {
-      APC_STORE_ORDER: APC_WB,
-      WCA_STORE_ORDER: WCA_WB,
+      [`APC Store Order ${new Date().getDay()}`]: APC_WB,
+      [`WCA Store Order ${new Date().getDay()}`]: WCA_WB,
     };
 
     const main_data = [[], [], []]; // fill and then sort by vendor
