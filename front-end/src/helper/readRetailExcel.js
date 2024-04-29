@@ -1,82 +1,34 @@
 import * as Excel from "exceljs";
 import { saveAs } from "file-saver";
 
-const plantPacks = {
-  "Assorted Anubias Plant Pack": [
-    "Anubias Congensis (AAP)",
-    "Anubias Congensis mini (AAP)",
-    "Anubias Minima (AAP)",
-    "Anubias Nana (AAP)",
-    "Anubias Nana Petite (AAP)",
-  ],
-  "Beginner Plant Pack": [
-    "Anubias Nana - Pot (BPP)",
-    "Anubias Nana Petite - Pot  (BPP)",
-    "Crypt Beckettii  (BPP)",
-    "Java Fern Pot (BPP)",
-    "Java Fern Windelov (BPP)",
-  ],
-  "Red Stem Plant Pack": [
-    "Limnophila Aromatica (RSP)",
-    "Ludwigia Diamond (RSP)",
-    "Ludwigia Ovalis   (RSP)",
-    "Ludwigia Super Red   (RSP)",
-    "Rotala Blood Red  (RSP)",
-  ],
-  "Team Buce Plant Potted Starter Pack": [
-    "Arrogant Blue (PBP)",
-    "Black Pearl (PBP)",
-    "Brownie Jade (PBP)",
-    "Lamandau Mini Purple (PBP)",
-    "Velvet 3 color (PBP)",
-  ],
-  "Assorted Echinodorus Pack": [
-    "Echinodorus Martii Major",
-    "Echinodorus Ozelot Green",
-    "Echinodorus Ozelot",
-    "Echinodorus Cordifolius",
-    "Echinodorus Rose",
-  ],
-  "Aquarium Moss Collector Pack": [
-    "Christmas Moss",
-    "Java Moss",
-    "Flame Moss",
-    "Peacock Moss",
-    "Spikey Moss",
-  ],
-};
+const plantPacks = {};
 
-export async function readRetailExcel(file) {
-  const packRegex = / - \d+ Pack/;
-  const potPackRegex = / - \d+ Pot Package/;
+export async function readRetailExcel(file, plant_packs) {
+  //Formats 'plant_packs' object
+  plant_packs.forEach((pack) => {
+    plantPacks[pack["Plant Pack"]] = Object.values(pack).filter(
+      (plant) => !plant.includes("Pack")
+    );
+  });
   const reader = new FileReader();
 
   const excel_data = [];
-  const plant_packs_detects = {};
+  const detected_packs = {};
 
   return new Promise((resolve, reject) => {
     reader.readAsText(file);
 
     reader.onload = function (e) {
+      let temp_packs = [];
       const text = e.target.result;
       text.split("\r\n").forEach((row) => {
         let order_split = row.split(",");
+        order_split[2] = parseInt(order_split[2]);
         if (new RegExp(/^zstem$/i).test(order_split[1])) {
-          let pack_qty =
-            order_split[3].match(/\d+/g) === null
-              ? 5
-              : parseInt(order_split[3].match(/\d+/g)[0]);
-          let pack_name = order_split[3].includes("Pot Package")
-            ? order_split[3].replace(potPackRegex, "")
-            : order_split[3].replace(packRegex, "");
-          if (!Object.keys(plant_packs_detects).includes(pack_name))
-            plant_packs_detects[pack_name] = plantPacks[pack_name];
-          plantPackQtyAssignment(
-            excel_data,
-            order_split[0],
-            pack_name,
-            pack_qty
-          );
+          temp_packs.push(order_split);
+          let pack_name = getPackNames(order_split);
+          if (!Object.keys(detected_packs).includes(pack_name))
+            detected_packs[pack_name] = plantPacks[pack_name];
         } else {
           if (order_split[1] !== "" && order_split[1] !== "ZZstem")
             excel_data.push(order_split);
@@ -84,15 +36,73 @@ export async function readRetailExcel(file) {
       });
       excel_data.splice(0, 1);
       excel_data.splice(excel_data.length - 1, 1);
+      temp_packs.forEach((pack) => {
+        excel_data.push(pack);
+      });
     };
 
     reader.onloadend = function (e) {
-      sortOrders(excel_data);
-      numerizeOrders(excel_data);
-      let mapping = formattingLocations(alphabetizeLocations(excel_data));
-      resolve([mapping, plant_packs_detects]);
+      resolve([excel_data, detected_packs]);
     };
   });
+}
+
+function getPackNames(order) {
+  const packRegex = / - \d+ Pack/;
+  const potPackRegex = / - \d+ Pot Package/;
+  return order[3].includes("Pot Package")
+    ? order[3].replace(potPackRegex, "")
+    : order[3].replace(packRegex, "");
+}
+
+export async function createFormattedExcel(data, updated_packs) {
+  console.log(updated_packs);
+
+  var new_excel = updatePlantPacks(data, updated_packs);
+  sortOrders(new_excel);
+  numerizeOrders(new_excel);
+  let mapping = formattingLocations(alphabetizeLocations(new_excel));
+
+  const wb = new Excel.Workbook();
+  const wb_sheet = wb.addWorksheet("Sheet 1");
+
+  wb_sheet.addRow([
+    "Order - Number",
+    "code",
+    "Item - Location",
+    "Item - Qty",
+    "Item -Name",
+  ]);
+  let locations = Object.keys(mapping).sort();
+  locations.forEach((location) => {
+    mapping[location].forEach((plant_row) => {
+      wb_sheet.addRow(plant_row);
+    });
+    wb_sheet.addRow([]);
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const fileType =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  const fileExtension = ".xlsx";
+
+  const blob = new Blob([buffer], { type: fileType });
+
+  saveAs(blob, `${"testasdfa"}` + fileExtension);
+}
+
+function updatePlantPacks(data, updated_packs) {
+  var zstem_index = data.findIndex((order) =>
+    new RegExp(/^zstem$/i).test(order[1])
+  );
+
+  var new_data = [...data.slice(0, zstem_index)];
+  data.slice(zstem_index).forEach((order) => {
+    let quantity =
+      order[3].match(/\d+/g) === null ? 5 : parseInt(order[3].match(/\d+/g)[0]);
+    plantPackQtyAssignment(new_data, order[0], getPackNames(order), quantity);
+  });
+  return new_data;
 }
 
 function plantPackQtyAssignment(excel_data, curr_order, pack_name, quantity) {
@@ -124,22 +134,19 @@ function plantPackQtyAssignment(excel_data, curr_order, pack_name, quantity) {
 }
 
 function sortOrders(data) {
-  data = [data[0]].concat(
-    data.slice(1).sort((a, b) => {
-      let a_sliced = a[0].slice(3),
-        b_sliced = b[0].slice(3);
-      if (a_sliced < b_sliced) {
-        return -1;
-      }
-      if (a_sliced > b_sliced) return 1;
-      return 0;
-    })
-  );
-  data.splice(1, 1);
+  data = data.sort((a, b) => {
+    let a_sliced = a[0].slice(3),
+      b_sliced = b[0].slice(3);
+    if (a_sliced < b_sliced) {
+      return -1;
+    }
+    if (a_sliced > b_sliced) return 1;
+    return 0;
+  });
 }
 
 function numerizeOrders(data) {
-  let curr_row = data[1][0],
+  let curr_row = data[0][0],
     count = 1;
   for (let row of data) {
     if (row[0] !== curr_row) {
@@ -153,7 +160,6 @@ function numerizeOrders(data) {
 function alphabetizeLocations(data) {
   let location_mapping = {};
   data.forEach((row) => {
-    //console.log(row);
     let location = row[2].toLowerCase();
     if (location_mapping[location]) {
       location_mapping[location].push(row);
@@ -175,33 +181,4 @@ function formattingLocations(location_mapping) {
     });
   }
   return location_mapping;
-}
-
-export async function createFormattedExcel(data) {
-  const wb = new Excel.Workbook();
-  const wb_sheet = wb.addWorksheet("Sheet 1");
-
-  wb_sheet.addRow([
-    "Order - Number",
-    "code",
-    "Item - Location",
-    "Item - Qty",
-    "Item -Name",
-  ]);
-  let locations = Object.keys(data).sort();
-  locations.forEach((location) => {
-    data[location].forEach((plant_row) => {
-      wb_sheet.addRow(plant_row);
-    });
-    wb_sheet.addRow([]);
-  });
-
-  const buffer = await wb.xlsx.writeBuffer();
-  const fileType =
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  const fileExtension = ".xlsx";
-
-  const blob = new Blob([buffer], { type: fileType });
-
-  saveAs(blob, `${"testasdfa"}` + fileExtension);
 }

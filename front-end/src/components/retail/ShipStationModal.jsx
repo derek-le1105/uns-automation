@@ -10,29 +10,39 @@ import {
   Box,
   List,
   ListItem,
+  Stack,
   TextField,
 } from "@mui/material";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 import {
   readRetailExcel,
   createFormattedExcel,
 } from "../../helper/readRetailExcel";
 
+import { supabase } from "../../supabaseClient";
+
 const ShipStationModal = ({ file, openModal, modalClose }) => {
   const [packSelection, setPackSelection] = useState(
     "Assorted Anubias Plant Pack"
   );
-  const [plantPacks, setPlantPacks] = useState({});
-  const [excelData, setExcelData] = useState([]);
+  const [detectedPacks, setDetectedPacks] = useState({});
+  const excelRef = useRef(null);
+  const supabaseRef = useRef(null);
+
   useEffect(() => {
     if (file) {
       async function importData() {
-        await readRetailExcel(file).then((data) => {
-          setExcelData(data[0]);
-          setPlantPacks(data[1]);
+        let { data: plant_packs, error } = await supabase
+          .from("plant_packs")
+          .select("*");
+        console.log(plant_packs);
+        await readRetailExcel(file, plant_packs).then((data) => {
+          excelRef.current = data[0];
+          setDetectedPacks(data[1]);
         });
+        supabaseRef.current = plant_packs;
       }
       importData();
     }
@@ -43,7 +53,20 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
   };
 
   const handleAgree = async () => {
-    await createFormattedExcel(excelData);
+    const { error } = await supabase
+      .from("plant_packs")
+      .upsert(
+        Object.keys(detectedPacks).map((pack) => {
+          let _ = { "Plant Pack": pack };
+          detectedPacks[pack].forEach((plant, idx) => {
+            _[`Plant ${idx + 1}`] = plant;
+          });
+          return _;
+        })
+      )
+      .select();
+    await createFormattedExcel(excelRef.current, detectedPacks);
+
     modalClose();
   };
   const handleSelection = (e, newSelection) => {
@@ -59,7 +82,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
         maxWidth="sm"
       >
         <DialogTitle>Input plants for plant packs</DialogTitle>
-        {plantPacks && (
+        {detectedPacks && (
           <DialogContent>
             <Grid
               container
@@ -73,7 +96,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                   orientation="vertical"
                   sx={{ height: "100%" }}
                 >
-                  {Object.keys(plantPacks).map((pack) => {
+                  {Object.keys(detectedPacks).map((pack) => {
                     return (
                       <ToggleButton
                         value={pack}
@@ -106,41 +129,32 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                 </ToggleButtonGroup>
               </Grid>
               <Grid item xs={8}>
-                <Box>
-                  {Object.keys(plantPacks).map((pack) => {
+                <Stack spacing={2} useFlexGap flexWrap="wrap">
+                  {Object.keys(detectedPacks).map((pack) => {
                     return (
-                      packSelection === pack && (
-                        <>
-                          <List sx={{ maxHeight: "100%", padding: "0px" }}>
-                            {plantPacks[pack].map((plant, idx) => {
-                              return (
-                                <ListItem sx={{ padding: "auto" }} key={plant}>
-                                  <TextField
-                                    id={plant}
-                                    fullWidth
-                                    variant="standard"
-                                    defaultValue={plant}
-                                    sx={{ color: "black" }}
-                                    onChange={(e) => {
-                                      let new_list = plantPacks[pack];
-                                      new_list[idx] = e.target.value;
-                                      setPlantPacks({
-                                        ...plantPacks,
-                                        [pack]: new_list,
-                                      });
-                                    }}
-                                  >
-                                    {" "}
-                                  </TextField>
-                                </ListItem>
-                              );
-                            })}
-                          </List>
-                        </>
-                      )
+                      packSelection === pack &&
+                      detectedPacks[pack].map((plant, idx) => {
+                        return (
+                          <TextField
+                            id={plant}
+                            fullWidth
+                            variant="standard"
+                            defaultValue={plant}
+                            sx={{ color: "black", padding: "5px" }}
+                            onChange={(e) => {
+                              let new_list = detectedPacks[pack];
+                              new_list[idx] = e.target.value;
+                              setDetectedPacks({
+                                ...detectedPacks,
+                                [pack]: new_list,
+                              });
+                            }}
+                          />
+                        );
+                      })
                     );
                   })}
-                </Box>
+                </Stack>
               </Grid>
             </Grid>
           </DialogContent>
