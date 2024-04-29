@@ -23,7 +23,7 @@ export default defineConfig({
     port: 5175,
     proxy: {
       "/orders": {
-        target: "http://3.23.85.63:4000",
+        target: "http://13.58.1.37:4000",
         changeOrigin: true,
         secure: false,
         ws: true,
