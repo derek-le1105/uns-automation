@@ -56,8 +56,6 @@ function getPackNames(order) {
 }
 
 export async function createFormattedExcel(data, updated_packs) {
-  console.log(updated_packs);
-
   var new_excel = updatePlantPacks(data, updated_packs);
   sortOrders(new_excel);
   numerizeOrders(new_excel);
@@ -88,7 +86,10 @@ export async function createFormattedExcel(data, updated_packs) {
 
   const blob = new Blob([buffer], { type: fileType });
 
-  saveAs(blob, `${"testasdfa"}` + fileExtension);
+  saveAs(
+    blob,
+    `${new Date().getMonth()}.${new Date().getDate()}` + fileExtension
+  );
 }
 
 function updatePlantPacks(data, updated_packs) {
