@@ -22,7 +22,9 @@ export async function readRetailExcel(file, plant_packs) {
       let temp_packs = [];
       const text = e.target.result;
       text.split("\r\n").forEach((row) => {
-        let order_split = row.split(",");
+        let order_split = row.split(",").map((entry) => {
+          return entry.replace(/['"]+/g, "");
+        });
         order_split[2] = parseInt(order_split[2]);
         if (new RegExp(/^zstem$/i).test(order_split[1])) {
           temp_packs.push(order_split);
@@ -88,7 +90,7 @@ export async function createFormattedExcel(data, updated_packs) {
 
   saveAs(
     blob,
-    `${new Date().getMonth()}.${new Date().getDate()}` + fileExtension
+    `${new Date().getMonth() + 1}.${new Date().getDate()}` + fileExtension
   );
 }
 
@@ -110,6 +112,9 @@ function plantPackQtyAssignment(excel_data, curr_order, pack_name, quantity) {
   let location = "";
   switch (pack_name) {
     case "Assorted Anubias Plant Pack":
+      location = "Anubias";
+      break;
+    case "Assorted Anubias Pack":
       location = "Anubias";
       break;
     case "Team Buce Plant Potted Starter Pack":

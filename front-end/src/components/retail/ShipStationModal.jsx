@@ -21,9 +21,7 @@ import {
 import { supabase } from "../../supabaseClient";
 
 const ShipStationModal = ({ file, openModal, modalClose }) => {
-  const [packSelection, setPackSelection] = useState(
-    "Assorted Anubias Plant Pack"
-  );
+  const [packSelection, setPackSelection] = useState();
   const [detectedPacks, setDetectedPacks] = useState({});
   const excelRef = useRef(null);
   const supabaseRef = useRef(null);
@@ -38,6 +36,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
         await readRetailExcel(file, plant_packs).then((data) => {
           excelRef.current = data[0];
           setDetectedPacks(data[1]);
+          setPackSelection(Object.keys(data[1])[0]);
         });
         supabaseRef.current = plant_packs;
       }
