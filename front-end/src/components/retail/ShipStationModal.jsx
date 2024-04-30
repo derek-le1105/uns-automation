@@ -20,7 +20,7 @@ import {
 
 import { supabase } from "../../supabaseClient";
 
-const ShipStationModal = ({ file, openModal, modalClose }) => {
+const ShipStationModal = ({ file, openModal, handleModalClose }) => {
   const [packSelection, setPackSelection] = useState();
   const [detectedPacks, setDetectedPacks] = useState({});
   const excelRef = useRef(null);
@@ -32,7 +32,6 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
         let { data: plant_packs, error } = await supabase
           .from("plant_packs")
           .select("*");
-        console.log(plant_packs);
         await readRetailExcel(file, plant_packs).then((data) => {
           excelRef.current = data[0];
           setDetectedPacks(data[1]);
@@ -45,7 +44,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
   }, [file]);
 
   const handleClose = () => {
-    modalClose();
+    handleModalClose();
   };
 
   const handleAgree = async () => {
@@ -63,7 +62,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
       .select();
     await createFormattedExcel(excelRef.current, detectedPacks);
 
-    modalClose();
+    handleModalClose();
   };
   const handleSelection = (e, newSelection) => {
     setPackSelection(newSelection);
@@ -90,34 +89,10 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                   exclusive
                   onChange={handleSelection}
                   orientation="vertical"
-                  sx={{ height: "100%" }}
                 >
                   {Object.keys(detectedPacks).map((pack) => {
                     return (
-                      <ToggleButton
-                        value={pack}
-                        key={pack}
-                        sx={{
-                          "&.MuiToggleButtonGroup-grouped": {
-                            borderWidth: `1px ${
-                              pack !== packSelection ? "1px" : "0px"
-                            } 1px 0px`,
-                            borderColor: "black",
-                            color: "black",
-                            borderRadius: "0px",
-                          },
-                          "&:last-of-type": {
-                            borderWidth: `1px ${
-                              pack !== packSelection ? "1px" : "0px"
-                            } 0px 0px`,
-                          },
-                          "&:first-of-type": {
-                            borderWidth: `0px ${
-                              pack !== packSelection ? "1px" : "0px"
-                            } 1px 0px`,
-                          },
-                        }}
-                      >
+                      <ToggleButton value={pack} key={pack}>
                         {pack}
                       </ToggleButton>
                     );
@@ -125,7 +100,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                 </ToggleButtonGroup>
               </Grid>
               <Grid item xs={8}>
-                <Stack spacing={2} useFlexGap flexWrap="wrap">
+                <Stack useFlexGap flexWrap="wrap">
                   {Object.keys(detectedPacks).map((pack) => {
                     return (
                       packSelection === pack &&
@@ -134,9 +109,9 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
                           <TextField
                             id={plant}
                             fullWidth
-                            variant="standard"
+                            variant="outlined"
                             defaultValue={plant}
-                            sx={{ color: "black", padding: "5px" }}
+                            sx={{ color: "black" }}
                             onChange={(e) => {
                               let new_list = detectedPacks[pack];
                               new_list[idx] = e.target.value;
