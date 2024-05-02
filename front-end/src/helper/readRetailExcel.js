@@ -22,18 +22,26 @@ export async function readRetailExcel(file, plant_packs) {
       let temp_packs = [];
       const text = e.target.result;
       text.split("\r\n").forEach((row) => {
-        let order_split = row.split(",").map((entry) => {
-          return entry.replace(/['"]+/g, "");
-        });
-        order_split[2] = parseInt(order_split[2]);
-        if (new RegExp(/^zstem$/i).test(order_split[1])) {
-          temp_packs.push(order_split);
-          let pack_name = getPackNames(order_split);
-          if (!Object.keys(detected_packs).includes(pack_name))
-            detected_packs[pack_name] = plantPacks[pack_name];
-        } else {
-          if (order_split[1] !== "" && order_split[1] !== "ZZstem")
-            excel_data.push(order_split);
+        try {
+          let order_split = row.split(",").map((entry) => {
+            return entry.replace(/['"]+/g, "");
+          });
+          order_split[2] = parseInt(order_split[2]);
+          if (new RegExp(/^zstem$/i).test(order_split[1])) {
+            temp_packs.push(order_split);
+            let pack_name = getPackNames(order_split);
+
+            if (!Object.keys(plantPacks).includes(pack_name))
+              detected_packs[pack_name] = ["", "", "", "", ""];
+
+            if (!Object.keys(detected_packs).includes(pack_name))
+              detected_packs[pack_name] = plantPacks[pack_name];
+          } else {
+            if (order_split[1] !== "" && order_split[1] !== "ZZstem")
+              excel_data.push(order_split);
+          }
+        } catch (error) {
+          //todo
         }
       });
       excel_data.splice(0, 1);
@@ -58,40 +66,44 @@ function getPackNames(order) {
 }
 
 export async function createFormattedExcel(data, updated_packs) {
-  var new_excel = updatePlantPacks(data, updated_packs);
-  sortOrders(new_excel);
-  numerizeOrders(new_excel);
-  let mapping = formattingLocations(alphabetizeLocations(new_excel));
+  try {
+    var new_excel = updatePlantPacks(data, updated_packs);
+    sortOrders(new_excel);
+    numerizeOrders(new_excel);
+    let mapping = formattingLocations(alphabetizeLocations(new_excel));
 
-  const wb = new Excel.Workbook();
-  const wb_sheet = wb.addWorksheet("Sheet 1");
+    const wb = new Excel.Workbook();
+    const wb_sheet = wb.addWorksheet("Sheet 1");
 
-  wb_sheet.addRow([
-    "Order - Number",
-    "code",
-    "Item - Location",
-    "Item - Qty",
-    "Item -Name",
-  ]);
-  let locations = Object.keys(mapping).sort();
-  locations.forEach((location) => {
-    mapping[location].forEach((plant_row) => {
-      wb_sheet.addRow(plant_row);
+    wb_sheet.addRow([
+      "Order - Number",
+      "code",
+      "Item - Location",
+      "Item - Qty",
+      "Item -Name",
+    ]);
+    let locations = Object.keys(mapping).sort();
+    locations.forEach((location) => {
+      mapping[location].forEach((plant_row) => {
+        wb_sheet.addRow(plant_row);
+      });
+      wb_sheet.addRow([]);
     });
-    wb_sheet.addRow([]);
-  });
 
-  const buffer = await wb.xlsx.writeBuffer();
-  const fileType =
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  const fileExtension = ".xlsx";
+    const buffer = await wb.xlsx.writeBuffer();
+    const fileType =
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    const fileExtension = ".xlsx";
 
-  const blob = new Blob([buffer], { type: fileType });
+    const blob = new Blob([buffer], { type: fileType });
 
-  saveAs(
-    blob,
-    `${new Date().getMonth() + 1}.${new Date().getDate()}` + fileExtension
-  );
+    saveAs(
+      blob,
+      `${new Date().getMonth() + 1}.${new Date().getDate()}` + fileExtension
+    );
+  } catch (error) {
+    //todo
+  }
 }
 
 function updatePlantPacks(data, updated_packs) {
