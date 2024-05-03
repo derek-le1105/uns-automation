@@ -1,9 +1,9 @@
-import { Container, Box, Grid, Button } from "@mui/material";
+import { Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 
 import { useState } from "react";
-import ShipStationModal from "./ShipStationModal";
+import ShipStationModal from "./PlantPackModal";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -17,11 +17,11 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-const Tools = () => {
+const ShipStationPage = () => {
   const [fileUpload, setFileUpload] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
-  const modalClose = () => {
+  const handleModalClose = () => {
     setOpenModal(false);
   };
 
@@ -48,13 +48,15 @@ const Tools = () => {
         Shipstation Upload
         <VisuallyHiddenInput type="file" accept=".xlsx, .xls, .csv" />
       </Button>
-      <ShipStationModal
-        file={fileUpload}
-        openModal={openModal}
-        modalClose={modalClose}
-      />
+      {fileUpload && (
+        <ShipStationModal
+          file={fileUpload}
+          openModal={openModal}
+          handleModalClose={handleModalClose}
+        />
+      )}
     </>
   );
 };
 
-export default Tools;
+export default ShipStationPage;

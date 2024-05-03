@@ -20,7 +20,7 @@ import {
 
 import { supabase } from "../../supabaseClient";
 
-const ShipStationModal = ({ file, openModal, modalClose }) => {
+const ShipStationModal = ({ file, openModal, handleModalClose }) => {
   const [packSelection, setPackSelection] = useState(
     "Assorted Anubias Plant Pack"
   );
@@ -46,7 +46,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
   }, [file]);
 
   const handleClose = () => {
-    modalClose();
+    handleModalClose();
   };
 
   const handleAgree = async () => {
@@ -64,7 +64,7 @@ const ShipStationModal = ({ file, openModal, modalClose }) => {
       .select();
     await createFormattedExcel(excelRef.current, detectedPacks);
 
-    modalClose();
+    handleModalClose();
   };
   const handleSelection = (e, newSelection) => {
     setPackSelection(newSelection);
