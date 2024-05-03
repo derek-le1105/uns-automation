@@ -5,7 +5,6 @@ const plantPacks = {};
 
 export async function readRetailExcel(file, supabase_packs) {
   //Formats 'plant_packs' object
-  console.log(supabase_packs);
   supabase_packs.forEach((pack) => {
     plantPacks[pack["Plant Pack"]] = Object.values(pack).filter(
       (plant) => plant !== pack["Plant Pack"]
@@ -75,7 +74,7 @@ function getPackNames(order) {
 
 export async function createFormattedExcel(data, updated_packs) {
   try {
-    var new_excel = updatePlantPacks(data);
+    var new_excel = updatePlantPacks(data, updated_packs);
     sortOrders(new_excel);
     numerizeOrders(new_excel);
     let mapping = formattingLocations(alphabetizeLocations(new_excel));
@@ -115,18 +114,24 @@ export async function createFormattedExcel(data, updated_packs) {
   }
 }
 
-function updatePlantPacks(data) {
+function updatePlantPacks(data, updated_packs) {
+  Object.keys(updated_packs).forEach((pack) => {
+    plantPacks[pack] = updated_packs[pack];
+  });
   var zstem_index = data.findIndex((order) =>
     new RegExp(/^zstem$/i).test(order[1])
   );
-
-  var new_data = [...data.slice(0, zstem_index)];
-  data.slice(zstem_index).forEach((order) => {
-    let quantity =
-      order[3].match(/\d+/g) === null ? 5 : parseInt(order[3].match(/\d+/g)[0]);
-    plantPackQtyAssignment(new_data, order[0], getPackNames(order), quantity);
-  });
-  return new_data;
+  if (zstem_index !== -1) {
+    var new_data = [...data.slice(0, zstem_index)];
+    data.slice(zstem_index).forEach((order) => {
+      let quantity =
+        order[3].match(/\d+/g) === null
+          ? 5
+          : parseInt(order[3].match(/\d+/g)[0]);
+      plantPackQtyAssignment(new_data, order[0], getPackNames(order), quantity);
+    });
+    return new_data;
+  } else return data;
 }
 
 function plantPackQtyAssignment(excel_data, curr_order, pack_name, quantity) {
