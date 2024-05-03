@@ -1,5 +1,2 @@
 node_modules/
-store_files
-.jsonl
-.xlsx
-uploads/
+*.jsonl
