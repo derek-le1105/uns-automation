@@ -40,13 +40,16 @@ const ShipStationPage = () => {
           border: "1px dashed grey",
           borderRadius: "5px",
         }}
-        onChange={(e) => {
-          setFileUpload(e.target.files[e.target.files.length - 1]);
-          setOpenModal(true);
-        }}
       >
         Shipstation Upload
-        <VisuallyHiddenInput type="file" accept=".xlsx, .xls, .csv" />
+        <VisuallyHiddenInput
+          type="file"
+          accept=".xlsx, .xls, .csv"
+          onChange={(e) => {
+            setFileUpload(e.target.files[e.target.files.length - 1]);
+            setOpenModal(true);
+          }}
+        />
       </Button>
       {fileUpload && (
         <ShipStationModal
