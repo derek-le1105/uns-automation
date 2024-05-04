@@ -118,6 +118,7 @@ function updatePlantPacks(data, updated_packs) {
   Object.keys(updated_packs).forEach((pack) => {
     plantPacks[pack] = updated_packs[pack];
   });
+
   var zstem_index = data.findIndex((order) =>
     new RegExp(/^zstem$/i).test(order[1])
   );
@@ -127,7 +128,7 @@ function updatePlantPacks(data, updated_packs) {
       let quantity =
         order[3].match(/\d+/g) === null
           ? 5
-          : parseInt(order[3].match(/\d+/g)[0]);
+          : parseInt(order[3].match(/\d+/g)[0]) * order[2];
       plantPackQtyAssignment(new_data, order[0], getPackNames(order), quantity);
     });
     return new_data;
@@ -135,33 +136,13 @@ function updatePlantPacks(data, updated_packs) {
 }
 
 function plantPackQtyAssignment(excel_data, curr_order, pack_name, quantity) {
-  let location = "";
-  switch (pack_name) {
-    case "Assorted Anubias Plant Pack":
-      location = "Anubias";
-      break;
-    case "Assorted Anubias Pack":
-      location = "Anubias";
-      break;
-    case "Team Buce Plant Potted Starter Pack":
-      location = "Buce pot";
-      break;
-    case "Red Stem Plant Pack":
-      location = "Stem";
-      break;
-    case "Assorted Echinodorus Pack":
-      location = "Echinodorus";
-      break;
-    case "Aquarium Moss Collector Pack":
-      location = "moss";
-      break;
-    default:
-      break;
-  }
   plantPacks[pack_name].forEach((item) => {
-    if (pack_name === "Beginner Plant Pack") location = item.split(" ")[0];
-    if (item.includes("Fern")) location = "Fern";
-    excel_data.push([curr_order, location, quantity / 5, item]);
+    excel_data.push([
+      curr_order,
+      item["location"],
+      quantity / 5,
+      item["plant"],
+    ]);
   });
 }
 
