@@ -19,7 +19,6 @@ import {
 } from "../../helper/readRetailExcel";
 
 import { supabase } from "../../supabaseClient";
-import ItemTextField from "./ItemTextfield";
 
 const HeaderItem = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
