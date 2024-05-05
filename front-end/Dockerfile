@@ -1,4 +1,4 @@
-FROM node:21-alpine3.18 as build
+FROM node:21-alpine as build
 
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY

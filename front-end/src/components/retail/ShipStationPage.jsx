@@ -23,6 +23,12 @@ const ShipStationPage = () => {
 
   const handleModalClose = () => {
     setOpenModal(false);
+    setFileUpload(null);
+  };
+
+  const handleFileInput = (e) => {
+    setOpenModal(true);
+    setFileUpload(e.target.files[e.target.files.length - 1]);
   };
 
   return (
@@ -45,9 +51,9 @@ const ShipStationPage = () => {
         <VisuallyHiddenInput
           type="file"
           accept=".xlsx, .xls, .csv"
-          onChange={(e) => {
-            setFileUpload(e.target.files[e.target.files.length - 1]);
-            setOpenModal(true);
+          onChange={handleFileInput}
+          onClick={(event) => {
+            event.target.value = null;
           }}
         />
       </Button>
