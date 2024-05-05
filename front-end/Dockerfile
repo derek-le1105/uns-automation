@@ -3,7 +3,7 @@ FROM node:21-alpine as base
 WORKDIR /base
 COPY package.json ./
 COPY package-lock.json ./
-RUN npm ci -only=prod 
+RUN NODE_ENV=development npm i
 COPY . .
 
 #Stage 2: Build
@@ -12,7 +12,6 @@ ENV NODE_ENV=production
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 WORKDIR /build
-ENV NODE_ENV=production
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY  
 COPY --from=base /base ./
@@ -20,9 +19,7 @@ RUN npm run build
 
 #Stage 3: app
 FROM base AS app
-ENV NODE_ENV=production
 WORKDIR /frontend
-ENV NODE_ENV=production
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY  
 COPY --from=build /build/package*.json ./
