@@ -3,7 +3,7 @@ FROM node:21-alpine as base
 WORKDIR /base
 COPY package.json ./
 COPY package-lock.json ./
-RUN NODE_ENV=development npm i
+RUN npm ci
 COPY . .
 
 #Stage 2: Build
