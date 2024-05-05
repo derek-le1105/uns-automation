@@ -8,7 +8,7 @@ COPY . .
 
 #Stage 2: Build
 FROM base AS build
-
+ENV NODE_ENV=production
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 WORKDIR /build
@@ -19,6 +19,7 @@ RUN npm run build
 
 #Stage 3: app
 FROM base AS app
+ENV NODE_ENV=production
 WORKDIR /frontend
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY  
