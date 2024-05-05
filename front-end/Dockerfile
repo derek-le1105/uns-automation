@@ -3,7 +3,7 @@ FROM node:21-alpine as base
 WORKDIR /base
 COPY package.json ./
 COPY package-lock.json ./
-RUN npm install
+RUN npm ci -only=prod 
 COPY . .
 
 #Stage 2: Build
