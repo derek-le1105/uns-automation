@@ -23,18 +23,16 @@ const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        {
-          "Generating excel files for the following orders and saving to database"
-        }
+        {"Generating excel files for the following orders"}
       </DialogTitle>
       <DialogContent>
         <List>
           {batch &&
-            batch.map((order, _) => {
+            batch.map((order, idx) => {
               return (
                 <ListItem key={order.order_name}>
                   <DialogContentText>
-                    {`${order.order_name} ${
+                    {`${idx + supabaseData[0]}. ${order.order_name} ${
                       isObjectIncluded(supabaseData[1], order)
                         ? "This order already exists in a previous batch"
                         : ""
@@ -44,9 +42,6 @@ const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
               );
             })}
         </List>
-        <DialogContentText id="alert-dialog-description">
-          {`The fulfillment code for this batch will start with code: ${supabaseData[0]}`}
-        </DialogContentText>
       </DialogContent>
 
       <DialogActions>

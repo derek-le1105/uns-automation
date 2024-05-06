@@ -255,7 +255,6 @@ const OrdersListing = () => {
           }}
         >
           <DataGrid
-            hideFooter
             autoHeight
             editMode="row"
             loading={loading}
@@ -313,6 +312,17 @@ const OrdersListing = () => {
               setBatchList(newRowSelectionModel);
             }}
             rowSelectionModel={batchList}
+            sx={{
+              ".MuiTablePagination-displayedRows": {
+                "margin-top": "1em",
+                "margin-bottom": "1em",
+              },
+              ".MuiTablePagination-displayedRows, .MuiTablePagination-selectLabel":
+                {
+                  "margin-top": "1em",
+                  "margin-bottom": "1em",
+                },
+            }}
           ></DataGrid>
           <BatchModal
             openModal={openModal}
