@@ -84,6 +84,8 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
       [roundSelection]: parseInt(++round_counter).toString(),
     });
 
+    if(detectedPacks !== null)
+    {
     const { error: plant_error } = await supabase
       .from("plant_packs")
       .upsert(
@@ -96,6 +98,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         })
       )
       .select();
+    }
     await createFormattedExcel(excelRef.current, detectedPacks, round_string);
 
     handleModalClose();
