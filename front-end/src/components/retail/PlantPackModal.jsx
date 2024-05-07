@@ -65,6 +65,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
   };
 
   const handleAgree = async () => {
+    try {
     let curr_date = `${new Date().getMonth() + 1}.${new Date().getDate()}`;
     let round_string = "";
     let round_counter = 1;
@@ -98,6 +99,10 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
     await createFormattedExcel(excelRef.current, detectedPacks, round_string);
 
     handleModalClose();
+    }
+    catch (error) {
+      console.log(error)
+    }
   };
   const handleSelection = (e, newSelection) => {
     setPackSelection(newSelection);
