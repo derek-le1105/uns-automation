@@ -50,8 +50,8 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         await readRetailExcel(file, plant_packs).then((data) => {
           let [excel_data, packs_found] = data;
           excelRef.current = excel_data;
-          let _ = Object.keys(packs_found).length ? packs_found : null;
-          setDetectedPacks(_);
+          //let _ = Object.keys(packs_found).length ? packs_found : null;
+          setDetectedPacks(packs_found);
           setPackSelection(Object.keys(packs_found)[0]);
         });
         supabaseRef.current = plant_packs;
@@ -79,10 +79,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
       round_counter !== 1
         ? `${curr_date + roundSelection + round_counter}`
         : `${curr_date + roundSelection}`;
-    const { data, error } = await supabase.from("round_tracker").upsert({
-      date: curr_date,
-      [roundSelection]: parseInt(++round_counter).toString(),
-    });
+    
 
     if(detectedPacks !== null)
     {
@@ -100,7 +97,10 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
       .select();
     }
     await createFormattedExcel(excelRef.current, detectedPacks, round_string);
-
+    const { data, error } = await supabase.from("round_tracker").upsert({
+      date: curr_date,
+      [roundSelection]: parseInt(++round_counter).toString(),
+    });
     handleModalClose();
     }
     catch (error) {
