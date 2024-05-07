@@ -10,6 +10,11 @@ import {
   Stack,
   TextField,
   Paper,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useState, useEffect, useRef } from "react";
@@ -32,6 +37,7 @@ const HeaderItem = styled(Paper)(({ theme }) => ({
 const ShipStationModal = ({ file, openModal, handleModalClose }) => {
   const [packSelection, setPackSelection] = useState();
   const [detectedPacks, setDetectedPacks] = useState({});
+  const [roundSelection, setRoundSelection] = useState("m");
   const excelRef = useRef(null);
   const supabaseRef = useRef(null);
 
@@ -59,7 +65,25 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
   };
 
   const handleAgree = async () => {
-    const { error } = await supabase
+    let curr_date = `${new Date().getMonth() + 1}.${new Date().getDate()}`;
+    let round_string = "";
+    let round_counter = 1;
+    const { data: selected_round, error: round_error } = await supabase
+      .from("round_tracker")
+      .select("*")
+      .eq("date", curr_date);
+    if (selected_round.length)
+      round_counter = parseInt(selected_round[0][roundSelection]);
+    round_string =
+      round_counter !== 1
+        ? `${curr_date + roundSelection + round_counter}`
+        : `${curr_date + roundSelection}`;
+    const { data, error } = await supabase.from("round_tracker").upsert({
+      date: curr_date,
+      [roundSelection]: parseInt(++round_counter).toString(),
+    });
+
+    const { error: plant_error } = await supabase
       .from("plant_packs")
       .upsert(
         Object.keys(detectedPacks).map((pack) => {
@@ -71,12 +95,16 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         })
       )
       .select();
-    await createFormattedExcel(excelRef.current, detectedPacks);
+    await createFormattedExcel(excelRef.current, detectedPacks, round_string);
 
     handleModalClose();
   };
   const handleSelection = (e, newSelection) => {
     setPackSelection(newSelection);
+  };
+
+  const handleRoundSelection = (e) => {
+    setRoundSelection(e.target.value);
   };
   return (
     <>
@@ -182,6 +210,18 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
             <DialogContent></DialogContent>
           </>
         )}
+        <DialogContent sx={{ pt: "0px", pb: "0px" }}>
+          <FormControl>
+            <FormLabel>Round Selection</FormLabel>
+            <RadioGroup row defaultValue="m" onChange={handleRoundSelection}>
+              <FormControlLabel value="m" control={<Radio />} label="Main" />
+              <FormControlLabel value="a" control={<Radio />} label="Autumn" />
+              <FormControlLabel value="bb" control={<Radio />} label="Shrimp" />
+              <FormControlLabel value="ga" control={<Radio />} label="GA" />
+            </RadioGroup>
+          </FormControl>
+        </DialogContent>
+
         <DialogActions>
           <Button onClick={handleClose}>Disagree</Button>
           <Button onClick={handleAgree} autoFocus>

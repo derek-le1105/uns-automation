@@ -72,8 +72,9 @@ function getPackNames(order) {
     : order[3].replace(packRegex, "");
 }
 
-export async function createFormattedExcel(data, updated_packs) {
+export async function createFormattedExcel(data, updated_packs, round_string) {
   try {
+    //addRound(data, round_string);
     var new_excel = updatePlantPacks(data, updated_packs);
     sortOrders(new_excel);
     numerizeOrders(new_excel);
@@ -104,14 +105,17 @@ export async function createFormattedExcel(data, updated_packs) {
 
     const blob = new Blob([buffer], { type: fileType });
 
-    saveAs(
-      blob,
-      `${new Date().getMonth() + 1}.${new Date().getDate()}` + fileExtension
-    );
+    saveAs(blob, `${round_string}` + fileExtension);
   } catch (error) {
     //todo
     console.log(error);
   }
+}
+
+function addRound(data, round_selection) {
+  data.forEach((row) => {
+    row.push(round_selection);
+  });
 }
 
 function updatePlantPacks(data, updated_packs) {
