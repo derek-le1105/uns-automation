@@ -50,7 +50,6 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         await readRetailExcel(file, plant_packs).then((data) => {
           let [excel_data, packs_found] = data;
           excelRef.current = excel_data;
-          //let _ = Object.keys(packs_found).length ? packs_found : null;
           setDetectedPacks(packs_found);
           setPackSelection(Object.keys(packs_found)[0]);
         });
@@ -66,45 +65,42 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
 
   const handleAgree = async () => {
     try {
-    let curr_date = `${new Date().getMonth() + 1}.${new Date().getDate()}`;
-    let round_string = "";
-    let round_counter = 1;
-    const { data: selected_round, error: round_error } = await supabase
-      .from("round_tracker")
-      .select("*")
-      .eq("date", curr_date);
-    if (selected_round.length)
-      round_counter = parseInt(selected_round[0][roundSelection]);
-    round_string =
-      round_counter !== 1
-        ? `${curr_date + roundSelection + round_counter}`
-        : `${curr_date + roundSelection}`;
-    
+      let curr_date = `${new Date().getMonth() + 1}.${new Date().getDate()}`;
+      let round_string = "";
+      let round_counter = 1;
+      const { data: selected_round, error: round_error } = await supabase
+        .from("round_tracker")
+        .select("*")
+        .eq("date", curr_date);
+      if (selected_round.length)
+        round_counter = parseInt(selected_round[0][roundSelection]);
+      round_string =
+        round_counter !== 1
+          ? `${curr_date + roundSelection + round_counter}`
+          : `${curr_date + roundSelection}`;
 
-    if(detectedPacks !== null)
-    {
-    const { error: plant_error } = await supabase
-      .from("plant_packs")
-      .upsert(
-        Object.keys(detectedPacks).map((pack) => {
-          let _ = { "Plant Pack": pack };
-          detectedPacks[pack].forEach((plant, idx) => {
-            _[`item_${idx + 1}`] = plant;
-          });
-          return _;
-        })
-      )
-      .select();
-    }
-    await createFormattedExcel(excelRef.current, detectedPacks, round_string);
-    const { data, error } = await supabase.from("round_tracker").upsert({
-      date: curr_date,
-      [roundSelection]: parseInt(++round_counter).toString(),
-    });
-    handleModalClose();
-    }
-    catch (error) {
-      console.log(error)
+      if (detectedPacks !== null) {
+        const { error: plant_error } = await supabase
+          .from("plant_packs")
+          .upsert(
+            Object.keys(detectedPacks).map((pack) => {
+              let _ = { "Plant Pack": pack };
+              detectedPacks[pack].forEach((plant, idx) => {
+                _[`item_${idx + 1}`] = plant;
+              });
+              return _;
+            })
+          )
+          .select();
+      }
+      await createFormattedExcel(excelRef.current, detectedPacks, round_string);
+      await supabase.from("round_tracker").upsert({
+        date: curr_date,
+        [roundSelection]: parseInt(++round_counter).toString(),
+      });
+      handleModalClose();
+    } catch (error) {
+      console.log(error);
     }
   };
   const handleSelection = (e, newSelection) => {
@@ -122,7 +118,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         sx={{ padding: "50px", minHeight: "5vh" }}
         maxWidth="md"
       >
-        {Object.keys(detectedPacks) !== 0 ? (
+        {Object.keys(detectedPacks).length ? (
           <>
             <DialogTitle>Input plants for plant packs</DialogTitle>
 
