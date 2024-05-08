@@ -122,7 +122,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         sx={{ padding: "50px", minHeight: "5vh" }}
         maxWidth="md"
       >
-        {Object.keys(detectedPacks) !== 0 ? (
+        {Object.keys(detectedPacks) ? (
           <>
             <DialogTitle>Input plants for plant packs</DialogTitle>
 
