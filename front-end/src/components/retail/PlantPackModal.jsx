@@ -112,127 +112,120 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
   };
   return (
     <>
-      <Dialog
-        open={openModal}
-        onClose={handleClose}
-        sx={{ padding: "50px", minHeight: "5vh" }}
-        maxWidth="md"
-      >
-        {Object.keys(detectedPacks) ? (
-          <>
-            <DialogTitle>Input plants for plant packs</DialogTitle>
+      {Object.keys(detectedPacks).length ? (
+        <>
+          <DialogTitle>Input plants for plant packs</DialogTitle>
 
-            <DialogContent>
-              <Grid
-                container
-                sx={{ border: "1px solid black", borderRadius: "4px" }}
-              >
-                <Grid item container xs>
-                  <Stack>
-                    <HeaderItem>Pack</HeaderItem>
-                    <ToggleButtonGroup
-                      value={packSelection}
-                      exclusive
-                      onChange={handleSelection}
-                      orientation="vertical"
-                      sx={{ height: "100%" }}
-                    >
-                      {Object.keys(detectedPacks).map((pack) => {
-                        return (
-                          <ToggleButton value={pack} key={pack}>
-                            {pack}
-                          </ToggleButton>
-                        );
-                      })}
-                    </ToggleButtonGroup>
-                  </Stack>
-                </Grid>
-                <Grid item container xs>
-                  <HeaderItem>Plant</HeaderItem>
-                  <Stack flexWrap="wrap" sx={{ width: "100%" }}>
+          <DialogContent>
+            <Grid
+              container
+              sx={{ border: "1px solid black", borderRadius: "4px" }}
+            >
+              <Grid item container xs>
+                <Stack>
+                  <HeaderItem>Pack</HeaderItem>
+                  <ToggleButtonGroup
+                    value={packSelection}
+                    exclusive
+                    onChange={handleSelection}
+                    orientation="vertical"
+                    sx={{ height: "100%" }}
+                  >
                     {Object.keys(detectedPacks).map((pack) => {
                       return (
-                        packSelection === pack &&
-                        detectedPacks[pack].map((plant, idx) => {
-                          return (
-                            <TextField
-                              id={plant["plant"]}
-                              fullWidth
-                              variant="outlined"
-                              defaultValue={plant["plant"]}
-                              sx={{ color: "black", width: "100%" }}
-                              onChange={(e) => {
-                                let new_list = detectedPacks[pack];
-                                new_list[idx]["plant"] = e.target.value;
-                                setDetectedPacks({
-                                  ...detectedPacks,
-                                  [pack]: new_list,
-                                });
-                              }}
-                            />
-                          );
-                        })
+                        <ToggleButton value={pack} key={pack}>
+                          {pack}
+                        </ToggleButton>
                       );
                     })}
-                  </Stack>
-                </Grid>
-                <Grid item container xs>
-                  <HeaderItem>Location</HeaderItem>
-                  <Stack flexWrap="wrap" sx={{ width: "100%" }}>
-                    {Object.keys(detectedPacks).map((pack) => {
-                      return (
-                        packSelection === pack &&
-                        detectedPacks[pack].map((plant, idx) => {
-                          return (
-                            <TextField
-                              id={plant["location"]}
-                              fullWidth
-                              variant="outlined"
-                              defaultValue={plant["location"]}
-                              sx={{ color: "black" }}
-                              onChange={(e) => {
-                                let new_list = detectedPacks[pack];
-                                new_list[idx]["location"] = e.target.value;
-                                setDetectedPacks({
-                                  ...detectedPacks,
-                                  [pack]: new_list,
-                                });
-                              }}
-                            />
-                          );
-                        })
-                      );
-                    })}
-                  </Stack>
-                </Grid>
+                  </ToggleButtonGroup>
+                </Stack>
               </Grid>
-            </DialogContent>
-          </>
-        ) : (
-          <>
-            <DialogTitle>No packs detected!</DialogTitle>
-            <DialogContent></DialogContent>
-          </>
-        )}
-        <DialogContent sx={{ pt: "0px", pb: "0px" }}>
-          <FormControl>
-            <FormLabel>Round Selection</FormLabel>
-            <RadioGroup row defaultValue="m" onChange={handleRoundSelection}>
-              <FormControlLabel value="m" control={<Radio />} label="Main" />
-              <FormControlLabel value="a" control={<Radio />} label="Autumn" />
-              <FormControlLabel value="bb" control={<Radio />} label="Shrimp" />
-              <FormControlLabel value="ga" control={<Radio />} label="GA" />
-            </RadioGroup>
-          </FormControl>
-        </DialogContent>
+              <Grid item container xs>
+                <HeaderItem>Plant</HeaderItem>
+                <Stack flexWrap="wrap" sx={{ width: "100%" }}>
+                  {Object.keys(detectedPacks).map((pack) => {
+                    return (
+                      packSelection === pack &&
+                      detectedPacks[pack].map((plant, idx) => {
+                        return (
+                          <TextField
+                            id={plant["plant"]}
+                            fullWidth
+                            variant="outlined"
+                            defaultValue={plant["plant"]}
+                            sx={{ color: "black", width: "100%" }}
+                            onChange={(e) => {
+                              let new_list = detectedPacks[pack];
+                              new_list[idx]["plant"] = e.target.value;
+                              setDetectedPacks({
+                                ...detectedPacks,
+                                [pack]: new_list,
+                              });
+                            }}
+                          />
+                        );
+                      })
+                    );
+                  })}
+                </Stack>
+              </Grid>
+              <Grid item container xs>
+                <HeaderItem>Location</HeaderItem>
+                <Stack flexWrap="wrap" sx={{ width: "100%" }}>
+                  {Object.keys(detectedPacks).map((pack) => {
+                    return (
+                      packSelection === pack &&
+                      detectedPacks[pack].map((plant, idx) => {
+                        return (
+                          <TextField
+                            id={plant["location"]}
+                            fullWidth
+                            variant="outlined"
+                            defaultValue={plant["location"]}
+                            sx={{ color: "black" }}
+                            onChange={(e) => {
+                              let new_list = detectedPacks[pack];
+                              new_list[idx]["location"] = e.target.value;
+                              setDetectedPacks({
+                                ...detectedPacks,
+                                [pack]: new_list,
+                              });
+                            }}
+                          />
+                        );
+                      })
+                    );
+                  })}
+                </Stack>
+              </Grid>
+            </Grid>
+          </DialogContent>
+        </>
+      ) : (
+        <>
+          <DialogTitle>No packs detected!</DialogTitle>
+          <DialogContent></DialogContent>
+        </>
+      )}
+      <DialogContent sx={{ pt: "0px", pb: "0px" }}>
+        <FormControl>
+          <FormLabel>Round Selection</FormLabel>
+          <RadioGroup row defaultValue="m" onChange={handleRoundSelection}>
+            <FormControlLabel value="m" control={<Radio />} label="Main" />
+            <FormControlLabel value="a" control={<Radio />} label="Autumn" />
+            <FormControlLabel value="bb" control={<Radio />} label="Shrimp" />
+            <FormControlLabel value="ga" control={<Radio />} label="GA" />
+          </RadioGroup>
+        </FormControl>
+      </DialogContent>
 
-        <DialogActions>
-          <Button onClick={handleClose}>Disagree</Button>
-          <Button onClick={handleAgree} autoFocus>
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <DialogActions>
+        <Button onClick={handleClose}>Disagree</Button>
+        <Button onClick={handleAgree} autoFocus>
+          Agree
+        </Button>
+      </DialogActions>
     </>
   );
 };
