@@ -34,7 +34,7 @@ const ShipStationPage = () => {
       setSupabasePacks(formatted_packs);
     }
     fetchSupabase();
-  });
+  }, []);
 
   const handleClose = () => {
     setOpenDialog(false);
