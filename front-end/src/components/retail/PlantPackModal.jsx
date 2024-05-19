@@ -1,6 +1,5 @@
 import {
   Button,
-  Switch,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -22,7 +21,7 @@ import {
   readRetailExcel,
   createFormattedExcel,
 } from "../../helper/readRetailExcel";
-
+import { pack_exists } from "../../helper/supabaseHelpers";
 import { supabase } from "../../supabaseClient";
 import { SupabaseContext } from "../Contexts";
 
@@ -76,7 +75,10 @@ const ShipStationModal = ({ file, handleModalClose }) => {
           ? `${curr_date + roundSelection + round_counter}`
           : `${curr_date + roundSelection}`;
 
-      if (detectedPacks !== null) {
+      if (
+        detectedPacks !== null &&
+        pack_exists(Object.keys(detectedPacks), supabase_packs)
+      ) {
         const { error: plant_error } = await supabase
           .from("plant_packs")
           .upsert(
