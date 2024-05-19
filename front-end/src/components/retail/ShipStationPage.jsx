@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import ShipStationModal from "./PlantPackModal";
 import BulkEditDialog from "./BulkEditDialog";
 import { supabase } from "../../supabaseClient";
-import { format_data } from "../../helper/supabaseHelpers";
+import { SupabaseContext } from "../Contexts";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -30,8 +30,7 @@ const ShipStationPage = () => {
       let { data: plant_packs } = await supabase
         .from("plant_packs")
         .select("*");
-      let formatted_packs = format_data(plant_packs);
-      setSupabasePacks(formatted_packs);
+      setSupabasePacks(plant_packs);
     }
     fetchSupabase();
   }, []);
@@ -42,7 +41,7 @@ const ShipStationPage = () => {
   };
 
   return (
-    <>
+    <SupabaseContext.Provider value={supabasePacks}>
       <Grid container>
         <Grid container item sx={{ margin: "50px" }}>
           <Grid xs item />
@@ -110,7 +109,7 @@ const ShipStationPage = () => {
           />
         )}
       </Dialog>
-    </>
+    </SupabaseContext.Provider>
   );
 };
 

@@ -1,6 +1,6 @@
 import {
   Button,
-  Dialog,
+  Switch,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -17,13 +17,14 @@ import {
   FormLabel,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import {
   readRetailExcel,
   createFormattedExcel,
 } from "../../helper/readRetailExcel";
 
 import { supabase } from "../../supabaseClient";
+import { SupabaseContext } from "../Contexts";
 
 const HeaderItem = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -34,30 +35,26 @@ const HeaderItem = styled(Paper)(({ theme }) => ({
   width: "100%",
 }));
 
-const ShipStationModal = ({ file, openModal, handleModalClose }) => {
+const ShipStationModal = ({ file, handleModalClose }) => {
   const [packSelection, setPackSelection] = useState();
   const [detectedPacks, setDetectedPacks] = useState({});
   const [roundSelection, setRoundSelection] = useState("m");
   const excelRef = useRef(null);
-  const supabaseRef = useRef(null);
+  const supabase_packs = useContext(SupabaseContext);
 
   useEffect(() => {
     if (file) {
       async function importData() {
-        let { data: plant_packs, error } = await supabase
-          .from("plant_packs")
-          .select("*");
-        await readRetailExcel(file, plant_packs).then((data) => {
+        await readRetailExcel(file, supabase_packs).then((data) => {
           let [excel_data, packs_found] = data;
           excelRef.current = excel_data;
           setDetectedPacks(packs_found);
           setPackSelection(Object.keys(packs_found)[0]);
         });
-        supabaseRef.current = plant_packs;
       }
       importData();
     }
-  }, [file]);
+  }, [file, supabase_packs]);
 
   const handleClose = () => {
     handleModalClose();
@@ -72,7 +69,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
         .from("round_tracker")
         .select("*")
         .eq("date", curr_date);
-      if (selected_round.length)
+      if (selected_round.length && roundSelection !== "ss")
         round_counter = parseInt(selected_round[0][roundSelection]);
       round_string =
         round_counter !== 1
@@ -94,10 +91,12 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
           .select();
       }
       await createFormattedExcel(excelRef.current, detectedPacks, round_string);
-      await supabase.from("round_tracker").upsert({
-        date: curr_date,
-        [roundSelection]: parseInt(++round_counter).toString(),
-      });
+      if (roundSelection !== "ss") {
+        await supabase.from("round_tracker").upsert({
+          date: curr_date,
+          [roundSelection]: parseInt(++round_counter).toString(),
+        });
+      }
       handleModalClose();
     } catch (error) {
       console.log(error);
@@ -216,6 +215,7 @@ const ShipStationModal = ({ file, openModal, handleModalClose }) => {
             <FormControlLabel value="a" control={<Radio />} label="Autumn" />
             <FormControlLabel value="bb" control={<Radio />} label="Shrimp" />
             <FormControlLabel value="ga" control={<Radio />} label="GA" />
+            <FormControlLabel value="ss" control={<Radio />} label="SS/Other" />
           </RadioGroup>
         </FormControl>
       </DialogContent>

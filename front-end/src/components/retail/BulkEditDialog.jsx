@@ -10,15 +10,18 @@ import {
 } from "@mui/material";
 
 import { supabase } from "../../supabaseClient";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { format_data } from "../../helper/supabaseHelpers";
 import { useSnackbar } from "notistack";
+import { SupabaseContext } from "../Contexts";
 
 const BulkEditDialog = ({ title, handleModalClose }) => {
   const { enqueueSnackbar } = useSnackbar();
   const [supabasePacks, setSupabasePacks] = useState();
   const [selectedPack, setSelectedPack] = useState();
   const [edittedPacks, setEdittedPacks] = useState();
+
+  const supabase_packs = useContext(SupabaseContext);
 
   const isEditsValid = () => {
     if (edittedPacks) {
@@ -44,10 +47,7 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
 
   useEffect(() => {
     async function fetchSupabase() {
-      let { data: plant_packs } = await supabase
-        .from("plant_packs")
-        .select("*");
-      let formatted_packs = format_data(plant_packs);
+      let formatted_packs = format_data(supabase_packs);
       setSupabasePacks(formatted_packs);
       setSelectedPack(Object.keys(formatted_packs).sort()[0]);
     }
