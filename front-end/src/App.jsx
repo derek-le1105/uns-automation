@@ -34,7 +34,7 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={session ? <Navigate to="/wholesale" /> : <Login />}
+              element={session ? <Navigate to="/retail" /> : <Login />}
             />
             <Route
               path="/home"
