@@ -97,7 +97,7 @@ const PlantPackModal = ({ file, handleModalClose }) => {
         detectedPacks,
         round_string
       );
-      order_count += selected_round[0]["order_count"];
+      //order_count += selected_round[0]["order_count"];
       if (roundSelection !== "ss") {
         await supabase.from("round_tracker").upsert({
           date: curr_date,
@@ -107,8 +107,8 @@ const PlantPackModal = ({ file, handleModalClose }) => {
       await supabase.from("round_tracker").upsert({
         date: curr_date,
         [roundSelection]: (++round_counter).toString(),
-        order_count: order_count,
       });
+      //order_count: order_count,
       handleModalClose();
     } catch (error) {
       console.log(error);
