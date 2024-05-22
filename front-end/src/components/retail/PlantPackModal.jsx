@@ -98,15 +98,15 @@ const PlantPackModal = ({ file, handleModalClose }) => {
         round_string
       );
       //order_count += selected_round[0]["order_count"];
-      if (roundSelection !== "ss") {
+      /*if (roundSelection !== "ss") {
         await supabase.from("round_tracker").upsert({
           date: curr_date,
           [roundSelection]: (++round_counter).toString(),
         });
-      }
+      }*/
       await supabase.from("round_tracker").upsert({
         date: curr_date,
-        [roundSelection]: (++round_counter).toString(),
+        [roundSelection]: (++round_counter),
       });
       //order_count: order_count,
       handleModalClose();
