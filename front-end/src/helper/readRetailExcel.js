@@ -75,7 +75,7 @@ export async function createFormattedExcel(data, updated_packs, round_string) {
   try {
     var new_excel = updatePlantPacks(data, updated_packs);
     sortOrders(new_excel);
-    numerizeOrders(new_excel);
+    let order_count = numerizeOrders(new_excel);
     let mapping = formattingLocations(alphabetizeLocations(new_excel));
 
     const wb = new Excel.Workbook();
@@ -104,6 +104,7 @@ export async function createFormattedExcel(data, updated_packs, round_string) {
     const blob = new Blob([buffer], { type: fileType });
 
     saveAs(blob, `${round_string}` + fileExtension);
+    return order_count;
   } catch (error) {
     //todo
     console.log(error);
@@ -162,15 +163,18 @@ function sortOrders(data) {
 }
 
 function numerizeOrders(data) {
-  let curr_row = data[0][0],
-    count = 1;
-  for (let row of data) {
-    if (row[0] !== curr_row) {
-      count += 1;
-      curr_row = row[0];
+  let order_set = new Set();
+  try {
+    for (let row of data) {
+      if (!order_set.has(row[0])) {
+        order_set.add(row[0]);
+      }
+      row.splice(1, 0, order_set.size);
     }
-    row.splice(1, 0, count);
+  } catch (error) {
+    console.log(error);
   }
+  return order_set.size;
 }
 
 function alphabetizeLocations(data) {

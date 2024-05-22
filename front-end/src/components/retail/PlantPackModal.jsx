@@ -34,7 +34,7 @@ const HeaderItem = styled(Paper)(({ theme }) => ({
   width: "100%",
 }));
 
-const ShipStationModal = ({ file, handleModalClose }) => {
+const PlantPackModal = ({ file, handleModalClose }) => {
   const [packSelection, setPackSelection] = useState();
   const [detectedPacks, setDetectedPacks] = useState({});
   const [roundSelection, setRoundSelection] = useState("m");
@@ -69,7 +69,7 @@ const ShipStationModal = ({ file, handleModalClose }) => {
         .select("*")
         .eq("date", curr_date);
       if (selected_round.length && roundSelection !== "ss")
-        round_counter = parseInt(selected_round[0][roundSelection]);
+        round_counter = selected_round[0][roundSelection];
       round_string =
         round_counter !== 1
           ? `${curr_date + roundSelection + round_counter}`
@@ -92,13 +92,23 @@ const ShipStationModal = ({ file, handleModalClose }) => {
           )
           .select();
       }
-      await createFormattedExcel(excelRef.current, detectedPacks, round_string);
+      let order_count = await createFormattedExcel(
+        excelRef.current,
+        detectedPacks,
+        round_string
+      );
+      order_count += selected_round[0]["order_count"];
       if (roundSelection !== "ss") {
         await supabase.from("round_tracker").upsert({
           date: curr_date,
-          [roundSelection]: parseInt(++round_counter).toString(),
+          [roundSelection]: (++round_counter).toString(),
         });
       }
+      await supabase.from("round_tracker").upsert({
+        date: curr_date,
+        [roundSelection]: (++round_counter).toString(),
+        order_count: order_count,
+      });
       handleModalClose();
     } catch (error) {
       console.log(error);
@@ -232,4 +242,4 @@ const ShipStationModal = ({ file, handleModalClose }) => {
   );
 };
 
-export default ShipStationModal;
+export default PlantPackModal;
