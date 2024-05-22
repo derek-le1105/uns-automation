@@ -26,12 +26,11 @@ export async function readRetailExcel(file, supabase_packs) {
           let order_split = row.split(",").map((entry) => {
             return entry.replace(/['"]+/g, "");
           });
+          let [order_number, location, item_quantity, line_item] = order_split;
 
-          order_split[2] = parseInt(order_split[2]);
-
-          if (new RegExp(/^zstem$/i).test(order_split[1])) {
+          if (new RegExp(/^zstem$/i).test(location)) {
             temp_packs.push(order_split);
-            let pack_name = getPackNames(order_split);
+            let pack_name = formatPackName(line_item);
 
             //if detected pack is not included in saved plant packs
             if (!Object.keys(plantPacks).includes(pack_name)) {
@@ -64,17 +63,16 @@ export async function readRetailExcel(file, supabase_packs) {
   });
 }
 
-function getPackNames(order) {
+function formatPackName(line_item) {
   const packRegex = / - \d+ Pack/;
   const potPackRegex = / - \d+ Pot Package/;
-  return order[3].includes("Pot Package")
-    ? order[3].replace(potPackRegex, "")
-    : order[3].replace(packRegex, "");
+  return line_item.includes("Pot Package")
+    ? line_item.replace(potPackRegex, "")
+    : line_item.replace(packRegex, "");
 }
 
 export async function createFormattedExcel(data, updated_packs, round_string) {
   try {
-    //addRound(data, round_string);
     var new_excel = updatePlantPacks(data, updated_packs);
     sortOrders(new_excel);
     numerizeOrders(new_excel);
@@ -112,12 +110,6 @@ export async function createFormattedExcel(data, updated_packs, round_string) {
   }
 }
 
-function addRound(data, round_selection) {
-  data.forEach((row) => {
-    row.push(round_selection);
-  });
-}
-
 function updatePlantPacks(data, updated_packs) {
   Object.keys(updated_packs).forEach((pack) => {
     plantPacks[pack] = updated_packs[pack];
@@ -129,24 +121,31 @@ function updatePlantPacks(data, updated_packs) {
   if (zstem_index !== -1) {
     var new_data = [...data.slice(0, zstem_index)];
     data.slice(zstem_index).forEach((order) => {
+      let [order_number, location, item_quantity, line_item] = order;
       let quantity =
-        order[3].match(/\d+/g) === null
-          ? 5
-          : parseInt(order[3].match(/\d+/g)[0]) * order[2];
-      plantPackQtyAssignment(new_data, order[0], getPackNames(order), quantity);
+        line_item.match(/\d+/g) === null
+          ? item_quantity
+          : (parseInt(line_item.match(/\d+/g)[0]) * item_quantity) / 5;
+      plantPackQtyAssignment(
+        new_data,
+        order_number,
+        formatPackName(line_item),
+        parseInt(quantity)
+      );
     });
     return new_data;
   } else return data;
 }
 
-function plantPackQtyAssignment(excel_data, curr_order, pack_name, quantity) {
+function plantPackQtyAssignment(excel_data, order_number, pack_name, quantity) {
   plantPacks[pack_name].forEach((item) => {
-    excel_data.push([
-      curr_order,
-      item["location"],
-      quantity / 5,
-      item["plant"],
-    ]);
+    if (item["plant"] !== "" || item["location"] !== "")
+      excel_data.push([
+        order_number,
+        item["location"],
+        quantity,
+        item["plant"],
+      ]);
   });
 }
 
