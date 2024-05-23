@@ -24,6 +24,7 @@ import {
 import { pack_exists } from "../../helper/supabaseHelpers";
 import { supabase } from "../../supabaseClient";
 import { SupabaseContext } from "../Contexts";
+import { enqueueSnackbar } from "notistack";
 
 const HeaderItem = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -98,7 +99,8 @@ const PlantPackModal = ({ file, handleModalClose }) => {
         round_string
       );
 
-      order_count += selected_round[0]["order_count"];
+      if (selected_round.length)
+        order_count += selected_round[0]["order_count"];
 
       await supabase.from("round_tracker").upsert({
         date: curr_date,
