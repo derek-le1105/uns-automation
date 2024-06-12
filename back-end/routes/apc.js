@@ -5,7 +5,6 @@ const readline = require("readline");
 const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
-const { constants } = require("buffer");
 
 const apcFileName = "apc-ts";
 
@@ -117,17 +116,18 @@ router.post("/", async (req, res) => {
       apcFileName
     );
     let count = 0,
-      bad_count = 0;
+      bad_count = 0,
+      found_count = 0;
 
     //tracks which product variants to make active
     shopifyAPCPlants.forEach((product, idx) => {
       product.barcodes.forEach((barcode) => {
-        //if apc barcode exists in shopify list, make active if not already
+        //if shopify barcode exists in apc list, make active if not already
         if (apc_stocklist_codes.includes(barcode)) {
           console.log(barcode, ++count);
           bulkOperationStrings.push(barcode);
         } else {
-          //if apc barcode doesnt exist in shopify list, make draft if not already
+          //if shopify barcode doesnt exist in apc list, make draft if not already
           console.log(barcode, ++bad_count);
         }
       });
@@ -137,14 +137,22 @@ router.post("/", async (req, res) => {
     apc_stocklist_codes.forEach((barcode) => {
       if (!findInArrayOfObjects(barcode, shopifyAPCPlants)) {
         codesNotInShopify.push(barcode);
-      }
+      } else ++found_count;
     });
 
-    console.log(`apc stocklist: ${shopifyAPCPlants.length}`);
-    console.log(`codes found: ${bulkOperationStrings.length}`);
-    console.log(`bad_count: ${bad_count}`);
-    console.log(`codes not found: ${codesNotInShopify.length}`);
+    let temp = 0;
+    shopifyAPCPlants.forEach((product) => {
+      temp += product.barcodes.length;
+    });
+    console.log(`shopify product count: ${shopifyAPCPlants.length}`); //amount of products not including variants
+    console.log(`shopify variant count: ${temp}`);
+    console.log(
+      `barcodes found between apc & shopify: ${bulkOperationStrings.length}`
+    );
+    console.log(`barcodes not found: ${bad_count}`);
     console.log(`stock list count: ${apc_stocklist_codes.length}`);
+    console.log(`codes not found: ${codesNotInShopify.length}`);
+    console.log(`barcodes found: ${found_count}`);
 
     return res.status(200).json(shopifyAPCPlants);
   } catch (error) {

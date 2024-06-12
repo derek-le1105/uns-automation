@@ -11,7 +11,7 @@ export async function readAPCFileUpload(file) {
       const buffer = reader.result;
       wb.xlsx.load(buffer).then((workbook) => {
         const worksheet = workbook.getWorksheet("Stocklist");
-        worksheet.eachRow((row, rowIdx) => {
+        worksheet.eachRow((row) => {
           if (isValidRow) {
             if (row.values[2] !== undefined) codes.push(row.values[2]);
             if (row.values[5] !== undefined) codes.push(row.values[5]);
