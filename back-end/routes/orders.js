@@ -5,7 +5,7 @@ const router = express.Router();
 const readline = require("readline");
 const fs = require("fs");
 
-const { getBulkData } = require("../helper/getBulkData");
+const getBulkData = require("../helper/getBulkData");
 
 require("dotenv").config();
 
@@ -127,7 +127,7 @@ const ordersQuery = (fridays) => {
 router.post("/", async (req, res) => {
   let fridays = req.body;
   try {
-    let parsedData = await getBulkData(ordersQuery(fridays), parseData);
+    let parsedData = await getBulkData(ordersQuery(fridays), parseData, "data");
     return res.status(200).json(parsedData);
   } catch (error) {
     console.log(error);
