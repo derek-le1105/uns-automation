@@ -1,30 +1,24 @@
-import { Grid, Box, Button } from "@mui/material";
+import { Grid, Button } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
-import FileUpload from "../FileUpload";
 import { useState } from "react";
 
+import FileUpload from "../FileUpload";
+
+import { readAPCFileUpload } from "../../helper/readAPCFileUpload";
+
 const TransshipOrders = () => {
+  const theme = useTheme();
   const [apcUploaded, setAPCUploaded] = useState(false);
   const [wcaUploaded, setWCAUploaded] = useState(false);
-  const getProducts = async () => {
-    await fetch("/tsOrders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(),
-    })
-      .then((res) => {
-        return res.json();
-      })
-      .then(async (res_data) => {
-        console.log(res_data);
-      });
-  };
 
-  const handleAPCFileUpload = (file) => {
-    console.log(file);
-    setAPCUploaded(true);
+  const handleAPCFileUpload = async (file) => {
+    try {
+      setAPCUploaded(true);
+      await readAPCFileUpload(file).then((data) => {
+        console.log(data);
+      });
+    } catch (error) {}
   };
 
   const handleWCAFileUpload = (file) => {
@@ -32,10 +26,10 @@ const TransshipOrders = () => {
     setWCAUploaded(true);
   };
 
-  const handleGenerateClick = async (e) => {
+  const handleAPCShopifyUpdate = async (e) => {
     try {
-      await fetch("/tsOrders", {
-        method: "POST",
+      await fetch("/apc", {
+        method: "GET",
         headers: { "Content-Type": "application/json" },
       })
         .then((res) => {
@@ -49,33 +43,32 @@ const TransshipOrders = () => {
 
   return (
     <Grid container>
-      <Grid container item sx={{ margin: "50px" }}>
-        <Grid xs item />
-        <Grid xs={1} item>
-          <Button variant="contained" onClick={getProducts}>
-            Get Products
-          </Button>
-        </Grid>
-        <Grid xs={1} item>
-          <Button
-            variant={apcUploaded && wcaUploaded ? "contained" : "disabled"}
-            onClick={handleGenerateClick}
-          >
-            Generate Shopify Import
-          </Button>
-        </Grid>
-      </Grid>
+      <Grid container item sx={{ margin: "50px" }} />
       <Grid container item>
         <FileUpload
           fileHandler={handleAPCFileUpload}
           componentString={"APC File"}
         />
+        <Grid item xs={5}>
+          <Button
+            variant="contained"
+            disabled={!apcUploaded}
+            onClick={handleAPCShopifyUpdate}
+          >
+            Update APC
+          </Button>
+        </Grid>
       </Grid>
       <Grid container item>
         <FileUpload
           fileHandler={handleWCAFileUpload}
           componentString={"WCA File"}
         />
+        <Grid item>
+          <Button variant="contained" disabled={!wcaUploaded}>
+            Update WCA
+          </Button>
+        </Grid>
       </Grid>
     </Grid>
   );
