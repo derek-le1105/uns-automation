@@ -1,7 +1,7 @@
 import { Grid, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import FileUpload from "../FileUpload";
 
@@ -12,11 +12,14 @@ const TransshipOrders = () => {
   const [apcUploaded, setAPCUploaded] = useState(false);
   const [wcaUploaded, setWCAUploaded] = useState(false);
 
+  const apcRef = useRef([]);
+  const wcaRef = useRef([]);
+
   const handleAPCFileUpload = async (file) => {
     try {
       setAPCUploaded(true);
       await readAPCFileUpload(file).then((data) => {
-        console.log(data);
+        apcRef.current = data;
       });
     } catch (error) {}
   };
@@ -29,8 +32,9 @@ const TransshipOrders = () => {
   const handleAPCShopifyUpdate = async (e) => {
     try {
       await fetch("/apc", {
-        method: "GET",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apcRef.current),
       })
         .then((res) => {
           return res.json();
