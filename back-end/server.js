@@ -4,7 +4,7 @@ const express = require("express");
 const bodyparser = require("body-parser");
 const app = express();
 const ordersRoute = require("./routes/orders");
-//const plantsRoute = require("./routes/plants");
+const apcRoute = require("./routes/apc");
 const transhipRoute = require("./routes/tranship");
 
 var cors = require("cors");
@@ -19,6 +19,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/orders", ordersRoute);
+app.use("/apc", apcRoute);
 app.use("/tsOrders", transhipRoute);
 
 app.listen(process.env.PORT, () => {

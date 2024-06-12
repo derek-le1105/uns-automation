@@ -50,6 +50,12 @@ export default defineConfig({
         secure: false,
         ws: true,
       },
+      "/apc": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
       "/tsOrders": {
         target: "http://localhost:4000",
         changeOrigin: true,
