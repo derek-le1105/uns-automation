@@ -72,7 +72,7 @@ const getBulkData = async (queryString, parseCallback, filePrefixName) => {
     console.log("a", error);
   }
 
-  return await parseCallback();
+  return await parseCallback(filePrefixName);
 };
 
 module.exports = getBulkData;

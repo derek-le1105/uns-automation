@@ -6,6 +6,9 @@ const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
 
+const apcFileName = "apc-ts";
+const wcaFileName = "wca-ts";
+
 require("dotenv").config();
 
 //publications resource works but some items do not have channels in them or checked off
@@ -14,23 +17,22 @@ const plantsQuery = (vendor) => {
     bulkOperationRunQuery(
     query: """
     {
-      products(first: 2000, query: "vendor:CPA-TS"){
-        edges{
-          node{
-            id
-            title
-            status
-            variants(first: 10) {
-                edges{
-                    node{
-                        barcode
+        products(first: 2000, query: "vendor:${vendor}"){
+            edges{
+              node{
+                id
+                title
+                status
+                variants(first: 10) {
+                    edges{
+                        node{
+                            barcode
+                        }
                     }
                 }
+              }
             }
           }
-        }
-      }
-    }
     }
     """)
     {
@@ -46,11 +48,12 @@ const plantsQuery = (vendor) => {
 }`;
 };
 
-const parseData = async () => {
+const parseData = async (filename) => {
+  console.log(filename);
   const dataContainer = [];
   function processJSONLData() {
     return new Promise((resolve, reject) => {
-      const jsonlFilePath = "data.jsonl"; // The path to the downloaded JSONL file
+      const jsonlFilePath = `${filename}.jsonl`; // The path to the downloaded JSONL file
       const readStream = readline.createInterface({
         input: fs.createReadStream(jsonlFilePath),
       });
@@ -107,9 +110,16 @@ router.post("/", async (req, res) => {
         - 
     */
   try {
-    console.log(getBulkData);
-    let parsedAPCData = await getBulkData(plantsQuery("CPA-TS"), parseData);
-    let parsedWCAData = await getBulkData(plantsQuery("ACW-TS"), parseData);
+    let parsedAPCData = await getBulkData(
+      plantsQuery("CPA-TS"),
+      parseData,
+      apcFileName
+    );
+    let parsedWCAData = await getBulkData(
+      plantsQuery("ACW-TS"),
+      parseData,
+      wcaFileName
+    );
     return res.status(200).json([parsedAPCData, parsedWCAData]);
   } catch (error) {
     console.log(error);
