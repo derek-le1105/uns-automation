@@ -6,7 +6,7 @@ const fs = require("fs");
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
-const getBulkData = async (queryString, parseCallback) => {
+const getBulkData = async (queryString, parseCallback, filePrefixName) => {
   try {
     await axios({
       url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
@@ -48,7 +48,7 @@ const getBulkData = async (queryString, parseCallback) => {
     } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
 
     const url = response2.data.data.currentBulkOperation.url;
-    const writer = fs.createWriteStream("data.jsonl");
+    const writer = fs.createWriteStream(`${filePrefixName}.jsonl`);
     await axios.get(url, { responseType: "stream" }).then((response) => {
       //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
       return new Promise((resolve, reject) => {
