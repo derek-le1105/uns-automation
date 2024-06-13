@@ -74,7 +74,10 @@ const createJSONLFile = (jsonData, filePrefixName) => {
     flags: "w",
   });
   jsonData.forEach((line) => {
-    writer.write(`{"input": ${JSON.stringify(line)}}\n`);
+    //variants cannot be added while bulk updating products
+    let { variants, ...rest } = line;
+    console.log(variants, rest);
+    writer.write(`{"input": ${JSON.stringify(rest)}}\n`);
   });
 };
 
