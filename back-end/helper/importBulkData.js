@@ -74,7 +74,7 @@ const createJSONLFile = (jsonData, filePrefixName) => {
     flags: "w",
   });
   jsonData.forEach((line) => {
-    writer.write(`{input: ${JSON.stringify(line)}}\n`);
+    writer.write(`{"input": ${JSON.stringify(line)}}\n`);
   });
 };
 
