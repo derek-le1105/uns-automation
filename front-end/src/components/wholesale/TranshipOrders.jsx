@@ -2,6 +2,7 @@ import { Grid, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import { useState, useRef } from "react";
+import { useSnackbar } from "notistack";
 
 import FileUpload from "../FileUpload";
 
@@ -9,6 +10,7 @@ import { readAPCFileUpload } from "../../helper/readAPCFileUpload";
 
 const TransshipOrders = () => {
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const [apcUploaded, setAPCUploaded] = useState(false);
   const [wcaUploaded, setWCAUploaded] = useState(false);
 
@@ -31,6 +33,10 @@ const TransshipOrders = () => {
 
   const handleAPCShopifyUpdate = async (e) => {
     try {
+      enqueueSnackbar(`Updating Shopify Products...`, {
+        variant: "info",
+        autoHideDuration: 6000,
+      });
       await fetch("/apc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,8 +47,11 @@ const TransshipOrders = () => {
         })
         .then(async (res_data) => {
           console.log(res_data);
+          enqueueSnackbar(`${res_data}`, { variant: "success" });
         });
-    } catch (error) {}
+    } catch (error) {
+      enqueueSnackbar(`${error}`, { variant: "error" });
+    }
   };
 
   return (
