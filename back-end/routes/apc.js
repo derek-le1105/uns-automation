@@ -6,49 +6,11 @@ const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
 const importBulkData = require("../helper/importBulkData");
+const getShopifyPlants = require("../helper/getShopifyPlants");
 
 const apcFileName = "apc-ts";
 
 require("dotenv").config();
-
-//publications resource works but some items do not have channels in them or checked off
-const plantsQuery = (vendor) => {
-  return `mutation{
-    bulkOperationRunQuery(
-    query: """
-    {
-        products(first: 2000, query: "vendor:${vendor}"){
-            edges{
-              node{
-                id
-                title
-                status
-                variants(first: 10) {
-                    edges{
-                        node{
-                          id
-                          barcode
-                          inventoryPolicy
-                        }
-                    }
-                }
-              }
-            }
-          }
-    }
-    """)
-    {
-        bulkOperation {
-            id
-            status
-        }
-        userErrors{
-            field
-            message
-        }
-    }
-}`;
-};
 
 const parseData = async (filename) => {
   const dataContainer = [];
@@ -115,7 +77,7 @@ router.post("/", async (req, res) => {
   let apc_stocklist_codes = req.body;
   try {
     let shopifyAPCPlants = await getBulkData(
-      plantsQuery("CPA-TS"),
+      getShopifyPlants("CPA-TS"),
       parseData,
       apcFileName
     );
@@ -188,6 +150,7 @@ router.post("/", async (req, res) => {
     console.log(`stock list count: ${apc_stocklist_codes.length}`);
     console.log(`codes not found: ${codesNotInShopify.length}`);
     console.log(`barcodes found: ${found_count.length}`);*/
+
     await importBulkData(productUpdateList, "apctest");
     return res.status(200).json("Successfully updated products");
     //return res.status(200).json(shopifyAPCPlants);

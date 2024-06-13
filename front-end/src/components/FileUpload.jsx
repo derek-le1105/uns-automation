@@ -3,6 +3,7 @@ import { styled } from "@mui/material/styles";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 
 import { useTheme } from "@mui/material/styles";
+import { useState } from "react";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -18,6 +19,7 @@ const VisuallyHiddenInput = styled("input")({
 
 const FileUpload = ({ fileHandler, componentString = "Upload File" }) => {
   const theme = useTheme();
+  const [filename, setFilename] = useState(componentString);
   return (
     <Button
       component="label"
@@ -34,9 +36,10 @@ const FileUpload = ({ fileHandler, componentString = "Upload File" }) => {
       }}
       onChange={(e) => {
         fileHandler(e.target.files[e.target.files.length - 1]);
+        setFilename(e.target.files[e.target.files.length - 1].name);
       }}
     >
-      {componentString}
+      {filename}
       <VisuallyHiddenInput type="file" accept=".xlsx, .csv, .xls" />
     </Button>
   );

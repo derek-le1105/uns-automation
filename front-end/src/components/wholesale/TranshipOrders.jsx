@@ -10,9 +10,10 @@ import { readAPCFileUpload } from "../../helper/readAPCFileUpload";
 
 const TransshipOrders = () => {
   const theme = useTheme();
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [apcUploaded, setAPCUploaded] = useState(false);
   const [wcaUploaded, setWCAUploaded] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const apcRef = useRef([]);
   const wcaRef = useRef([]);
@@ -33,10 +34,11 @@ const TransshipOrders = () => {
 
   const handleAPCShopifyUpdate = async (e) => {
     try {
-      enqueueSnackbar(`Updating Shopify Products...`, {
+      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
         variant: "info",
         autoHideDuration: 6000,
       });
+      setLoading(true);
       await fetch("/apc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,11 +49,13 @@ const TransshipOrders = () => {
         })
         .then(async (res_data) => {
           console.log(res_data);
+          closeSnackbar(updateSnackbarID);
           enqueueSnackbar(`${res_data}`, { variant: "success" });
         });
     } catch (error) {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }
+    setLoading(false);
   };
 
   return (
@@ -65,7 +69,7 @@ const TransshipOrders = () => {
         <Grid item xs={5}>
           <Button
             variant="contained"
-            disabled={!apcUploaded}
+            disabled={!apcUploaded || loading}
             onClick={handleAPCShopifyUpdate}
           >
             Update APC
