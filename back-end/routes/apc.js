@@ -5,6 +5,7 @@ const readline = require("readline");
 const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
+const importBulkData = require("../helper/importBulkData");
 
 const apcFileName = "apc-ts";
 
@@ -25,7 +26,9 @@ const plantsQuery = (vendor) => {
                 variants(first: 10) {
                     edges{
                         node{
-                            barcode
+                          id
+                          barcode
+                          inventoryPolicy
                         }
                     }
                 }
@@ -48,7 +51,6 @@ const plantsQuery = (vendor) => {
 };
 
 const parseData = async (filename) => {
-  console.log(filename);
   const dataContainer = [];
   function processJSONLData() {
     return new Promise((resolve, reject) => {
@@ -60,15 +62,19 @@ const parseData = async (filename) => {
         try {
           const cleanLine = line.replace(/'/g, "");
           const jsonData = JSON.parse(cleanLine);
-          if (jsonData.id) {
+          if (!jsonData.id.includes("ProductVariant")) {
             dataContainer.push({
+              id: jsonData.id,
               status: jsonData.status,
-              barcodes: [],
+              title: jsonData.title,
+              variants: [],
             });
           } else {
-            dataContainer[dataContainer.length - 1].barcodes.push(
-              jsonData.barcode
-            );
+            dataContainer[dataContainer.length - 1].variants.push({
+              id: jsonData.id,
+              barcode: jsonData.barcode,
+              inventoryPolicy: jsonData.inventoryPolicy,
+            });
           }
         } catch (error) {
           //TODO: handle error when reading line stops abruptly
@@ -107,40 +113,69 @@ router.post("/", async (req, res) => {
         - 
     */
   let apc_stocklist_codes = req.body;
-  const bulkOperationStrings = [];
-  const codesNotInShopify = [];
   try {
     let shopifyAPCPlants = await getBulkData(
       plantsQuery("CPA-TS"),
       parseData,
       apcFileName
     );
-    let count = 0,
-      bad_count = 0,
-      found_count = 0;
+
+    let productUpdateList = [],
+      productUpdateVariantList = [],
+      notOnShopifyList = [];
 
     //tracks which product variants to make active
     shopifyAPCPlants.forEach((product, idx) => {
-      product.barcodes.forEach((barcode) => {
-        //if shopify barcode exists in apc list, make active if not already
-        if (apc_stocklist_codes.includes(barcode)) {
-          console.log(barcode, ++count);
-          bulkOperationStrings.push(barcode);
-        } else {
-          //if shopify barcode doesnt exist in apc list, make draft if not already
-          console.log(barcode, ++bad_count);
-        }
-      });
-    });
+      let { id, title, status, variants } = product;
 
+      //if there is only one variant or product has no variant
+      if (variants.length <= 1) {
+        let barcode = variants[0].barcode;
+        if (!apc_stocklist_codes.includes(barcode)) {
+          if (status === "ACTIVE")
+            productUpdateList.push({ ...product, status: "DRAFT" });
+        } else {
+          if (status === "DRAFT")
+            productUpdateList.push({ ...product, status: "ACTIVE" });
+        }
+      } else {
+        let oversellList = [],
+          denyCount = 0;
+        variants.forEach((variant) => {
+          //if shopify barcode exists in apc list, make active if not already
+          let { variantId, barcode, inventoryPolicy } = variant;
+          if (!apc_stocklist_codes.includes(barcode)) {
+            if (inventoryPolicy !== "DENY")
+              oversellList.push({ ...variant, inventoryPolicy: "DENY" });
+            denyCount += 1;
+          } else {
+            if (inventoryPolicy !== "CONTINUE")
+              oversellList.push({ ...variant, inventoryPolicy: "CONTINUE" });
+          }
+        });
+        //if number of denied oversell items is less than amount of variants, make product ACTIVE
+        if (denyCount < variants.length) {
+          //
+          if (status !== "ACTIVE") {
+            productUpdateList.push({ ...product, status: "ACTIVE" });
+            oversellList.forEach((product) => {
+              productUpdateVariantList.push(product);
+            });
+          }
+        } else {
+          if (status !== "DRAFT")
+            productUpdateList.push({ ...product, status: "DRAFT" });
+        }
+      }
+    });
     //check to see which barcodes from apc stocklist ARENT in shopify list
-    apc_stocklist_codes.forEach((barcode) => {
+    /*apc_stocklist_codes.forEach((barcode) => {
       if (!findInArrayOfObjects(barcode, shopifyAPCPlants)) {
         codesNotInShopify.push(barcode);
-      } else ++found_count;
-    });
+      } else found_count.push(barcode);
+    });*/
 
-    let temp = 0;
+    /*let temp = 0;
     shopifyAPCPlants.forEach((product) => {
       temp += product.barcodes.length;
     });
@@ -152,9 +187,10 @@ router.post("/", async (req, res) => {
     console.log(`barcodes not found: ${bad_count}`);
     console.log(`stock list count: ${apc_stocklist_codes.length}`);
     console.log(`codes not found: ${codesNotInShopify.length}`);
-    console.log(`barcodes found: ${found_count}`);
-
-    return res.status(200).json(shopifyAPCPlants);
+    console.log(`barcodes found: ${found_count.length}`);*/
+    await importBulkData(productUpdateList, "apctest");
+    return res.status(200).json("Successfully updated products");
+    //return res.status(200).json(shopifyAPCPlants);
   } catch (error) {
     console.log(error);
     return res.status(404).json(error);
