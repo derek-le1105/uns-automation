@@ -8,7 +8,7 @@ const getBulkData = require("../helper/getBulkData");
 const importBulkData = require("../helper/importBulkData");
 const { getShopifyPlants } = require("../helper/shopifyGQLStrings");
 
-const apcFileName = "apc-ts";
+const wcaFileName = "wca-ts";
 
 require("dotenv").config();
 
@@ -59,8 +59,8 @@ router.post("/", async (req, res) => {
   /*  get all products from shopify backend
         - filter by vendor and retrieve all variants barcodes
         
-        retrieve wca and apc file from frontend via file objects
-        - for apc, we only need to read columns B, E, H, K, N for codes
+        retrieve wca and wca file from frontend via file objects
+        - for wca, we only need to read columns B, E, H, K, N for codes
             - if the code exists in the above listed columns, plant is available to order from
         - for wca, codes are given in column A but need to be prefixed with corresponding letter
             - L for loose in column D
@@ -74,20 +74,20 @@ router.post("/", async (req, res) => {
 
         - 
     */
-  let apc_stocklist_codes = req.body;
-  //console.log(apc_stocklist_codes);
+  let wca_stocklist_codes = req.body;
+  //console.log(wca_stocklist_codes);
   try {
-    let shopifyAPCPlants = await getBulkData(
-      getShopifyPlants("CPA-TS"),
+    let shopifyWCAPlants = await getBulkData(
+      getShopifyPlants("ACW-TS"),
       parseData,
-      apcFileName
+      wcaFileName
     );
 
     let productUpdateList = [],
       productUpdateVariantList = [],
       notOnShopifyList = [];
 
-    shopifyAPCPlants.forEach((product) => {
+    shopifyWCAPlants.forEach((product) => {
       let cont = false,
         deny = false;
       product.variants.forEach((variant) => {
@@ -97,16 +97,16 @@ router.post("/", async (req, res) => {
       //if (cont && deny) console.log(product);
     });
 
-    let barcodeExistsMap = compareShopifyAPC(
-      shopifyAPCPlants,
-      apc_stocklist_codes
+    let barcodeExistsMap = compareShopifyWCA(
+      shopifyWCAPlants,
+      wca_stocklist_codes
     );
     //tracks which product variants to make active
-    shopifyAPCPlants.forEach((product) => {
+    shopifyWCAPlants.forEach((product) => {
       let { id, title, status, variants } = product;
       if (variants.length <= 1) {
         let barcode = variants[0].barcode;
-        if (barcodeExistsMap[barcode]["existsInAPC"]) {
+        if (barcodeExistsMap[barcode]["existsInWCA"]) {
           if (status === "DRAFT")
             productUpdateList.push({ ...product, status: "ACTIVE" });
         } else {
@@ -117,9 +117,9 @@ router.post("/", async (req, res) => {
         let oversellList = [],
           inventoryPolicySet = new Set();
         variants.forEach((variant) => {
-          //if shopify barcode exists in apc list, make active if not already
+          //if shopify barcode exists in wca list, make active if not already
           let { variantId, barcode, inventoryPolicy } = variant;
-          if (barcodeExistsMap[barcode]["existsInAPC"]) {
+          if (barcodeExistsMap[barcode]["existsInWCA"]) {
             if (inventoryPolicy === "DENY") {
               oversellList.push({ ...variant, inventoryPolicy: "CONTINUE" });
             }
@@ -147,7 +147,9 @@ router.post("/", async (req, res) => {
       }
     });
 
-    await importBulkData(productUpdateList, "apctest");
+    //console.log(productUpdateVariantList);
+
+    await importBulkData(productUpdateList, "wcatest");
     return res.status(200).json("Successfully updated products");
   } catch (error) {
     console.log(error);
@@ -162,7 +164,7 @@ const findInArrayOfObjects = (barcode, arr) => {
   return false;
 };
 
-const compareShopifyAPC = (shopifyData, apcData) => {
+const compareShopifyWCA = (shopifyData, wcaData) => {
   try {
     const reformatShopifyData = (shopifyData) => {
       let barcodes = {};
@@ -175,7 +177,7 @@ const compareShopifyAPC = (shopifyData, apcData) => {
             barcodes[barcode] = {
               id: id,
               inventoryPolicy: inventoryPolicy,
-              existsInAPC: false,
+              existsInWCA: false,
             };
           }
         });
@@ -183,11 +185,11 @@ const compareShopifyAPC = (shopifyData, apcData) => {
       return barcodes;
     };
     let newShopifyData = reformatShopifyData(shopifyData);
-    let newAPCData = apcData.sort();
+    let newWCAData = wcaData.sort();
     let sortedShopifyKeys = Object.keys(newShopifyData).sort();
-    let intersection = sortedShopifyKeys.filter((x) => newAPCData.includes(x));
+    let intersection = sortedShopifyKeys.filter((x) => newWCAData.includes(x));
     intersection.forEach((barcode) => {
-      newShopifyData[barcode]["existsInAPC"] = true;
+      newShopifyData[barcode]["existsInWCA"] = true;
     });
     return newShopifyData;
   } catch (error) {

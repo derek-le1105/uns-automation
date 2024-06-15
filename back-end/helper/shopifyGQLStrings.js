@@ -36,4 +36,37 @@ const getShopifyPlants = (vendor) => {
   }`;
 };
 
-module.exports = getShopifyPlants;
+const requestBulkProductUpdate = (url) => {
+  return `
+      mutation {
+      bulkOperationRunMutation(
+        mutation: """mutation call($input: ProductInput!) { 
+            productUpdate(input: $input) { 
+                product {
+                    id 
+                    status
+                    title
+                } 
+                userErrors { 
+                    message 
+                    field 
+                } 
+            } 
+        }
+        """,
+      stagedUploadPath: "${url}") {
+        bulkOperation {
+          id
+          url
+          status
+        }
+        userErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+};
+
+module.exports = { getShopifyPlants, requestBulkProductUpdate };

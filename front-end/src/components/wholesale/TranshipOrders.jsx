@@ -6,7 +6,7 @@ import { useSnackbar } from "notistack";
 
 import FileUpload from "../FileUpload";
 
-import { readAPCFileUpload } from "../../helper/readAPCFileUpload";
+import { readFileUpload } from "../../helper/readTSFiles";
 
 const TransshipOrders = () => {
   const theme = useTheme();
@@ -21,13 +21,23 @@ const TransshipOrders = () => {
   const handleAPCFileUpload = async (file) => {
     try {
       setAPCUploaded(true);
-      await readAPCFileUpload(file).then((data) => {
+      await readFileUpload(file, "apc").then((data) => {
         apcRef.current = data;
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const handleWCAFileUpload = (file) => {
+  const handleWCAFileUpload = async (file) => {
+    try {
+      setWCAUploaded(true);
+      await readFileUpload(file, "wca").then((data) => {
+        wcaRef.current = data;
+      });
+    } catch (error) {
+      console.log(error);
+    }
     console.log(file);
     setWCAUploaded(true);
   };
@@ -49,6 +59,31 @@ const TransshipOrders = () => {
         })
         .then(async (res_data) => {
           console.log(res_data);
+          closeSnackbar(updateSnackbarID);
+          enqueueSnackbar(`${res_data}`, { variant: "success" });
+        });
+    } catch (error) {
+      enqueueSnackbar(`${error}`, { variant: "error" });
+    }
+    setLoading(false);
+  };
+  const handleWCAShopifyUpdate = async (e) => {
+    try {
+      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
+        variant: "info",
+        autoHideDuration: 6000,
+      });
+      setLoading(true);
+      await fetch("/wca", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(wcaRef.current),
+      })
+        .then((res) => {
+          return res.json();
+        })
+        .then(async (res_data) => {
+          //console.log(res_data);
           closeSnackbar(updateSnackbarID);
           enqueueSnackbar(`${res_data}`, { variant: "success" });
         });
@@ -82,7 +117,11 @@ const TransshipOrders = () => {
           componentString={"WCA File"}
         />
         <Grid item>
-          <Button variant="contained" disabled={!wcaUploaded}>
+          <Button
+            variant="contained"
+            disabled={!wcaUploaded || loading}
+            onClick={handleWCAShopifyUpdate}
+          >
             Update WCA
           </Button>
         </Grid>

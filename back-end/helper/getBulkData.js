@@ -1,7 +1,4 @@
 const axios = require("axios");
-const express = require("express");
-const router = express.Router();
-const readline = require("readline");
 const fs = require("fs");
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
