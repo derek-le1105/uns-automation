@@ -6,7 +6,7 @@ const { requestBulkProductUpdate } = require("../helper/shopifyGQLStrings");
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
-const importBulkData = async (jsonData, filePrefixName) => {
+const importBulkData = async (jsonData, filePrefixName, inputType) => {
   try {
     createJSONLFile(jsonData, filePrefixName);
     const parameters = await generateParameters();
@@ -20,7 +20,7 @@ const importBulkData = async (jsonData, filePrefixName) => {
         "Content-Type": "application/json",
       },
       data: {
-        query: requestBulkProductUpdate(url),
+        query: requestBulkProductUpdate(url, inputType),
       },
     });
   } catch (error) {
