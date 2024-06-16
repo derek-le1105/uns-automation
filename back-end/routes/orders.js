@@ -5,6 +5,7 @@ const router = express.Router();
 const readline = require("readline");
 const fs = require("fs");
 
+const { wholesalePlantsQuery } = require("../helper/shopifyGQLStrings");
 const getBulkData = require("../helper/getBulkData");
 
 require("dotenv").config();
@@ -70,64 +71,14 @@ const parseData = async () => {
   });
 };
 
-const ordersQuery = (fridays) => {
-  try {
-    let query = `mutation{
-      bulkOperationRunQuery(
-      query: """
-      {
-          orders(first: 75, query: "created_at:>'${fridays[1]}' created_at:<'${fridays[0]}' tag:'PlantOrder' -tag:'Edit Order'"){
-              edges{
-                node{
-                    id
-                    name
-                    customer{
-                      firstName
-                      lastName
-                    }
-                    shippingLine{
-                      title
-                    }
-                  lineItems(first: 150){
-                    edges{
-                      node{
-                        name
-                        quantity
-                        sku
-                        vendor
-                        variant{
-                          barcode
-                          title
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-      }
-      """)
-      {
-          bulkOperation {
-              id
-              status
-          }
-          userErrors{
-              field
-              message
-          }
-      }
-    }`;
-    return query;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 router.post("/", async (req, res) => {
   let fridays = req.body;
   try {
-    let parsedData = await getBulkData(ordersQuery(fridays), parseData, "data");
+    let parsedData = await getBulkData(
+      wholesalePlantsQuery(fridays),
+      parseData,
+      "data"
+    );
     return res.status(200).json(parsedData);
   } catch (error) {
     console.log(error);

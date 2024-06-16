@@ -1,3 +1,57 @@
+const wholesalePlantsQuery = (fridays) => {
+  try {
+    let query = `mutation{
+      bulkOperationRunQuery(
+      query: """
+      {
+          orders(first: 75, query: "created_at:>'${fridays[1]}' created_at:<'${fridays[0]}' tag:'PlantOrder' -tag:'Edit Order'"){
+              edges{
+                node{
+                    id
+                    name
+                    customer{
+                      firstName
+                      lastName
+                    }
+                    shippingLine{
+                      title
+                    }
+                  lineItems(first: 150){
+                    edges{
+                      node{
+                        name
+                        quantity
+                        sku
+                        vendor
+                        variant{
+                          barcode
+                          title
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+      }
+      """)
+      {
+          bulkOperation {
+              id
+              status
+          }
+          userErrors{
+              field
+              message
+          }
+      }
+    }`;
+    return query;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const getShopifyPlants = (vendor) => {
   return `mutation{
       bulkOperationRunQuery(
@@ -36,17 +90,12 @@ const getShopifyPlants = (vendor) => {
   }`;
 };
 
-const requestBulkProductUpdate = (url) => {
+const requestBulkProductUpdate = (url, inputType) => {
   return `
       mutation {
       bulkOperationRunMutation(
         mutation: """mutation call($input: ProductInput!) { 
-            productUpdate(input: $input) { 
-                product {
-                    id 
-                    status
-                    title
-                } 
+                ${inputType}
                 userErrors { 
                     message 
                     field 
@@ -69,4 +118,8 @@ const requestBulkProductUpdate = (url) => {
   `;
 };
 
-module.exports = { getShopifyPlants, requestBulkProductUpdate };
+module.exports = {
+  getShopifyPlants,
+  requestBulkProductUpdate,
+  wholesalePlantsQuery,
+};
