@@ -1,5 +1,7 @@
+var _ = require("lodash");
+
 const compare = (product, barcodeMap) => {
-  let newProduct = structuredClone(product);
+  let newProduct = _.cloneDeep(product);
   let productToUpdate = {};
   let variantToUpdate = [];
   let { variants } = newProduct;
