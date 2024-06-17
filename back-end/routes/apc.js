@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const fs = require("fs");
 
 const importBulkData = require("../helper/importBulkData");
 const prepareShopifyImport = require("../helper/prepareShopifyImport");
@@ -8,6 +9,8 @@ const {
   variantUpdateString,
 } = require("../helper/shopifyGQLStrings");
 
+const filterString = "vendor:CPA-TS OR vendor:CPA";
+
 require("dotenv").config();
 
 router.post("/", async (req, res) => {
@@ -15,8 +18,9 @@ router.post("/", async (req, res) => {
   console.log("apc codes: ", apc_stocklist_codes.length);
   try {
     let [productUpdateList, productUpdateVariantList] =
-      await prepareShopifyImport(apc_stocklist_codes, "CPA-TS");
+      await prepareShopifyImport(apc_stocklist_codes, filterString, "apc");
 
+    console.log(productUpdateList);
     await importBulkData(productUpdateList, "apctest", productUpdateString);
     await importBulkData(
       productUpdateVariantList,

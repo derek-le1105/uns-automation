@@ -43,7 +43,6 @@ const wcaParse = (workbook) => {
       if (barcode !== "CODE") {
         for (const [col, prefix] of Object.entries(prefixMap)) {
           if (col >= values.length) continue;
-          if (values[col] === null) continue;
           if (typeof values[col] === "string") {
             if (values[col].includes("Not Available")) continue;
           }

@@ -22,6 +22,7 @@ const parseData = async (filename) => {
               id: jsonData.id,
               status: jsonData.status,
               title: jsonData.title,
+              vendor: jsonData.vendor,
               variants: [],
             });
           } else {
@@ -49,7 +50,11 @@ const parseData = async (filename) => {
   });
 };
 
-const prepareShopifyImport = async (vendorPlantCodes, vendorString) => {
+const prepareShopifyImport = async (
+  vendorPlantCodes,
+  filterString,
+  vendorString
+) => {
   /**
    *
    * @param {*} shopifyData Data from Shopify GraphQL query
@@ -59,19 +64,22 @@ const prepareShopifyImport = async (vendorPlantCodes, vendorString) => {
   const consolidatePlantDatas = (shopifyData, apcData) => {
     try {
       const reformatShopifyData = (shopifyData) => {
+        //{ 'barcode': {}}
         let barcodes = {};
-        //console.log(shopifyData);
         shopifyData.forEach((product) => {
-          let { variants } = product;
+          let { variants, vendor, title } = product;
           variants.forEach((variant) => {
-            //console.log(variant);
             let { id, barcode, inventoryPolicy } = variant;
             if (barcodes[barcode] === undefined) {
               barcodes[barcode] = {
-                id: id,
-                inventoryPolicy: inventoryPolicy,
                 exists: false,
+                title: title,
+                vendors: {
+                  [vendor]: { id, inventoryPolicy },
+                },
               };
+            } else {
+              barcodes[barcode]["vendors"][vendor] = { id, inventoryPolicy };
             }
           });
         });
@@ -90,8 +98,22 @@ const prepareShopifyImport = async (vendorPlantCodes, vendorString) => {
     }
   };
 
+  const isValidBarcode = (product, barcodeMap) => {
+    let isValid = true;
+    let { variants } = product;
+    variants.forEach((variant) => {
+      if (!isValid) return;
+      let { barcode } = variant;
+      let vendors = Object.keys(barcodeMap[barcode].vendors);
+      if (vendors.length <= 1 && vendors[0].includes("-TS")) {
+        isValid = false;
+      }
+    });
+    return isValid;
+  };
+
   let shopifyVendorPlants = await getBulkData(
-    vendorFilterString(vendorString),
+    vendorFilterString(filterString),
     parseData,
     vendorString
   );
@@ -106,6 +128,7 @@ const prepareShopifyImport = async (vendorPlantCodes, vendorString) => {
   );
   //tracks which product variants to make active
   shopifyVendorPlants.forEach((product) => {
+    if (!isValidBarcode(product, barcodeExistsMap)) return;
     let [productToUpdate, variantToUpdate] = compare(product, barcodeExistsMap);
 
     if (productToUpdate.status !== product.status) {
@@ -119,7 +142,7 @@ const prepareShopifyImport = async (vendorPlantCodes, vendorString) => {
         variant.inventoryPolicy
       ) {
         let { barcode, ...rest } = variant;
-        productUpdateVariantList.push(rest);
+        productUpdateVariantList.push(variant);
       }
     });
   });

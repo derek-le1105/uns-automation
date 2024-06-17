@@ -70,12 +70,13 @@ const vendorFilterString = (vendor) => {
       bulkOperationRunQuery(
       query: """
       {
-          products(first: 2000, query: "vendor:${vendor}"){
+          products(first: 2000, query: "${vendor}"){
               edges{
                 node{
                   id
                   title
                   status
+                  vendor
                   variants(first: 10) {
                       edges{
                           node{
