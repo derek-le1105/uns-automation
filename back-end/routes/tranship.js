@@ -6,8 +6,8 @@ const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
 
-const apcFileName = "apc-ts";
-const wcaFileName = "wca-ts";
+const apcFileName = "CPA-TS";
+const wcaFileName = "ACW-TS";
 
 require("dotenv").config();
 
@@ -91,24 +91,6 @@ const parseData = async (filename) => {
   });
 };
 router.post("/", async (req, res) => {
-  /*  get all products from shopify backend
-        - filter by vendor and retrieve all variants barcodes
-        
-        retrieve wca and apc file from frontend via file objects
-        - for apc, we only need to read columns B, E, H, K, N for codes
-            - if the code exists in the above listed columns, plant is available to order from
-        - for wca, codes are given in column A but need to be prefixed with corresponding letter
-            - L for loose in column D
-            - E for bundle in column F
-            - P for pot in column H
-            - TR for terracotta ring in column J
-            - TB for terracotta ball in column L 
-            - D for driftwood in column N
-            - if column C reads 'Not Available' or each cell is empty, product is not available from WCA
-            - else, cell should read 'Available' and is good to order from
-
-        - 
-    */
   try {
     let parsedAPCData = await getBulkData(
       plantsQuery("CPA-TS"),

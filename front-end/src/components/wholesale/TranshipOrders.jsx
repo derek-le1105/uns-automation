@@ -83,7 +83,6 @@ const TransshipOrders = () => {
           return res.json();
         })
         .then(async (res_data) => {
-          //console.log(res_data);
           closeSnackbar(updateSnackbarID);
           enqueueSnackbar(`${res_data}`, { variant: "success" });
         });

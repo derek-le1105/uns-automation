@@ -10,7 +10,7 @@ export async function readFileUpload(file, type) {
         const buffer = reader.result;
         wb.xlsx.load(buffer).then((workbook) => {
           if (type === "apc") resolve(apcParse(workbook));
-          else wcaParse(workbook);
+          else resolve(wcaParse(workbook));
         });
       };
     } catch (error) {
@@ -44,7 +44,9 @@ const wcaParse = (workbook) => {
         for (const [col, prefix] of Object.entries(prefixMap)) {
           if (col >= values.length) continue;
           if (values[col] === null) continue;
-          if (values[col].includes("Not Available")) continue;
+          if (typeof values[col] === "string") {
+            if (values[col].includes("Not Available")) continue;
+          }
 
           //some barcodes already have a prefix added to them
           if (/[a-zA-Z]+/.test(values[1])) {
