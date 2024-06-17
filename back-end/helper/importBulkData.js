@@ -9,20 +9,20 @@ const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 const importBulkData = async (jsonData, filePrefixName, inputType) => {
   try {
     createJSONLFile(jsonData, filePrefixName);
-    const parameters = await generateParameters();
-    const url = await stagedShopifyRequest(parameters);
+    // const parameters = await generateParameters();
+    // const url = await stagedShopifyRequest(parameters);
 
-    const res = await axios({
-      url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
-      method: "post",
-      headers: {
-        "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
-        "Content-Type": "application/json",
-      },
-      data: {
-        query: requestBulkProductUpdate(url, inputType),
-      },
-    });
+    // const res = await axios({
+    //   url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
+    //   method: "post",
+    //   headers: {
+    //     "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+    //     "Content-Type": "application/json",
+    //   },
+    //   data: {
+    //     query: requestBulkProductUpdate(url, inputType),
+    //   },
+    // });
   } catch (error) {
     console.log(error);
   }
@@ -91,6 +91,7 @@ const stagedShopifyRequest = async (data) => {
       shopifyFormData.append(param.name, param.value);
     });
 
+    //change 'testingapc' whenever ready to upload files
     shopifyFormData.append(
       "file",
       fs.readFileSync(

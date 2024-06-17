@@ -1,4 +1,3 @@
-const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const readline = require("readline");
@@ -6,7 +5,12 @@ const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
 const importBulkData = require("../helper/importBulkData");
-const { getShopifyPlants } = require("../helper/shopifyGQLStrings");
+const {
+  getShopifyPlants,
+  productUpdateString,
+  variantUpdateString,
+} = require("../helper/shopifyGQLStrings");
+const { compare } = require("../helper/transhipHelper");
 
 const wcaFileName = "wca-ts";
 
@@ -75,7 +79,6 @@ router.post("/", async (req, res) => {
         - 
     */
   let wca_stocklist_codes = req.body;
-  //console.log(wca_stocklist_codes);
   try {
     let shopifyWCAPlants = await getBulkData(
       getShopifyPlants("ACW-TS"),
@@ -87,69 +90,37 @@ router.post("/", async (req, res) => {
       productUpdateVariantList = [],
       notOnShopifyList = [];
 
-    shopifyWCAPlants.forEach((product) => {
-      let cont = false,
-        deny = false;
-      product.variants.forEach((variant) => {
-        if (variant.inventoryPolicy === "CONTINUE") cont = true;
-        else deny = true;
-      });
-      //if (cont && deny) console.log(product);
-    });
-
     let barcodeExistsMap = compareShopifyWCA(
       shopifyWCAPlants,
       wca_stocklist_codes
     );
     //tracks which product variants to make active
     shopifyWCAPlants.forEach((product) => {
-      let { id, title, status, variants } = product;
-      if (variants.length <= 1) {
-        let barcode = variants[0].barcode;
-        if (barcodeExistsMap[barcode]["existsInWCA"]) {
-          if (status === "DRAFT")
-            productUpdateList.push({ ...product, status: "ACTIVE" });
-        } else {
-          if (status === "ACTIVE")
-            productUpdateList.push({ ...product, status: "DRAFT" });
-        }
-      } else {
-        let oversellList = [],
-          inventoryPolicySet = new Set();
-        variants.forEach((variant) => {
-          //if shopify barcode exists in wca list, make active if not already
-          let { variantId, barcode, inventoryPolicy } = variant;
-          if (barcodeExistsMap[barcode]["existsInWCA"]) {
-            if (inventoryPolicy === "DENY") {
-              oversellList.push({ ...variant, inventoryPolicy: "CONTINUE" });
-            }
-            inventoryPolicySet.add("CONTINUE");
-          } else {
-            if (inventoryPolicy === "CONTINUE") {
-              oversellList.push({ ...variant, inventoryPolicy: "DENY" });
-            }
-            inventoryPolicySet.add("DENY");
-          }
-        });
+      let [productToUpdate, variantToUpdate] = compare(
+        product,
+        barcodeExistsMap
+      );
 
-        if (inventoryPolicySet.size > 1) {
-          if (status !== "ACTIVE")
-            productUpdateList.push({ ...product, status: "ACTIVE" });
-        } else {
-          if (inventoryPolicySet.has("DENY")) {
-            if (status !== "DRAFT")
-              productUpdateList.push({ ...product, status: "DRAFT" });
-          }
-        }
-        oversellList.forEach((product) => {
-          if (product !== null) productUpdateVariantList.push(product);
-        });
+      if (productToUpdate.status !== product.status) {
+        let { variants, ...rest } = productToUpdate;
+        productUpdateList.push(rest);
       }
+
+      variantToUpdate.forEach((variant) => {
+        if (
+          barcodeExistsMap[variant.barcode]["inventoryPolicy"] !==
+          variant.inventoryPolicy
+        ) {
+          let { barcode, ...rest } = variant;
+          productUpdateVariantList.push(rest);
+        }
+      });
     });
 
     //console.log(productUpdateVariantList);
 
     await importBulkData(productUpdateList, "wcatest");
+    await importBulkData(productUpdateList, "wcavarianttest");
     return res.status(200).json("Successfully updated products");
   } catch (error) {
     console.log(error);

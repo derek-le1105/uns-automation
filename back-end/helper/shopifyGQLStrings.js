@@ -1,3 +1,16 @@
+const productUpdateString = `ProductUpdate(input: $input) { 
+  product {
+      id 
+      status
+      title
+  } `;
+
+const variantUpdateString = `ProductVariantUpdate(input: $input) { 
+  product {
+      id
+      inventoryPolicy
+  } `;
+
 const wholesalePlantsQuery = (fridays) => {
   try {
     let query = `mutation{
@@ -52,7 +65,7 @@ const wholesalePlantsQuery = (fridays) => {
   }
 };
 
-const getShopifyPlants = (vendor) => {
+const vendorFilterString = (vendor) => {
   return `mutation{
       bulkOperationRunQuery(
       query: """
@@ -119,7 +132,9 @@ const requestBulkProductUpdate = (url, inputType) => {
 };
 
 module.exports = {
-  getShopifyPlants,
+  vendorFilterString,
   requestBulkProductUpdate,
   wholesalePlantsQuery,
+  productUpdateString,
+  variantUpdateString,
 };

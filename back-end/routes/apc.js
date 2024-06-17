@@ -1,4 +1,3 @@
-const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const readline = require("readline");
@@ -6,25 +5,16 @@ const fs = require("fs");
 
 const getBulkData = require("../helper/getBulkData");
 const importBulkData = require("../helper/importBulkData");
-const { getShopifyPlants } = require("../helper/shopifyGQLStrings");
+const {
+  vendorFilterString,
+  productUpdateString,
+  variantUpdateString,
+} = require("../helper/shopifyGQLStrings");
 const { compare } = require("../helper/transhipHelper");
 
 const apcFileName = "apc-ts";
 
 require("dotenv").config();
-
-const productUpdateString = `ProductUpdate(input: $input) { 
-  product {
-      id 
-      status
-      title
-  } `;
-
-const variantUpdateString = `ProductVariantUpdate(input: $input) { 
-  product {
-      id
-      inventoryPolicy
-  } `;
 
 const parseData = async (filename) => {
   const dataContainer = [];
@@ -71,9 +61,10 @@ const parseData = async (filename) => {
 };
 router.post("/", async (req, res) => {
   let apc_stocklist_codes = req.body;
+  console.log(apc_stocklist_codes.length);
   try {
     let shopifyAPCPlants = await getBulkData(
-      getShopifyPlants("CPA-TS"),
+      vendorFilterString("CPA-TS"),
       parseData,
       apcFileName
     );
@@ -82,7 +73,7 @@ router.post("/", async (req, res) => {
       productUpdateVariantList = [],
       notOnShopifyList = [];
 
-    let barcodeExistsMap = compareShopifyAPC(
+    let barcodeExistsMap = consolidatePlantDatas(
       shopifyAPCPlants,
       apc_stocklist_codes
     );
@@ -109,12 +100,14 @@ router.post("/", async (req, res) => {
       });
     });
 
+    console.log(productUpdateList.length);
+
     await importBulkData(productUpdateList, "apctest", productUpdateString);
-    await importBulkData(
-      productUpdateVariantList,
-      "apcvarianttest",
-      variantUpdateString
-    );
+    // await importBulkData(
+    //   productUpdateVariantList,
+    //   "apcvarianttest",
+    //   variantUpdateString
+    // );
     return res.status(200).json("Successfully updated products");
   } catch (error) {
     console.log(error);
@@ -122,10 +115,17 @@ router.post("/", async (req, res) => {
   }
 });
 
-const compareShopifyAPC = (shopifyData, apcData) => {
+/**
+ *
+ * @param {*} shopifyData Data from Shopify GraphQL query
+ * @param {*} apcData Data from user file input
+ * @returns
+ */
+const consolidatePlantDatas = (shopifyData, apcData) => {
   try {
     const reformatShopifyData = (shopifyData) => {
       let barcodes = {};
+      //console.log(shopifyData);
       shopifyData.forEach((product) => {
         let { variants, ...rest } = product;
         variants.forEach((variant) => {
@@ -142,10 +142,10 @@ const compareShopifyAPC = (shopifyData, apcData) => {
       });
       return barcodes;
     };
+
     let newShopifyData = reformatShopifyData(shopifyData);
-    let newAPCData = apcData.sort();
     let sortedShopifyKeys = Object.keys(newShopifyData).sort();
-    let intersection = sortedShopifyKeys.filter((x) => newAPCData.includes(x));
+    let intersection = sortedShopifyKeys.filter((x) => apcData.includes(x));
     intersection.forEach((barcode) => {
       newShopifyData[barcode]["exists"] = true;
     });

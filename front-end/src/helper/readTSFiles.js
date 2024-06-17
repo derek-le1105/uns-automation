@@ -27,17 +27,20 @@ const wcaParse = (workbook) => {
     const worksheet = workbook.getWorksheet("Plant List");
     worksheet.eachRow((row) => {
       let values = JSON.parse(JSON.stringify(row.values));
-      if (typeof values[1] !== "string") values[1] = values[1].toString();
+      //first index is null, everything else matches xlsx file
 
-      if (typeof values[3] !== "string") {
-        if (values[1] !== "CODE") {
-          //barcodes need to be assigned a value that says if they are available or not
-          for (const [col, prefix] of Object.entries(prefixMap)) {
-            if (/[a-zA-Z]+/.test(values[1])) {
-              codes.push(values[1]);
-              break;
-            }
-            if (col >= values.length) continue;
+      //sets barcode to string as some read barcodes are numbers
+      let barcode =
+        typeof values[1] === "number" ? values[1].toString() : values[1];
+
+      if (barcode !== "CODE") {
+        for (const [col, prefix] of Object.entries(prefixMap)) {
+          if (col >= values.length) continue;
+
+          //some barcodes already have a prefix added to them
+          if (/[a-zA-Z]+/.test(values[1])) {
+            codes.push(values[1]);
+          } else {
             codes.push(prefix + values[1]);
           }
         }
@@ -54,13 +57,10 @@ const apcParse = (workbook) => {
     let codes = [];
     var isValidRow = false;
     const worksheet = workbook.getWorksheet("Stocklist");
+    let variantColumns = [2, 5, 8, 11, 14];
     worksheet.eachRow((row) => {
       if (isValidRow) {
-        if (row.values[2] !== undefined) codes.push(row.values[2]);
-        if (row.values[5] !== undefined) codes.push(row.values[5]);
-        if (row.values[8] !== undefined) codes.push(row.values[8]);
-        if (row.values[11] !== undefined) codes.push(row.values[11]);
-        if (row.values[14] !== undefined) codes.push(row.values[14]);
+        variantColumns.forEach((col) => codes.push(row.values[col]));
       }
       if (row.values[2] === "code" && !isValidRow) isValidRow = true;
     });
