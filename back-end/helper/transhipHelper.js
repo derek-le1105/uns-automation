@@ -9,19 +9,28 @@ const compare = (product, barcodeMap) => {
     let barcode = variants[0].barcode;
     //check after if status remains the same after checking between APC
     //if same, dont do anything
-    productToUpdate = barcodeMap[barcode]["exists"]
-      ? {
-          ...newProduct,
-          status: "ACTIVE",
-          variants: [
-            { ...newProduct.variants[0], inventoryPolicy: "CONTINUE" },
-          ],
-        }
-      : {
-          ...newProduct,
-          status: "DRAFT",
-          variants: [{ ...newProduct.variants[0], inventoryPolicy: "DENY" }],
-        };
+
+    if (barcodeMap[barcode]["exists"]) {
+      productToUpdate = {
+        ...newProduct,
+        status: "ACTIVE",
+        variants: [{ ...newProduct.variants[0], inventoryPolicy: "CONTINUE" }],
+      };
+      variantToUpdate.push({
+        ...newProduct.variants[0],
+        inventoryPolicy: "CONTINUE",
+      });
+    } else {
+      productToUpdate = {
+        ...newProduct,
+        status: "DRAFT",
+        variants: [{ ...newProduct.variants[0], inventoryPolicy: "DENY" }],
+      };
+      variantToUpdate.push({
+        ...newProduct.variants[0],
+        inventoryPolicy: "DENY",
+      });
+    }
   } else {
     let inventoryPolicySet = new Set();
     variants.forEach((variant) => {

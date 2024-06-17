@@ -58,7 +58,7 @@ describe("Single Variant Testing", () => {
           status: "ACTIVE",
           variants: [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
       ]);
     });
     test("DRAFT product and CONTINUE inventoryPolicy", () => {
@@ -70,7 +70,7 @@ describe("Single Variant Testing", () => {
           status: "ACTIVE",
           variants: [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
       ]);
     });
 
@@ -83,7 +83,7 @@ describe("Single Variant Testing", () => {
           status: "ACTIVE",
           variants: [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
       ]);
     });
     test("DRAFT product and DENY inventoryPolicy", () => {
@@ -95,7 +95,7 @@ describe("Single Variant Testing", () => {
           status: "ACTIVE",
           variants: [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "CONTINUE" }],
       ]);
     });
   });
@@ -110,7 +110,7 @@ describe("Single Variant Testing", () => {
           status: "DRAFT",
           variants: [{ ...product.variants[0], inventoryPolicy: "DENY" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "DENY" }],
       ]);
     });
 
@@ -123,7 +123,7 @@ describe("Single Variant Testing", () => {
           status: "DRAFT",
           variants: [{ ...product.variants[0], inventoryPolicy: "DENY" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "DENY" }],
       ]);
     });
 
@@ -136,7 +136,7 @@ describe("Single Variant Testing", () => {
           status: "DRAFT",
           variants: [{ ...product.variants[0], inventoryPolicy: "DENY" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "DENY" }],
       ]);
     });
 
@@ -149,7 +149,7 @@ describe("Single Variant Testing", () => {
           status: "DRAFT",
           variants: [{ ...product.variants[0], inventoryPolicy: "DENY" }],
         },
-        [],
+        [{ ...product.variants[0], inventoryPolicy: "DENY" }],
       ]);
     });
   });
