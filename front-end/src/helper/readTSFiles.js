@@ -20,14 +20,21 @@ export async function readFileUpload(file, type) {
   });
 }
 
+/**
+ * Parses through file input provided through APC input component and returns
+ * a list of barcodes that are available for stores to order from.
+ * WCA and APC provide different formats for their stocklist
+ * @param {*} workbook Workbook object provided by ExcelJS library
+ * @returns A list of barcodes where each barcode is a product variant that is in stock from APC
+ */
 const wcaParse = (workbook) => {
   try {
     let prefixMap = { 4: "L", 6: "B", 8: "P", 10: "TR", 12: "TB", 14: "D" };
     let codes = [];
     const worksheet = workbook.getWorksheet("Plant List");
     worksheet.eachRow((row) => {
-      let values = JSON.parse(JSON.stringify(row.values));
       //first index is null, everything else matches xlsx file
+      let values = JSON.parse(JSON.stringify(row.values));
 
       //sets barcode to string as some read barcodes are numbers
       let barcode =
@@ -36,6 +43,8 @@ const wcaParse = (workbook) => {
       if (barcode !== "CODE") {
         for (const [col, prefix] of Object.entries(prefixMap)) {
           if (col >= values.length) continue;
+          if (values[col] === null) continue;
+          if (values[col].includes("Not Available")) continue;
 
           //some barcodes already have a prefix added to them
           if (/[a-zA-Z]+/.test(values[1])) {
@@ -52,6 +61,12 @@ const wcaParse = (workbook) => {
   }
 };
 
+/**
+ * Parses through file input provided through APC input component and returns
+ * a list of barcodes that are available for stores to order from
+ * @param {*} workbook Workbook object provided by ExcelJS library
+ * @returns A list of barcodes where each barcode is a product variant that is in stock from APC
+ */
 const apcParse = (workbook) => {
   try {
     let codes = [];
@@ -60,7 +75,9 @@ const apcParse = (workbook) => {
     let variantColumns = [2, 5, 8, 11, 14];
     worksheet.eachRow((row) => {
       if (isValidRow) {
-        variantColumns.forEach((col) => codes.push(row.values[col]));
+        variantColumns.forEach((col) => {
+          if (row.values[col] !== undefined) codes.push(row.values[col]);
+        });
       }
       if (row.values[2] === "code" && !isValidRow) isValidRow = true;
     });
