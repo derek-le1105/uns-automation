@@ -14,7 +14,6 @@ require("dotenv").config();
 
 router.post("/", async (req, res) => {
   let wca_stocklist_codes = req.body;
-  console.log("wca codes: ", wca_stocklist_codes.length);
   try {
     let [productUpdateList, productUpdateVariantList] =
       await prepareShopifyImport(wca_stocklist_codes, filterString, "acw");

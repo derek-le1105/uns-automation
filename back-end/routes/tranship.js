@@ -49,7 +49,6 @@ const plantsQuery = (vendor) => {
 };
 
 const parseData = async (filename) => {
-  console.log(filename);
   const dataContainer = [];
   function processJSONLData() {
     return new Promise((resolve, reject) => {

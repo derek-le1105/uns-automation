@@ -42,7 +42,6 @@ const createJSONLFile = (jsonData, filePrefixName) => {
   jsonData.forEach((line) => {
     //variants cannot be added while bulk updating products
     let { variants, ...rest } = line;
-    //console.log(variants, rest);
     writer.write(`{"input": ${JSON.stringify(rest)}}\n`);
   });
   writer.end();
@@ -110,7 +109,6 @@ const stagedShopifyRequest = async (data, filePrefixName) => {
     const response = await axios.post(url, shopifyFormData, {
       headers: { ...shopifyFormData.getHeaders() },
     });
-    //console.log(response);
     return key;
   } catch (error) {
     console.log();

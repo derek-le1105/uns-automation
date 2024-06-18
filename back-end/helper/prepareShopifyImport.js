@@ -84,7 +84,6 @@ const isValidProduct = (product) => {
   if (status === "Archived") isValid = false;
 
   if (isTissueCulture(product)) isValid = false;
-  //console.log(title, isValid);
 
   return isValid;
 };

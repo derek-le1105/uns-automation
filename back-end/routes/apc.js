@@ -15,7 +15,6 @@ require("dotenv").config();
 
 router.post("/", async (req, res) => {
   let apc_stocklist_codes = req.body;
-  console.log("apc codes: ", apc_stocklist_codes.length);
   try {
     let [productUpdateList, productUpdateVariantList] =
       await prepareShopifyImport(apc_stocklist_codes, filterString, "apc");
