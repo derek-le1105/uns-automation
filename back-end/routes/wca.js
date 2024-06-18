@@ -8,6 +8,8 @@ const {
   variantUpdateString,
 } = require("../helper/shopifyGQLStrings");
 
+const filterString = "(vendor:ACW-TS OR vendor:ACW) AND -status:Archived)";
+
 require("dotenv").config();
 
 router.post("/", async (req, res) => {
@@ -15,13 +17,21 @@ router.post("/", async (req, res) => {
   console.log("wca codes: ", wca_stocklist_codes.length);
   try {
     let [productUpdateList, productUpdateVariantList] =
-      await prepareShopifyImport(wca_stocklist_codes, "ACW-TS");
-    await importBulkData(productUpdateList, "wcatest", productUpdateString);
-    await importBulkData(
-      productUpdateVariantList,
-      "wcavarianttest",
-      variantUpdateString
-    );
+      await prepareShopifyImport(wca_stocklist_codes, filterString, "acw");
+    if (productUpdateList.length) {
+      await importBulkData(
+        productUpdateList,
+        "wcatest",
+        productUpdateString
+      ).then((resolve) => console.log(resolve));
+    }
+    if (productUpdateVariantList.length) {
+      await importBulkData(
+        productUpdateVariantList,
+        "wcavarianttest",
+        variantUpdateString
+      );
+    }
     return res.status(200).json("Successfully updated products");
   } catch (error) {
     console.log(error);

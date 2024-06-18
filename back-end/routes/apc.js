@@ -9,7 +9,7 @@ const {
   variantUpdateString,
 } = require("../helper/shopifyGQLStrings");
 
-const filterString = "vendor:CPA-TS OR vendor:CPA";
+const filterString = "(vendor:CPA-TS OR vendor:CPA) AND -status:Archived)";
 
 require("dotenv").config();
 
@@ -20,13 +20,14 @@ router.post("/", async (req, res) => {
     let [productUpdateList, productUpdateVariantList] =
       await prepareShopifyImport(apc_stocklist_codes, filterString, "apc");
 
-    console.log(productUpdateList);
-    await importBulkData(productUpdateList, "apctest", productUpdateString);
-    await importBulkData(
-      productUpdateVariantList,
-      "apcvarianttest",
-      variantUpdateString
-    );
+    if (productUpdateList.length)
+      await importBulkData(productUpdateList, "apcimport", productUpdateString);
+    if (productUpdateVariantList.length)
+      await importBulkData(
+        productUpdateVariantList,
+        "apcvariantimport",
+        variantUpdateString
+      );
     return res.status(200).json("Successfully updated products");
   } catch (error) {
     console.log(error);

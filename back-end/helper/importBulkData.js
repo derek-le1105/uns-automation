@@ -8,21 +8,28 @@ const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
 const importBulkData = async (jsonData, filePrefixName, inputType) => {
   try {
-    createJSONLFile(jsonData, filePrefixName);
-    // const parameters = await generateParameters();
-    // const url = await stagedShopifyRequest(parameters);
+    return new Promise(async (resolve, reject) => {
+      createJSONLFile(jsonData, filePrefixName);
+      const parameters = await generateParameters();
+      const url = await stagedShopifyRequest(parameters, filePrefixName);
 
-    // const res = await axios({
-    //   url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
-    //   method: "post",
-    //   headers: {
-    //     "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
-    //     "Content-Type": "application/json",
-    //   },
-    //   data: {
-    //     query: requestBulkProductUpdate(url, inputType),
-    //   },
-    // });
+      const res = await axios({
+        url: "https://ultumnaturesystems.myshopify.com/admin/api/2024-04/graphql.json",
+        method: "post",
+        headers: {
+          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+          "Content-Type": "application/json",
+        },
+        data: {
+          query: requestBulkProductUpdate(url, inputType),
+        },
+      }).then(({ data }) => {
+        if (data.data.bulkOperationRunMutation.userErrors !== null) {
+          console.log("error: ", data.data.bulkOperationRunMutation.userErrors);
+        }
+      });
+      resolve("Successfully imported data");
+    });
   } catch (error) {
     console.log(error);
   }
@@ -38,6 +45,7 @@ const createJSONLFile = (jsonData, filePrefixName) => {
     //console.log(variants, rest);
     writer.write(`{"input": ${JSON.stringify(rest)}}\n`);
   });
+  writer.end();
 };
 
 const generateParameters = () => {
@@ -80,7 +88,7 @@ const generateParameters = () => {
   });
 };
 
-const stagedShopifyRequest = async (data) => {
+const stagedShopifyRequest = async (data, filePrefixName) => {
   try {
     let { url, resourceUrl, parameters } = data;
     let key = "";
@@ -95,9 +103,9 @@ const stagedShopifyRequest = async (data) => {
     shopifyFormData.append(
       "file",
       fs.readFileSync(
-        "C:/Users/derek/Documents/code project/uns-automation/back-end/testingapc.jsonl"
+        `C:/Users/derek/Documents/code project/uns-automation/back-end/${filePrefixName}.jsonl`
       ),
-      "C:/Users/derek/Documents/code project/uns-automation/back-end/testingapc.jsonl"
+      `C:/Users/derek/Documents/code project/uns-automation/back-end/${filePrefixName}.jsonl`
     );
     const response = await axios.post(url, shopifyFormData, {
       headers: { ...shopifyFormData.getHeaders() },
@@ -105,7 +113,7 @@ const stagedShopifyRequest = async (data) => {
     //console.log(response);
     return key;
   } catch (error) {
-    console.log(error);
+    console.log();
   }
 };
 

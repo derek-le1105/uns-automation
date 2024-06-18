@@ -1,15 +1,21 @@
-const productUpdateString = `ProductUpdate(input: $input) { 
+const productUpdateString = {
+  input: "ProductInput",
+  mutation: `productUpdate(input: $input) { 
   product {
       id 
       status
       title
-  } `;
+  } `,
+};
 
-const variantUpdateString = `ProductVariantUpdate(input: $input) { 
-  product {
+const variantUpdateString = {
+  input: "ProductVariantInput",
+  mutation: `productVariantUpdate(input: $input) { 
+  productVariant {
       id
       inventoryPolicy
-  } `;
+  } `,
+};
 
 const wholesalePlantsQuery = (fridays) => {
   try {
@@ -108,8 +114,8 @@ const requestBulkProductUpdate = (url, inputType) => {
   return `
       mutation {
       bulkOperationRunMutation(
-        mutation: """mutation call($input: ProductInput!) { 
-                ${inputType}
+        mutation: """mutation call($input: ${inputType.input}!) { 
+                ${inputType.mutation}
                 userErrors { 
                     message 
                     field 

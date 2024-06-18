@@ -7,6 +7,7 @@ const fs = require("fs");
 
 const parseData = async (filename) => {
   const dataContainer = [];
+  let currVendor = "";
   function processJSONLData() {
     return new Promise((resolve, reject) => {
       const jsonlFilePath = `${filename}.jsonl`; // The path to the downloaded JSONL file
@@ -25,11 +26,13 @@ const parseData = async (filename) => {
               vendor: jsonData.vendor,
               variants: [],
             });
+            currVendor = jsonData.vendor;
           } else {
             dataContainer[dataContainer.length - 1].variants.push({
               id: jsonData.id,
               barcode: jsonData.barcode,
               inventoryPolicy: jsonData.inventoryPolicy,
+              vendor: currVendor,
             });
           }
         } catch (error) {
@@ -48,6 +51,42 @@ const parseData = async (filename) => {
   return processJSONLData().then((data) => {
     return data;
   });
+};
+
+const isValidProduct = (product) => {
+  const isTissueCulture = (product) => {
+    let { title } = product;
+
+    if (typeof title === "string") {
+      if (
+        title.includes("Tissue Culture") ||
+        title.includes("Cup") ||
+        title.includes("TC")
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  let isValid = true;
+  let packs = [
+    "$500 Assorted Plant Pack",
+    "Assorted Stem Pack",
+    "Assorted Tissue Culture Pack",
+  ];
+  let { title, status } = product;
+  packs.forEach((pack) => {
+    if (!isValid) return;
+    if (title.includes(pack)) isValid = false;
+  });
+
+  if (status === "Archived") isValid = false;
+
+  if (isTissueCulture(product)) isValid = false;
+  //console.log(title, isValid);
+
+  return isValid;
 };
 
 const prepareShopifyImport = async (
@@ -100,12 +139,13 @@ const prepareShopifyImport = async (
 
   const isValidBarcode = (product, barcodeMap) => {
     let isValid = true;
-    let { variants } = product;
+    let { variants, title } = product;
+
     variants.forEach((variant) => {
       if (!isValid) return;
       let { barcode } = variant;
       let vendors = Object.keys(barcodeMap[barcode].vendors);
-      if (vendors.length <= 1 && vendors[0].includes("-TS")) {
+      if (vendors.length <= 1 && !vendors[0].includes("-TS")) {
         isValid = false;
       }
     });
@@ -128,27 +168,23 @@ const prepareShopifyImport = async (
   );
   //tracks which product variants to make active
   shopifyVendorPlants.forEach((product) => {
+    if (!isValidProduct(product)) return;
     if (!isValidBarcode(product, barcodeExistsMap)) return;
     let [productToUpdate, variantToUpdate] = compare(product, barcodeExistsMap);
 
     if (productToUpdate.status !== product.status) {
-      let { variants, ...rest } = productToUpdate;
+      let { variants, vendor, ...rest } = productToUpdate;
       productUpdateList.push(rest);
     }
-
     variantToUpdate.forEach((variant) => {
-      if (
-        barcodeExistsMap[variant.barcode]["inventoryPolicy"] !==
-        variant.inventoryPolicy
-      ) {
-        let { barcode, ...rest } = variant;
-        productUpdateVariantList.push(variant);
+      let { barcode, inventoryPolicy, vendor } = variant;
+      let { vendors } = barcodeExistsMap[barcode];
+      if (vendors[vendor].inventoryPolicy !== inventoryPolicy) {
+        let { barcode, vendor, ...rest } = variant;
+        productUpdateVariantList.push(rest);
       }
     });
   });
-
-  console.log("products to update: ", productUpdateList.length);
-  console.log("variants to update: ", productUpdateVariantList.length);
 
   return [productUpdateList, productUpdateVariantList];
 };

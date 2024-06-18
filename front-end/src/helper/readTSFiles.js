@@ -40,19 +40,23 @@ const wcaParse = (workbook) => {
       let barcode =
         typeof values[1] === "number" ? values[1].toString() : values[1];
 
+      if (typeof values[15] === "string") {
+        if (values[15].includes("Not Available")) return;
+      }
       if (barcode !== "CODE") {
+        if (/[a-zA-Z]+/.test(values[1])) {
+          if (typeof values[14] === "string") {
+            if (values[14].includes("Not Available")) return;
+          }
+          codes.push(values[1]);
+        }
         for (const [col, prefix] of Object.entries(prefixMap)) {
           if (col >= values.length) continue;
           if (typeof values[col] === "string") {
             if (values[col].includes("Not Available")) continue;
           }
 
-          //some barcodes already have a prefix added to them
-          if (/[a-zA-Z]+/.test(values[1])) {
-            codes.push(values[1]);
-          } else {
-            codes.push(prefix + values[1]);
-          }
+          codes.push(prefix + values[1]);
         }
       }
     });
