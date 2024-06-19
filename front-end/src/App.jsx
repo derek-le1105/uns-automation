@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import OrdersListing from "./components/wholesale/OrdersListing";
-import ShipStationPage from "./components/retail/ShipStationPage";
+import Tools from "./components/retail/Tools";
+import TranshipOrders from "./components/wholesale/TranshipOrders";
 import { useState, useEffect } from "react";
 
 import { SnackbarProvider } from "notistack";
@@ -61,8 +62,14 @@ function App() {
               }
             ></Route>
             <Route
-              path="/history"
-              element={session ? <Home /> : <Navigate to="/" />}
+              path="/tranship"
+              element={
+                session ? (
+                  <Home link={<TranshipOrders />} />
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             ></Route>
           </Routes>
         </BrowserRouter>

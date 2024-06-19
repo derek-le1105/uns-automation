@@ -4,6 +4,9 @@ const express = require("express");
 const bodyparser = require("body-parser");
 const app = express();
 const ordersRoute = require("./routes/orders");
+const apcRoute = require("./routes/apc");
+const wcaRoute = require("./routes/wca");
+const transhipRoute = require("./routes/tranship");
 
 var cors = require("cors");
 
@@ -17,7 +20,10 @@ app.use((req, res, next) => {
 });
 
 app.use("/orders", ordersRoute);
+app.use("/apc", apcRoute);
+app.use("/wca", wcaRoute);
+app.use("/tsOrders", transhipRoute);
 
 app.listen(process.env.PORT, () => {
-  console.log("listen on port " + process.env.PORT);
+  console.log("listen on paort " + process.env.PORT);
 });

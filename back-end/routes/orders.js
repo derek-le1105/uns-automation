@@ -1,13 +1,12 @@
-//import axios from "axios";
-const axios = require("axios");
 const express = require("express");
 const router = express.Router();
 const readline = require("readline");
 const fs = require("fs");
 
-require("dotenv").config();
+const { wholesalePlantsQuery } = require("../helper/shopifyGQLStrings");
+const getBulkData = require("../helper/getBulkData");
 
-const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
+require("dotenv").config();
 
 const parseData = async () => {
   const dataContainer = [];
@@ -55,6 +54,7 @@ const parseData = async () => {
         } catch (error) {
           //TODO: handle error when reading line stops abruptly
           console.error("Error parsing JSON:", error);
+          reject(error);
         }
       });
 
@@ -65,133 +65,36 @@ const parseData = async () => {
   }
 
   // Call the async function to start processing JSONL data
-  return processJSONLData().then((data) => {
-    return data;
-  });
+  return processJSONLData()
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      return error;
+    });
 };
 
 router.post("/", async (req, res) => {
+  console.log("here");
   let fridays = req.body;
   try {
-    await axios({
-      url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
-      method: "post",
-      headers: {
-        "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
-        "Content-Type": "application/json",
-      },
-      data: {
-        query: `
-        mutation{
-          bulkOperationRunQuery(
-          query: """
-          {
-              orders(first: 75, query: "created_at:>'${fridays[1]}' created_at:<'${fridays[0]}' tag:'PlantOrder' -tag:'Edit Order'"){
-                  edges{
-                    node{
-                        id
-                        name
-                        customer{
-                          firstName
-                          lastName
-                        }
-                        shippingLine{
-                          title
-                        }
-                      lineItems(first: 150){
-                        edges{
-                          node{
-                            name
-                            quantity
-                            sku
-                            vendor
-                            variant{
-                              barcode
-                              title
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-          }
-          """)
-          {
-              bulkOperation {
-                  id
-                  status
-              }
-              userErrors{
-                  field
-                  message
-              }
-          }
-      }`,
-      },
+    let parsedData = await getBulkData(
+      wholesalePlantsQuery(fridays),
+      parseData,
+      "data"
+    ).catch((error) => {
+      return res.status(404).json(error);
     });
-
-    do {
-      var response2 = await axios({
-        url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
-        method: "post",
-        headers: {
-          "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
-          "Content-Type": "application/json",
-        },
-        data: {
-          query: `query {
-                currentBulkOperation {
-                  id
-                  status
-                  errorCode
-                  createdAt
-                  completedAt
-                  objectCount
-                  fileSize
-                  url
-                  partialDataUrl
-                }
-              }`,
-        },
-      });
-      await wait(1000);
-    } while (response2.data.data.currentBulkOperation.status != "COMPLETED");
-
-    const url = response2.data.data.currentBulkOperation.url;
-    const writer = fs.createWriteStream("data.jsonl");
-    await axios
-      .get(url, { responseType: "stream" })
-      .then((response) => {
-        //https://stackoverflow.com/questions/55374755/node-js-axios-download-file-stream-and-writefile
-        return new Promise((resolve, reject) => {
-          response.data.pipe(writer);
-          let error = null;
-          writer.on("error", (err) => {
-            error = err;
-            writer.close();
-            reject(err);
-          });
-          writer.on("close", () => {
-            if (!error) {
-              resolve(true);
-            }
-            //no need to call the reject here, as it will have been called in the
-            //'error' stream;
-          });
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    var parsedShopifyData = await parseData();
-
-    return res.status(200).json(parsedShopifyData);
+    console.log("success");
+    return res.status(200).json(parsedData);
   } catch (error) {
-    console.log("error at 142: " + error.code);
-    return res.status(404).json([]);
+    console.log(error);
+    return res.status(404).json("Error");
   }
+});
+
+router.get("/", (req, res) => {
+  return res.status(200).json("Good!");
 });
 
 module.exports = router;

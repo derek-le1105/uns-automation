@@ -29,7 +29,7 @@ const Navbar = () => {
         return <StorefrontIcon />;
       case "Retail":
         return <WarehouseIcon />;
-      case "History":
+      case "Tranship":
         return <HistoryIcon />;
       default:
         return;
@@ -57,7 +57,7 @@ const Navbar = () => {
         <Toolbar />
         <Divider />
         <List>
-          {["Wholesale", "Retail"].map((text, index) => (
+          {["Wholesale", "Retail", "Tranship"].map((text, index) => (
             <NavLink
               to={`/${text.toLowerCase()}`}
               style={{ textDecoration: "none", color: "black" }}

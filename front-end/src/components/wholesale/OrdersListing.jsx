@@ -93,6 +93,12 @@ const OrdersListing = () => {
           setLoading(false);
           setOrders(json);
           sessionStorage.setItem("orders", JSON.stringify(json));
+        })
+        .catch((error) => {
+          enqueueSnackbar(error, {
+            variant: "error",
+          });
+          console.log(error);
         });
     } catch (error) {
       enqueueSnackbar(error, {
