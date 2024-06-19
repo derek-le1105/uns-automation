@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import OrdersListing from "./components/wholesale/OrdersListing";
-import Tools from "./components/retail/Tools";
+import ShipStationPage from "./components/retail/ShipStationPage";
 import TranshipOrders from "./components/wholesale/TranshipOrders";
 import { useState, useEffect } from "react";
 

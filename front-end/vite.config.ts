@@ -23,7 +23,7 @@ export default defineConfig({
     port: 5175,
     proxy: {
       "/orders": {
-        //target: "http://3.21.204.87:4000",
+        //target: "http://localhost:4000",
         target: "https://uns-back-end.fly.dev/",
         changeOrigin: true,
         secure: false,
@@ -45,25 +45,25 @@ export default defineConfig({
         },
       },
       "/order": {
-        target: "http://localhost:4000",
+        target: "https://uns-back-end.fly.dev/",
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       "/apc": {
-        target: "http://localhost:4000",
+        target: "https://uns-back-end.fly.dev/",
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       "/wca": {
-        target: "http://localhost:4000",
+        target: "https://uns-back-end.fly.dev/",
         changeOrigin: true,
         secure: false,
         ws: true,
       },
       "/tsOrders": {
-        target: "http://localhost:4000",
+        target: "https://uns-back-end.fly.dev/",
         changeOrigin: true,
         secure: false,
         ws: true,
