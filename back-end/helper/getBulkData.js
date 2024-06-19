@@ -6,7 +6,7 @@ const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 const getBulkData = async (queryString, parseCallback, filePrefixName) => {
   try {
     await axios({
-      url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
+      url: "https://ultumnaturesystems.myshopify.com/admin/api/2024-04/graphql.json",
       method: "post",
       headers: {
         "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
@@ -19,7 +19,7 @@ const getBulkData = async (queryString, parseCallback, filePrefixName) => {
 
     do {
       var response2 = await axios({
-        url: "https://ultumnaturesystems.myshopify.com/admin/api/2023-10/graphql.json",
+        url: "https://ultumnaturesystems.myshopify.com/admin/api/2024-04/graphql.json",
         method: "post",
         headers: {
           "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,

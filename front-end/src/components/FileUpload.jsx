@@ -40,7 +40,7 @@ const FileUpload = ({ fileHandler, componentString = "Upload File" }) => {
       }}
     >
       {filename}
-      <VisuallyHiddenInput type="file" accept=".xlsx" />
+      <VisuallyHiddenInput type="file" accept=".xlsx, .csv" />
     </Button>
   );
 };

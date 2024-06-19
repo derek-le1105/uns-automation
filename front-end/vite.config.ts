@@ -24,7 +24,7 @@ export default defineConfig({
     proxy: {
       "/orders": {
         //target: "http://3.21.204.87:4000",
-        target: "http://localhost:4000",
+        target: "https://uns-back-end.fly.dev/",
         changeOrigin: true,
         secure: false,
         ws: true,

@@ -54,6 +54,7 @@ const parseData = async () => {
         } catch (error) {
           //TODO: handle error when reading line stops abruptly
           console.error("Error parsing JSON:", error);
+          reject(error);
         }
       });
 
@@ -64,24 +65,36 @@ const parseData = async () => {
   }
 
   // Call the async function to start processing JSONL data
-  return processJSONLData().then((data) => {
-    return data;
-  });
+  return processJSONLData()
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      return error;
+    });
 };
 
 router.post("/", async (req, res) => {
+  console.log("here");
   let fridays = req.body;
   try {
     let parsedData = await getBulkData(
       wholesalePlantsQuery(fridays),
       parseData,
       "data"
-    );
+    ).catch((error) => {
+      return res.status(404).json(error);
+    });
+    console.log("success");
     return res.status(200).json(parsedData);
   } catch (error) {
     console.log(error);
-    return res.status(404).json([]);
+    return res.status(404).json("Error");
   }
+});
+
+router.get("/", (req, res) => {
+  return res.status(200).json("Good!");
 });
 
 module.exports = router;
