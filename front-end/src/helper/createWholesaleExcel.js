@@ -158,7 +158,7 @@ export async function createMainExcel(main_data, order_names, date) {
     new_data = [];
   if (data !== null)
     prev_data = [data.apc_wca, data.etc, data.bba, data.order_names];
-  main_data.map((category, idx) => {
+  main_data.forEach((category, idx) => {
     new_data.push(category.concat(prev_data[idx]));
   });
   new_data.push(prev_data[3].concat(order_names));
@@ -167,7 +167,7 @@ export async function createMainExcel(main_data, order_names, date) {
   const store_order_sheet = MAIN_WB.addWorksheet("Store Order");
 
   let stickers = sortAndCombine(new_data.slice(0, 3));
-  new_data[3].map((order, idx) => {
+  new_data[3].forEach((order, idx) => {
     let store_row = [
       idx + 1,
       order[0],

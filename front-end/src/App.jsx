@@ -54,7 +54,11 @@ function App() {
             <Route
               path="/retail"
               element={
-                session ? <Home link={<Tools />} /> : <Navigate to="/" />
+                session ? (
+                  <Home link={<ShipStationPage />} />
+                ) : (
+                  <Navigate to="/" />
+                )
               }
             ></Route>
             <Route

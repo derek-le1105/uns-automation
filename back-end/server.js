@@ -13,7 +13,7 @@ var cors = require("cors");
 app.use(cors());
 app.use(bodyparser.json({ limit: "10mb" }));
 app.use(bodyparser.urlencoded({ extended: true, limit: "10mb" }));
-const { createProxyMiddleware } = require("http-proxy-middleware");
+//const { createProxyMiddleware } = require("http-proxy-middleware");
 
 app.use((req, res, next) => {
   next();
