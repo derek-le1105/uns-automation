@@ -1,10 +1,17 @@
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import { List, ListItem } from "@mui/material";
+import {
+  List,
+  ListItem,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Typography,
+  Tooltip,
+  Stack,
+} from "@mui/material";
+import ErrorIcon from "@mui/icons-material/Error";
 
 import { isObjectIncluded } from "../../helper/dataFunctions";
 
@@ -21,28 +28,41 @@ const BatchModal = ({ openModal, onClose, batch, supabaseData }) => {
       onClose={handleClose}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
+      maxWidth={"sm"}
+      fullWidth
     >
       <DialogTitle id="alert-dialog-title">
-        {
-          "Generating excel files for the following orders and saving to database"
-        }
+        {"Generating excel files for the following orders"}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent dividers>
         <List>
-          {batch &&
-            batch.map((order, _) => {
-              return (
-                <ListItem key={order.order_name}>
-                  <DialogContentText>
-                    {`${order.order_name} ${
-                      isObjectIncluded(supabaseData[1], order)
-                        ? "This order already exists in a previous batch"
-                        : ""
-                    }`}
-                  </DialogContentText>
-                </ListItem>
-              );
-            })}
+          {batch.map((order, idx) => {
+            let isOrderExisting = isObjectIncluded(supabaseData[1], order);
+            return (
+              <ListItem key={order.order_name}>
+                <Stack alignItems="center" direction="row" gap={2}>
+                  <div style={{ display: "flex" }}>
+                    <Typography
+                      sx={{ alignItems: "center", justifyContent: "center" }}
+                      paragraph
+                      alignItems={"center"}
+                    >{`${supabaseData[0] + idx}: ${
+                      order.order_name
+                    } `}</Typography>
+                    {isOrderExisting && (
+                      <Tooltip
+                        title="This order exists already in a previous batch"
+                        placement="right"
+                        arrow
+                      >
+                        <ErrorIcon sx={{ color: "red", marginLeft: "20px" }} />
+                      </Tooltip>
+                    )}
+                  </div>
+                </Stack>
+              </ListItem>
+            );
+          })}
         </List>
         <DialogContentText id="alert-dialog-description">
           {`The fulfillment code for this batch will start with code: ${supabaseData[0]}`}
