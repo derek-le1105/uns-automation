@@ -1,4 +1,11 @@
-import { Box, Grid, Typography, Button, LinearProgress } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Typography,
+  Button,
+  LinearProgress,
+  Tooltip,
+} from "@mui/material";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -202,7 +209,7 @@ const OrdersListing = () => {
               </DemoContainer>
             </LocalizationProvider>
           </Grid>
-          <Grid item xs>
+          <Grid item xs="auto">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={["DatePicker", "DatePicker"]}>
                 <DatePicker
@@ -219,7 +226,7 @@ const OrdersListing = () => {
           </Grid>
           <Grid item xs={0.5}></Grid>
 
-          <Grid item xs={1}>
+          <Grid item xs>
             <Button
               disabled={!dateChanged}
               sx={{ height: "100%" }}
@@ -236,21 +243,27 @@ const OrdersListing = () => {
               <Typography fontSize={14}>Update</Typography>
             </Button>
           </Grid>
-          <Grid item xs={2}>
-            <Button
-              sx={{ height: "100%" }}
-              variant={"contained"}
-              size={"medium"}
-              onClick={() => {
-                if (batchList.length < 1) {
-                  enqueueSnackbar("Please select at least one order", {
-                    variant: "error",
-                  });
-                } else setOpenModal(true);
-              }}
+          <Grid item xs={1}>
+            <Tooltip
+              title="Please select at least one order"
+              disableHoverListener={batchList.length > 0}
             >
-              <Typography fontSize={14}>Create Excel</Typography>
-            </Button>
+              <Button
+                disabled={batchList.length <= 0}
+                sx={{ height: "100%" }}
+                variant={"contained"}
+                size={"medium"}
+                onClick={() => {
+                  if (batchList.length < 1) {
+                    enqueueSnackbar("Please select at least one order", {
+                      variant: "error",
+                    });
+                  } else setOpenModal(true);
+                }}
+              >
+                <Typography fontSize={14}>Create Excel</Typography>
+              </Button>
+            </Tooltip>
           </Grid>
         </Grid>
 
