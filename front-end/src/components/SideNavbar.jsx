@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
 import {
   Box,
   Drawer,
@@ -12,17 +11,20 @@ import {
   ListItemText,
   Button,
 } from "@mui/material/";
-import { styled, useTheme } from "@mui/material/styles";
+import { styled, useTheme, alpha } from "@mui/material/styles";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import HistoryIcon from "@mui/icons-material/History";
+import FlightLandIcon from "@mui/icons-material/FlightLand";
 import WarehouseIcon from "@mui/icons-material/Warehouse";
+
+import Logo from "./Logo";
 
 import { supabase } from "../supabaseClient";
 const drawerWidth = 180;
+const logo = "../../public/Ultum-Nature-Systems-Logo.png";
 
-const Navbar = () => {
+const SideNavbar = ({ location }) => {
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
+
   const getIcon = (text) => {
     switch (text) {
       case "Wholesale":
@@ -30,7 +32,7 @@ const Navbar = () => {
       case "Retail":
         return <WarehouseIcon />;
       case "Tranship":
-        return <HistoryIcon />;
+        return <FlightLandIcon />;
       default:
         return;
     }
@@ -38,6 +40,42 @@ const Navbar = () => {
 
   const handleSignout = async (e) => {
     await supabase.auth.signOut();
+  };
+
+  const NavItem = ({ path, text }) => {
+    const active = path === `/${text.toLowerCase()}`;
+    return (
+      <>
+        <ListItem key={text} disablePadding>
+          {
+            <ListItemButton
+              sx={{
+                ...(active && {
+                  color: "primary.main",
+                  fontWeight: "fontWeightSemiBold",
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                  "&:hover": {
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.16),
+                  },
+                }),
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  ...(active && {
+                    color: "primary.main",
+                  }),
+                }}
+              >
+                {getIcon(text)}
+              </ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItemButton>
+          }
+          <div></div>
+        </ListItem>
+      </>
+    );
   };
 
   return (
@@ -54,21 +92,16 @@ const Navbar = () => {
         variant="permanent"
         anchor="left"
       >
-        <Toolbar />
+        <Logo />
         <Divider />
         <List>
-          {["Wholesale", "Retail", "Tranship"].map((text, index) => (
+          {["Retail", "Wholesale", "Tranship"].map((text, index) => (
             <NavLink
               to={`/${text.toLowerCase()}`}
               style={{ textDecoration: "none", color: "black" }}
               key={text}
             >
-              <ListItem key={text} disablePadding>
-                <ListItemButton>
-                  <ListItemIcon>{getIcon(text)}</ListItemIcon>
-                  <ListItemText primary={text} />
-                </ListItemButton>
-              </ListItem>
+              <NavItem path={location} text={text} />
             </NavLink>
           ))}
         </List>
@@ -79,4 +112,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default SideNavbar;

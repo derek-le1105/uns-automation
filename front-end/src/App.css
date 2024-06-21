@@ -142,11 +142,17 @@ table caption button {
   margin-left: 10px;
 }
 
-.order, .customer{
+.order,
+.customer {
   outline: 1px black solid;
   padding: 10px;
 }
 
-.hidden{
+.hidden {
   display: none;
+}
+
+.uns-logo {
+  width: 100px;
+  height: 100px;
 }
