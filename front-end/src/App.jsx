@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import Home from "./pages/Home";
+import DefaultLayout from "./pages/DefaultLayout";
 import OrdersListing from "./components/wholesale/OrdersListing";
 import ShipStationPage from "./components/retail/ShipStationPage";
 import TranshipOrders from "./components/wholesale/TranshipOrders";
@@ -10,12 +10,14 @@ import { useState, useEffect } from "react";
 import { SnackbarProvider } from "notistack";
 
 import { supabase } from "./supabaseClient";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 
 // import { storage, auth } from "./firebase";
 // import { onAuthStateChanged } from "firebase/auth";
 //TODO: import firebase.js
 
 function App() {
+  const theme = useTheme();
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -39,13 +41,15 @@ function App() {
             />
             <Route
               path="/home"
-              element={session ? <Home /> : <Navigate to="/" />}
+              element={session ? <DefaultLayout /> : <Navigate to="/" />}
             ></Route>
             <Route
               path="/wholesale"
               element={
                 session ? (
-                  <Home link={<OrdersListing />} />
+                  <DefaultLayout>
+                    <OrdersListing />
+                  </DefaultLayout>
                 ) : (
                   <Navigate to="/" />
                 )
@@ -55,7 +59,9 @@ function App() {
               path="/retail"
               element={
                 session ? (
-                  <Home link={<ShipStationPage />} />
+                  <DefaultLayout>
+                    <ShipStationPage />
+                  </DefaultLayout>
                 ) : (
                   <Navigate to="/" />
                 )
@@ -65,7 +71,9 @@ function App() {
               path="/tranship"
               element={
                 session ? (
-                  <Home link={<TranshipOrders />} />
+                  <DefaultLayout>
+                    <TranshipOrders />
+                  </DefaultLayout>
                 ) : (
                   <Navigate to="/" />
                 )

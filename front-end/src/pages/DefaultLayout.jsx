@@ -2,18 +2,19 @@ import SideNavbar from "../components/SideNavbar";
 
 import { useTheme } from "@mui/material/styles";
 import { Box } from "@mui/material";
+import { useLocation } from "react-router-dom";
 
-const Home = (props) => {
+const DefaultLayout = ({ children }) => {
+  const path = useLocation().pathname;
   const theme = useTheme();
-  const { link } = props;
   return (
     <div className="">
       <Box sx={{ display: "flex", background: `${theme.palette.grey[100]}` }}>
-        <SideNavbar />
-        {link}
+        <SideNavbar location={path} />
+        {children}
       </Box>
     </div>
   );
 };
 
-export default Home;
+export default DefaultLayout;
