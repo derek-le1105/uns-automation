@@ -3,7 +3,7 @@ const fs = require("fs");
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
-const getBulkData = async (queryString, parseCallback, filePrefixName) => {
+const downloadBulkData = async (queryString, filePrefixName) => {
   try {
     await axios({
       url: "https://ultumnaturesystems.myshopify.com/admin/api/2024-04/graphql.json",
@@ -69,7 +69,7 @@ const getBulkData = async (queryString, parseCallback, filePrefixName) => {
     console.log("a", error);
   }
 
-  return await parseCallback(filePrefixName);
+  return;
 };
 
-module.exports = getBulkData;
+module.exports = downloadBulkData;

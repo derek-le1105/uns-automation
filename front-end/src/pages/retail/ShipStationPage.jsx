@@ -3,10 +3,10 @@ import { styled } from "@mui/material/styles";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 
 import { useState, useEffect } from "react";
-import ShipStationModal from "./PlantPackModal";
-import BulkEditDialog from "./BulkEditDialog";
+import ShipStationModal from "../../components/retail/PlantPackModal";
+import BulkEditDialog from "../../components/retail/BulkEditDialog";
 import { supabase } from "../../supabaseClient";
-import { SupabaseContext } from "../Contexts";
+import { SupabaseContext } from "../../components/Contexts";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",

@@ -1,10 +1,10 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
-import DefaultLayout from "./pages/DefaultLayout";
-import OrdersListing from "./components/wholesale/OrdersListing";
-import ShipStationPage from "./components/retail/ShipStationPage";
-import TranshipOrders from "./components/wholesale/TranshipOrders";
+import DefaultLayout from "./components/DefaultLayout";
+import WholesaleOrders from "./pages/wholesale/OrdersListing";
+import ShipStationPage from "./pages/retail/ShipStationPage";
+import TranshipOrders from "./pages/tranship/TranshipOrders";
 import { useState, useEffect } from "react";
 
 import { SnackbarProvider } from "notistack";
@@ -48,7 +48,7 @@ function App() {
               element={
                 session ? (
                   <DefaultLayout>
-                    <OrdersListing />
+                    <WholesaleOrders />
                   </DefaultLayout>
                 ) : (
                   <Navigate to="/" />

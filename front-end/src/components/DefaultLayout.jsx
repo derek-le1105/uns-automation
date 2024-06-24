@@ -1,4 +1,4 @@
-import SideNavbar from "../components/SideNavbar";
+import SideNavbar from "./SideNavbar";
 
 import { useTheme } from "@mui/material/styles";
 import { Box } from "@mui/material";

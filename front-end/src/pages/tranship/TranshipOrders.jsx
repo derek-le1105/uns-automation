@@ -1,15 +1,14 @@
 import { Grid, Button } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 
 import { useState, useRef } from "react";
 import { useSnackbar } from "notistack";
 
-import FileUpload from "../FileUpload";
+import FileUpload from "../../components/FileUpload";
+import UpdatedProductsModal from "../../components/tranship/UpdatedProductsModal";
 
 import { readFileUpload } from "../../helper/readTSFiles";
 
 const TransshipOrders = () => {
-  const theme = useTheme();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [apcUploaded, setAPCUploaded] = useState(false);
   const [wcaUploaded, setWCAUploaded] = useState(false);
@@ -25,7 +24,7 @@ const TransshipOrders = () => {
         apcRef.current = data;
       });
     } catch (error) {
-      console.log(error);
+      console.log(error.lineNumber);
     }
   };
 
@@ -36,7 +35,7 @@ const TransshipOrders = () => {
         wcaRef.current = data;
       });
     } catch (error) {
-      console.log(error);
+      console.log(error.lineNumber);
     }
     console.log(file);
     setWCAUploaded(true);
@@ -49,19 +48,13 @@ const TransshipOrders = () => {
         autoHideDuration: 6000,
       });
       setLoading(true);
-      await fetch("/apc", {
+      const updatedProducts = await fetch("/apc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(apcRef.current),
-      })
-        .then((res) => {
-          return res.json();
-        })
-        .then(async (res_data) => {
-          console.log(res_data);
-          closeSnackbar(updateSnackbarID);
-          enqueueSnackbar(`${res_data}`, { variant: "success" });
-        });
+      });
+      closeSnackbar(updateSnackbarID);
+      enqueueSnackbar("Successfully updated products", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }

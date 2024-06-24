@@ -17,11 +17,12 @@ import CheckIcon from "@mui/icons-material/Check";
 
 import { useTheme } from "@mui/material/styles";
 
+import { useSnackbar } from "notistack";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
-import BatchModal from "./BatchModal";
-import CustomNoRowsOverlay from "./CustomNoRowsOverlay";
-import { useSnackbar } from "notistack";
+
+import BatchModal from "../../components/wholesale/BatchModal";
+import CustomNoRowsOverlay from "../../components/wholesale/CustomNoRowsOverlay";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
 import { objectLength, isObjectIncluded } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
@@ -30,7 +31,7 @@ import { supabase } from "../../supabaseClient";
 
 import dayjs from "dayjs";
 
-const OrdersListing = () => {
+const WholesaleOrders = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
   const wholesaleDates = getWholesaleDates();
@@ -39,7 +40,6 @@ const OrdersListing = () => {
   const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[0]));
   const [afterDate, setAfterDate] = useState(dayjs(new Date()));
   const [shipoutDate, setShipoutDate] = useState(dayjs(wholesaleDates[1]));
-  const [dateChanged, setDateChanged] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [batchList, setBatchList] = useState([]);
   const [supabaseData, setSupabaseData] = useState([]);
@@ -57,7 +57,7 @@ const OrdersListing = () => {
 
   useEffect(() => {
     fetchData().catch((error) => {
-      console.log(error);
+      console.log(error.lineNumber);
     });
 
     if (JSON.parse(sessionStorage.getItem("orders")) !== null)
@@ -79,35 +79,31 @@ const OrdersListing = () => {
     try {
       getWholesaleDates(afterDate, beforeDate);
 
-      await fetch("/v2/orders", {
+      const response = await fetch("/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify([afterDate, beforeDate]),
-      })
-        .then((res) => {
-          return res.json();
-        })
-        .then(async (res_data) => {
-          console.log(res_data);
-          let json = res_data;
-          setLoading(false);
-          setOrders(json);
-          //if (json.length === 0) json = null;
-          sessionStorage.setItem("orders", JSON.stringify(json));
-        })
-        .catch((error) => {
-          enqueueSnackbar(error, {
-            variant: "error",
-          });
-          console.log(error);
+      }).catch((error) => {
+        enqueueSnackbar(error, {
+          variant: "error",
         });
+        console.log(error.lineNumber);
+      });
+
+      const orders = await response.json();
+      setLoading(false);
+      setOrders(orders);
+      sessionStorage.setItem(
+        "orders",
+        JSON.stringify(orders.length === 0 ? null : orders)
+      );
     } catch (error) {
       enqueueSnackbar(error, {
         variant: "error",
       });
-      console.log(error);
+      console.log(error.lineNumber);
     }
   };
 
@@ -150,7 +146,7 @@ const OrdersListing = () => {
       });
       fetchData();
     } catch (error) {
-      console.log(error);
+      console.log(error.lineNumber);
     }
   };
 
@@ -183,7 +179,6 @@ const OrdersListing = () => {
                   onChange={(newValue) => {
                     sessionStorage.setItem("before_date", newValue);
                     setBeforeDate(newValue);
-                    setDateChanged(true);
                   }}
                 />
               </DemoContainer>
@@ -199,7 +194,6 @@ const OrdersListing = () => {
                   onChange={(newValue) => {
                     sessionStorage.setItem("after_date", newValue);
                     setAfterDate(newValue);
-                    setDateChanged(true);
                   }}
                 />
               </DemoContainer>
@@ -214,7 +208,6 @@ const OrdersListing = () => {
                   onChange={(newValue) => {
                     sessionStorage.setItem("shipout_date", newValue);
                     setShipoutDate(newValue);
-                    setDateChanged(true);
                   }}
                 />
               </DemoContainer>
@@ -340,4 +333,4 @@ const OrdersListing = () => {
   );
 };
 
-export default OrdersListing;
+export default WholesaleOrders;
