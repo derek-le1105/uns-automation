@@ -44,6 +44,8 @@ const SideNavbar = ({ location }) => {
 
   const NavItem = ({ path, text }) => {
     const active = path === `/${text.toLowerCase()}`;
+    if (active)
+      sessionStorage.setItem("current_path", `/${text.toLowerCase()}`);
     return (
       <>
         <ListItem key={text} disablePadding>

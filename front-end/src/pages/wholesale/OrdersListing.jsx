@@ -1,26 +1,17 @@
-import {
-  Box,
-  Grid,
-  Typography,
-  Button,
-  LinearProgress,
-  Tooltip,
-} from "@mui/material";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Box, LinearProgress } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
 
 import { useTheme } from "@mui/material/styles";
 
+import dayjs from "dayjs";
 import { useSnackbar } from "notistack";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 
+import BatchEdits from "../../components/wholesale/BatchEdits";
+import WholesaleHeader from "../../components/wholesale/WholesaleHeader";
 import BatchModal from "../../components/wholesale/BatchModal";
 import CustomNoRowsOverlay from "../../components/wholesale/CustomNoRowsOverlay";
 import { getWholesaleDates } from "../../helper/getWholesaleDates";
@@ -28,8 +19,6 @@ import { objectLength, isObjectIncluded } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
 import { supabase } from "../../supabaseClient";
-
-import dayjs from "dayjs";
 
 const WholesaleOrders = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -41,6 +30,7 @@ const WholesaleOrders = () => {
   const [afterDate, setAfterDate] = useState(dayjs(new Date()));
   const [shipoutDate, setShipoutDate] = useState(dayjs(wholesaleDates[1]));
   const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
   const [batchList, setBatchList] = useState([]);
   const [supabaseData, setSupabaseData] = useState([]);
 
@@ -151,8 +141,47 @@ const WholesaleOrders = () => {
   };
 
   const handleDialogClose = (valid_confirmation) => {
+    setOpenEditModal(false);
     setOpenModal(false);
     if (valid_confirmation) generateExcel();
+  };
+
+  const handleDateChange = (new_date, type) => {
+    switch (type) {
+      case "before":
+        setBeforeDate(new_date);
+        sessionStorage.setItem("before_date", new_date);
+        break;
+      case "after":
+        setAfterDate(new_date);
+        sessionStorage.setItem("after_date", new_date);
+        break;
+      case "shipout":
+        setShipoutDate(new_date);
+        sessionStorage.setItem("shipout_date", new_date);
+        break;
+      default:
+    }
+  };
+
+  const handleRefreshClick = () => {
+    if (beforeDate - afterDate > 0) {
+      enqueueSnackbar("Please pick a valid date range", {
+        variant: "error",
+      });
+    } else getShopify();
+  };
+
+  const handleCreateClick = () => {
+    if (batchList.length < 1) {
+      enqueueSnackbar("Please select at least one order", {
+        variant: "error",
+      });
+    } else setOpenModal(true);
+  };
+
+  const handleBatchEditClick = () => {
+    setOpenEditModal(true);
   };
 
   return (
@@ -165,96 +194,16 @@ const WholesaleOrders = () => {
           background: `${theme.palette.grey[100]}`,
         }}
       >
-        <Grid container sx={{ padding: "25px 50px" }}>
-          <Grid item xs="auto">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
-                <DateTimePicker
-                  label="Start"
-                  defaultValue={
-                    sessionStorage.getItem("before_date")
-                      ? dayjs(sessionStorage.getItem("before_date"))
-                      : dayjs(wholesaleDates[0])
-                  }
-                  onChange={(newValue) => {
-                    sessionStorage.setItem("before_date", newValue);
-                    setBeforeDate(newValue);
-                  }}
-                />
-              </DemoContainer>
-            </LocalizationProvider>
-          </Grid>
-
-          <Grid item xs="auto">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={["DateTimePicker", "DateTimePicker"]}>
-                <DateTimePicker
-                  label="End"
-                  value={afterDate}
-                  onChange={(newValue) => {
-                    sessionStorage.setItem("after_date", newValue);
-                    setAfterDate(newValue);
-                  }}
-                />
-              </DemoContainer>
-            </LocalizationProvider>
-          </Grid>
-          <Grid item xs="auto">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DemoContainer components={["DatePicker", "DatePicker"]}>
-                <DatePicker
-                  label="Shipout Date"
-                  value={shipoutDate}
-                  onChange={(newValue) => {
-                    sessionStorage.setItem("shipout_date", newValue);
-                    setShipoutDate(newValue);
-                  }}
-                />
-              </DemoContainer>
-            </LocalizationProvider>
-          </Grid>
-          <Grid item xs={0.5}></Grid>
-
-          <Grid item xs>
-            <Button
-              sx={{ height: "100%" }}
-              variant={"contained"}
-              size={"medium"}
-              onClick={() => {
-                if (beforeDate - afterDate > 0) {
-                  enqueueSnackbar("Please pick a valid date range", {
-                    variant: "error",
-                  });
-                } else getShopify();
-              }}
-            >
-              <Typography fontSize={14}>Refresh</Typography>
-            </Button>
-          </Grid>
-          <Grid item xs={1}>
-            <Tooltip
-              title="Please select at least one order"
-              disableHoverListener={batchList.length > 0}
-            >
-              <Button
-                disabled={batchList.length <= 0}
-                sx={{ height: "100%" }}
-                variant={"contained"}
-                size={"medium"}
-                onClick={() => {
-                  if (batchList.length < 1) {
-                    enqueueSnackbar("Please select at least one order", {
-                      variant: "error",
-                    });
-                  } else setOpenModal(true);
-                }}
-              >
-                <Typography fontSize={14}>Create Excel</Typography>
-              </Button>
-            </Tooltip>
-          </Grid>
-        </Grid>
-
+        <WholesaleHeader
+          beforeDate={beforeDate}
+          afterDate={afterDate}
+          shipoutDate={shipoutDate}
+          onDateChange={handleDateChange}
+          onRefreshClick={handleRefreshClick}
+          onCreateClick={handleCreateClick}
+          validSelection={batchList.length}
+          onEditClick={handleBatchEditClick}
+        ></WholesaleHeader>
         <Box
           sx={{
             padding: "0px 50px 50px 50px",
@@ -325,6 +274,12 @@ const WholesaleOrders = () => {
             openModal={openModal}
             onClose={handleDialogClose}
             batch={orders.filter((_, idx) => batchList.includes(idx))}
+            supabaseData={supabaseData}
+          />
+          <BatchEdits
+            openEditModal={openEditModal}
+            onClose={handleDialogClose}
+            shipoutDate={format(shipoutDate.$d, "MM/dd/yyyy")}
             supabaseData={supabaseData}
           />
         </Box>
