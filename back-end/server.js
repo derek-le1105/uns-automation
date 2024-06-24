@@ -7,6 +7,7 @@ const ordersRoute = require("./routes/orders");
 const apcRoute = require("./routes/apc");
 const wcaRoute = require("./routes/wca");
 const transhipRoute = require("./routes/tranship");
+const newordersRoute = require("./routes/orderstest");
 
 var cors = require("cors");
 
@@ -23,6 +24,7 @@ app.use("/orders", ordersRoute);
 app.use("/apc", apcRoute);
 app.use("/wca", wcaRoute);
 app.use("/tsOrders", transhipRoute);
+app.use("/v2/orders", newordersRoute);
 
 app.listen(process.env.PORT, () => {
   console.log("listen on paort " + process.env.PORT);

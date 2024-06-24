@@ -14,7 +14,12 @@ const Logo = () => {
             padding: "20px",
           }}
         >
-          <img className={"uns-logo"} src={logoPath} />
+          <img
+            className={"uns-logo"}
+            alt="UNS Logo"
+            src={logoPath}
+            draggable={false}
+          />
         </Box>
       </NavLink>
     </>

@@ -44,8 +44,8 @@ export default defineConfig({
           });
         },
       },
-      "/order": {
-        target: "https://uns-back-end.fly.dev/",
+      "/v2/orders": {
+        target: "http://localhost:4000/",
         changeOrigin: true,
         secure: false,
         ws: true,

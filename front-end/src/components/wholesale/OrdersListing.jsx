@@ -65,27 +65,21 @@ const OrdersListing = () => {
     else getShopify();
   }, []);
 
-  useEffect(() => {
-    fetchData().catch((error) => {
-      console.log(error);
-    });
-  }, [shipoutDate]);
-
   const getShopify = async () => {
+    enqueueSnackbar(
+      `Pulling Shopify orders between dates ${format(
+        beforeDate.$d,
+        "MM/dd/yyyy"
+      )} - ${format(afterDate.$d, "MM/dd/yyy")}`,
+      {
+        variant: "success",
+      }
+    );
     setLoading(true);
     try {
       getWholesaleDates(afterDate, beforeDate);
-      enqueueSnackbar(
-        `Pulling Shopify orders between dates ${format(
-          beforeDate.$d,
-          "MM/dd/yyyy"
-        )} - ${format(afterDate.$d, "MM/dd/yyy")}`,
-        {
-          variant: "success",
-        }
-      );
 
-      await fetch("/orders", {
+      await fetch("/v2/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,9 +90,11 @@ const OrdersListing = () => {
           return res.json();
         })
         .then(async (res_data) => {
+          console.log(res_data);
           let json = res_data;
           setLoading(false);
           setOrders(json);
+          //if (json.length === 0) json = null;
           sessionStorage.setItem("orders", JSON.stringify(json));
         })
         .catch((error) => {
@@ -228,7 +224,6 @@ const OrdersListing = () => {
 
           <Grid item xs>
             <Button
-              disabled={!dateChanged}
               sx={{ height: "100%" }}
               variant={"contained"}
               size={"medium"}
@@ -240,7 +235,7 @@ const OrdersListing = () => {
                 } else getShopify();
               }}
             >
-              <Typography fontSize={14}>Update</Typography>
+              <Typography fontSize={14}>Refresh</Typography>
             </Button>
           </Grid>
           <Grid item xs={1}>
@@ -286,7 +281,7 @@ const OrdersListing = () => {
               return {
                 id: idx,
                 order_name: order.order_name,
-                customer: order.customer.first_name,
+                customer: order.customer.firstName,
                 shipping: order.shipping,
               };
             })}

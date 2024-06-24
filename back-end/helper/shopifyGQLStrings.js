@@ -138,10 +138,31 @@ const requestBulkProductUpdate = (url, inputType) => {
   `;
 };
 
+const wholesaleOrdersQuery = (dates) => {
+  return `query {
+  orders(first: 75, query: "created_at:>'${dates[1]}' created_at:<'${dates[0]}' tag:'PlantOrder' -tag:'Edit Order'"){
+            edges{
+              node{
+                  id
+                  name  
+                  customer{
+                    firstName
+                    lastName
+                  }shippingLine{
+                      title
+                    }
+                  cancelledAt
+              }
+            }
+          }
+}`;
+};
+
 module.exports = {
   vendorFilterString,
   requestBulkProductUpdate,
   wholesalePlantsQuery,
   productUpdateString,
   variantUpdateString,
+  wholesaleOrdersQuery,
 };
