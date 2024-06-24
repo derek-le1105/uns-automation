@@ -1,4 +1,4 @@
-const getBulkData = require("../helper/getBulkData");
+const downloadBulkData = require("../helper/downloadBulkData");
 const { vendorFilterString } = require("../helper/shopifyGQLStrings");
 const { compare } = require("../helper/transhipHelper");
 
@@ -132,7 +132,7 @@ const prepareShopifyImport = async (
       });
       return newShopifyData;
     } catch (error) {
-      console.log(error);
+      console.log(error.lineNumber);
     }
   };
 
@@ -151,11 +151,9 @@ const prepareShopifyImport = async (
     return isValid;
   };
 
-  let shopifyVendorPlants = await getBulkData(
-    vendorFilterString(filterString),
-    parseData,
-    vendorString
-  );
+  await downloadBulkData(vendorFilterString(filterString), vendorString);
+
+  let shopifyVendorPlants = await parseData(vendorString);
 
   let productUpdateList = [],
     productUpdateVariantList = [],

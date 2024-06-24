@@ -19,17 +19,22 @@ router.post("/", async (req, res) => {
     let [productUpdateList, productUpdateVariantList] =
       await prepareShopifyImport(apc_stocklist_codes, filterString, "apc");
 
-    if (productUpdateList.length)
-      await importBulkData(productUpdateList, "apcimport", productUpdateString);
+    if (productUpdateList.length) {
+      let polling = await importBulkData(
+        productUpdateList,
+        "apcimport",
+        productUpdateString
+      );
+    }
     if (productUpdateVariantList.length)
       await importBulkData(
         productUpdateVariantList,
         "apcvariantimport",
         variantUpdateString
       );
-    return res.status(200).json("Successfully updated products");
+    return res.status(200).json([productUpdateList, productUpdateVariantList]);
   } catch (error) {
-    console.log(error);
+    console.log(error.lineNumber);
     return res.status(404).json(error);
   }
 });

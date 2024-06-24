@@ -4,7 +4,7 @@ const readline = require("readline");
 const fs = require("fs");
 
 const { wholesalePlantsQuery } = require("../helper/shopifyGQLStrings");
-const getBulkData = require("../helper/getBulkData");
+const downloadBulkData = require("../helper/downloadBulkData");
 
 require("dotenv").config();
 
@@ -13,6 +13,7 @@ const parseData = async () => {
   function processJSONLData() {
     return new Promise((resolve, reject) => {
       let currCustomer = "";
+      let currCancelled = false;
       let fulfillment_number = 0;
       const jsonlFilePath = "data.jsonl"; // The path to the downloaded JSONL file
       const readStream = readline.createInterface({
@@ -23,6 +24,10 @@ const parseData = async () => {
           const cleanLine = line.replace(/'/g, "");
           const jsonData = JSON.parse(cleanLine);
           if (jsonData.id) {
+            if (jsonData.cancelledAt !== null) {
+              currCancelled = true;
+              return;
+            } else currCancelled = false;
             let lastname = jsonData.customer.lastName.includes("Store Code")
               ? jsonData.customer.lastName.slice(11)
               : jsonData.customer.lastName;
@@ -33,13 +38,16 @@ const parseData = async () => {
               id: fulfillment_number,
               order_name: currCustomer,
               customer: {
-                first_name: jsonData.customer.firstName,
-                last_name: jsonData.customer.lastName,
+                firstName: jsonData.customer.firstName,
+                lastLame: jsonData.customer.lastName,
               },
               items: [],
               shipping: "Fedex", //jsonData.shippingLine.title == null ? "" : jsonData.shippingLine.title,
             });
           } else {
+            if (currCancelled) {
+              return;
+            }
             dataContainer[dataContainer.length - 1].items.push({
               title: jsonData.name,
               quantity: jsonData.quantity,
@@ -78,17 +86,17 @@ router.post("/", async (req, res) => {
   console.log("here");
   let fridays = req.body;
   try {
-    let parsedData = await getBulkData(
-      wholesalePlantsQuery(fridays),
-      parseData,
-      "data"
-    ).catch((error) => {
-      return res.status(404).json(error);
-    });
+    await downloadBulkData(wholesalePlantsQuery(fridays), "data").catch(
+      (error) => {
+        return res.status(404).json(error);
+      }
+    );
+    let parsedData = await parseData();
+    console.log(parsedData);
     console.log("success");
     return res.status(200).json(parsedData);
   } catch (error) {
-    console.log(error);
+    console.log(error.lineNumber);
     return res.status(404).json("Error");
   }
 });

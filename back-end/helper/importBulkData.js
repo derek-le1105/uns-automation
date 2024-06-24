@@ -2,7 +2,10 @@ const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
 
-const { requestBulkProductUpdate } = require("../helper/shopifyGQLStrings");
+const {
+  requestBulkProductUpdate,
+  pollBulkMutationQuery,
+} = require("../helper/shopifyGQLStrings");
 
 const wait = (n) => new Promise((resolve) => setTimeout(resolve, n));
 
@@ -25,13 +28,42 @@ const importBulkData = async (jsonData, filePrefixName, inputType) => {
         },
       }).then(({ data }) => {
         if (data.data.bulkOperationRunMutation.userErrors !== null) {
-          console.log("error: ", data.data.bulkOperationRunMutation.userErrors);
+          console.log(data.data.bulkOperationRunMutation.userErrors);
+          //reject(data.data.bulkOperationRunMutation.userErrors);
         }
       });
-      resolve("Successfully imported data");
+
+      do {
+        var polling = await axios({
+          url: "https://ultumnaturesystems.myshopify.com/admin/api/2024-04/graphql.json",
+          method: "post",
+          headers: {
+            "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+            "Content-Type": "application/json",
+          },
+          data: {
+            query: `query {
+            currentBulkOperation(type: MUTATION) {
+                id
+                status
+                errorCode
+                createdAt
+                completedAt
+                objectCount
+                fileSize
+                url
+                partialDataUrl
+            }
+            }
+            `,
+          },
+        });
+        await wait(500);
+      } while (polling.data.data.currentBulkOperation.status !== "COMPLETED");
+      resolve(true);
     });
   } catch (error) {
-    console.log(error);
+    console.log(error.lineNumber);
   }
 };
 

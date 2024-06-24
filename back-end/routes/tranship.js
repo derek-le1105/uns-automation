@@ -4,7 +4,7 @@ const router = express.Router();
 const readline = require("readline");
 const fs = require("fs");
 
-const getBulkData = require("../helper/getBulkData");
+const downloadBulkData = require("../helper/downloadBulkData");
 
 const apcFileName = "CPA-TS";
 const wcaFileName = "ACW-TS";
@@ -91,19 +91,19 @@ const parseData = async (filename) => {
 };
 router.post("/", async (req, res) => {
   try {
-    let parsedAPCData = await getBulkData(
+    let parsedAPCData = await downloadBulkData(
       plantsQuery("CPA-TS"),
       parseData,
       apcFileName
     );
-    let parsedWCAData = await getBulkData(
+    let parsedWCAData = await downloadBulkData(
       plantsQuery("ACW-TS"),
       parseData,
       wcaFileName
     );
     return res.status(200).json([parsedAPCData, parsedWCAData]);
   } catch (error) {
-    console.log(error);
+    console.log(error.lineNumber);
     return res.status(404).json(error);
   }
 });

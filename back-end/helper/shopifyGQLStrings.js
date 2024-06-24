@@ -32,9 +32,7 @@ const wholesalePlantsQuery = (fridays) => {
                       firstName
                       lastName
                     }
-                    shippingLine{
-                      title
-                    }
+                    cancelledAt
                   lineItems(first: 150){
                     edges{
                       node{
@@ -67,7 +65,7 @@ const wholesalePlantsQuery = (fridays) => {
     }`;
     return query;
   } catch (error) {
-    console.log(error);
+    console.log(error.lineNumber);
   }
 };
 
@@ -158,6 +156,23 @@ const wholesaleOrdersQuery = (dates) => {
 }`;
 };
 
+const pollBulkMutationQuery = () => {
+  return `query {
+  currentBulkOperation(type: MUTATION) {
+      id
+      status
+      errorCode
+      createdAt
+      completedAt
+      objectCount
+      fileSize
+      url
+      partialDataUrl
+  }
+  }
+  `;
+};
+
 module.exports = {
   vendorFilterString,
   requestBulkProductUpdate,
@@ -165,4 +180,5 @@ module.exports = {
   productUpdateString,
   variantUpdateString,
   wholesaleOrdersQuery,
+  pollBulkMutationQuery,
 };
