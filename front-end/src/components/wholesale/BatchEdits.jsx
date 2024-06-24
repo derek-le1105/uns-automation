@@ -75,8 +75,8 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
             container
             sx={{ border: "1px solid black", borderRadius: "4px" }}
           >
-            <Grid item container xs>
-              <Stack>
+            <Grid item container xs={4}>
+              <Stack sx={{ width: "100%" }}>
                 <HeaderItem>Batches</HeaderItem>
                 <ToggleButtonGroup
                   value={day}
@@ -90,7 +90,7 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
                       <ToggleButton
                         value={idx}
                         key={idx}
-                        sx={{ width: "12rem" }}
+                        sx={{ width: "100%" }}
                       >
                         {idx}
                       </ToggleButton>
@@ -101,8 +101,8 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
             </Grid>
             {batches[day] !== undefined && (
               <>
-                <Grid item container xs>
-                  <Stack>
+                <Grid item container xs={4}>
+                  <Stack sx={{ width: "100%" }}>
                     <HeaderItem>Orders</HeaderItem>
                     <ToggleButtonGroup
                       value={order}
@@ -116,7 +116,7 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
                           <ToggleButton
                             value={idx}
                             key={idx}
-                            sx={{ width: "12rem" }}
+                            sx={{ width: "100%" }}
                           >
                             {idx}
                           </ToggleButton>
@@ -125,30 +125,16 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
                     </ToggleButtonGroup>
                   </Stack>
                 </Grid>
-                <Grid item container xs>
-                  <Stack>
+                <Grid item container xs={4}>
+                  <Stack sx={{ width: "100%" }}>
                     <HeaderItem>Order</HeaderItem>
                     <List>
                       {batches[day][order] !== undefined && (
-                        <>
-                          {Object.keys(batches[day][order])
-                            .filter((key) => key !== "items")
-                            .map((item) => {
-                              console.log(typeof item);
-                              let new_item =
-                                typeof item === "Object"
-                                  ? item.customer.first_name
-                                  : item;
-
-                              return (
-                                <ListItem>
-                                  <ListItemText>
-                                    {batches[day][order][new_item]}
-                                  </ListItemText>
-                                </ListItem>
-                              );
-                            })}
-                        </>
+                        <ListItem sx={{ width: "100%" }}>
+                          <ListItemText>
+                            {batches[day][order]["order_name"]}
+                          </ListItemText>
+                        </ListItem>
                       )}
                     </List>
                   </Stack>
