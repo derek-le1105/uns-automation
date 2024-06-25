@@ -13,6 +13,7 @@ const TransshipOrders = () => {
   const [apcUploaded, setAPCUploaded] = useState(false);
   const [wcaUploaded, setWCAUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [updateConfirmation, setUpdateConfirmation] = useState(false);
 
   const apcRef = useRef([]);
   const wcaRef = useRef([]);
@@ -70,7 +71,7 @@ const TransshipOrders = () => {
     }
     setLoading(false);
   };
-  const handleWCAShopifyUpdate = async (e) => {
+  /*const handleWCAShopifyUpdate = async (e) => {
     try {
       const productSnackbarID = enqueueSnackbar(
         `Updating Shopify Products...`,
@@ -89,7 +90,7 @@ const TransshipOrders = () => {
           .json()
           .then((data) => enqueueSnackbar(data, { variant: "success" }));
       });
-      closeSnackbar(productSnackbarID);
+      closeSnackbar(updateSnackbarID);
       const variantSnackbarID = enqueueSnackbar(
         "Updating product variants...",
         {
@@ -103,52 +104,82 @@ const TransshipOrders = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(wcaRef.current),
       }).then((res) => {
-        res.json().then((data) => {
-          console.log(data);
-          enqueueSnackbar(data, { variant: "success" });
-        });
+        res
+          .json()
+          .then((data) => enqueueSnackbar(data, { variant: "success" }));
       });
       closeSnackbar(variantSnackbarID);
     } catch (error) {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }
     setLoading(false);
+  };*/
+
+  const handleWCAShopifyUpdate = async () => {
+    try {
+      const updateSnackbarID = enqueueSnackbar(
+        `Generating products to update...`,
+        {
+          variant: "info",
+          autoHideDuration: 6000,
+        }
+      );
+      const data = await fetch("/wca/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(wcaRef.current),
+      })
+        .then((res) => {
+          return res.json();
+        })
+        .then((temp) => {
+          return temp;
+        });
+      closeSnackbar(updateSnackbarID);
+      setUpdateConfirmation(true);
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
-    <Grid container>
-      <Grid container item sx={{ margin: "50px" }} />
-      <Grid container item>
-        <FileUpload
-          fileHandler={handleAPCFileUpload}
-          componentString={"APC File"}
-        />
-        <Grid item xs={5}>
-          <Button
-            variant="contained"
-            disabled={!apcUploaded || loading}
-            onClick={handleAPCShopifyUpdate}
-          >
-            Update APC
-          </Button>
+    <>
+      <Grid container>
+        <Grid container item sx={{ margin: "50px" }} />
+        <Grid container item>
+          <FileUpload
+            fileHandler={handleAPCFileUpload}
+            componentString={"APC File"}
+          />
+          <Grid item xs={5}>
+            <Button
+              variant="contained"
+              disabled={!apcUploaded || loading}
+              onClick={handleAPCShopifyUpdate}
+            >
+              Update APC
+            </Button>
+          </Grid>
+        </Grid>
+        <Grid container item>
+          <FileUpload
+            fileHandler={handleWCAFileUpload}
+            componentString={"WCA File"}
+          />
+          <Grid item>
+            <Button
+              variant="contained"
+              disabled={!wcaUploaded || loading}
+              onClick={handleWCAShopifyUpdate}
+            >
+              Update WCA
+            </Button>
+          </Grid>
         </Grid>
       </Grid>
-      <Grid container item>
-        <FileUpload
-          fileHandler={handleWCAFileUpload}
-          componentString={"WCA File"}
-        />
-        <Grid item>
-          <Button
-            variant="contained"
-            disabled={!wcaUploaded || loading}
-            onClick={handleWCAShopifyUpdate}
-          >
-            Update WCA
-          </Button>
-        </Grid>
-      </Grid>
-    </Grid>
+      <UpdatedProductsModal openModal={updateConfirmation} />
+    </>
   );
 };
 

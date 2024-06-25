@@ -12,6 +12,18 @@ const filterString = "(vendor:ACW-TS OR vendor:ACW) AND -status:Archived)";
 
 require("dotenv").config();
 
+router.post("/test", async (req, res) => {
+  try {
+    let wca_stocklist_codes = req.body;
+    let { productUpdateList, productUpdateVariantList } =
+      await prepareShopifyImport(wca_stocklist_codes, filterString, "acw");
+
+    res.status(200).json([productUpdateList, productUpdateVariantList]);
+  } catch (error) {
+    res.status(404).json("Invalid");
+  }
+});
+
 router.post("/products", async (req, res) => {
   let wca_stocklist_codes = req.body;
   try {

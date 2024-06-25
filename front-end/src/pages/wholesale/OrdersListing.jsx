@@ -10,7 +10,7 @@ import { useSnackbar } from "notistack";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 
-import BatchEdits from "../../components/wholesale/BatchEdits";
+//import BatchEdits from "../../components/wholesale/BatchEdits";
 import WholesaleHeader from "../../components/wholesale/WholesaleHeader";
 import BatchModal from "../../components/wholesale/BatchModal";
 import CustomNoRowsOverlay from "../../components/wholesale/CustomNoRowsOverlay";
@@ -38,7 +38,7 @@ const WholesaleOrders = () => {
     const { data } = await supabase
       .from("batch_data")
       .select()
-      .eq("wednesday_date", format(wholesaleDates[1], "MM/dd/yyyy"))
+      .eq("wednesday_date", format(wholesaleDates[1].$d, "MM/dd/yyyy"))
       .limit(1)
       .maybeSingle();
 
@@ -47,7 +47,7 @@ const WholesaleOrders = () => {
 
   useEffect(() => {
     fetchData().catch((error) => {
-      console.log(error.lineNumber);
+      console.log(error);
     });
 
     if (JSON.parse(sessionStorage.getItem("orders")) !== null)
@@ -276,12 +276,12 @@ const WholesaleOrders = () => {
             batch={orders.filter((_, idx) => batchList.includes(idx))}
             supabaseData={supabaseData}
           />
-          <BatchEdits
+          {/* <BatchEdits
             openEditModal={openEditModal}
             onClose={handleDialogClose}
             shipoutDate={format(shipoutDate.$d, "MM/dd/yyyy")}
             supabaseData={supabaseData}
-          />
+          /> */}
         </Box>
       </Box>
     </>
