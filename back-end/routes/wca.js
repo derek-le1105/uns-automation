@@ -12,26 +12,55 @@ const filterString = "(vendor:ACW-TS OR vendor:ACW) AND -status:Archived)";
 
 require("dotenv").config();
 
-router.post("/", async (req, res) => {
+router.post("/products", async (req, res) => {
   let wca_stocklist_codes = req.body;
   try {
-    let [productUpdateList, productUpdateVariantList] =
-      await prepareShopifyImport(wca_stocklist_codes, filterString, "acw");
-    if (productUpdateList.length) {
-      await importBulkData(
+    let { productUpdateList } = await prepareShopifyImport(
+      wca_stocklist_codes,
+      filterString,
+      "acw"
+    );
+
+    let response = "";
+    if (productUpdateList.length !== 0) {
+      let polling = await importBulkData(
         productUpdateList,
         "wcatest",
         productUpdateString
-      ).then((resolve) => console.log(resolve));
-    }
-    if (productUpdateVariantList.length) {
-      await importBulkData(
+      );
+      response = polling
+        ? "Successfully updated products"
+        : "Something went wrong";
+    } else response = "No products to update";
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json(error);
+  }
+});
+router.post("/variants", async (req, res) => {
+  let wca_stocklist_codes = req.body;
+  try {
+    let { productUpdateVariantList } = await prepareShopifyImport(
+      wca_stocklist_codes,
+      filterString,
+      "acw"
+    );
+
+    let response = "";
+    if (productUpdateVariantList.length !== 0) {
+      let polling = await importBulkData(
         productUpdateVariantList,
-        "wcavarianttest",
+        "wcatest",
         variantUpdateString
       );
-    }
-    return res.status(200).json("Successfully updated products");
+      response = polling
+        ? "Successfully updated variants"
+        : "Something went wrong";
+    } else response = "No variants to update";
+
+    return res.status(200).json(response);
   } catch (error) {
     console.log(error);
     return res.status(404).json(error);

@@ -58,7 +58,7 @@ const importBulkData = async (jsonData, filePrefixName, inputType) => {
             `,
           },
         });
-        await wait(500);
+        await wait(1000);
       } while (polling.data.data.currentBulkOperation.status !== "COMPLETED");
       resolve(true);
     });

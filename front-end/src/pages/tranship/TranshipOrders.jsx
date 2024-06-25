@@ -48,13 +48,23 @@ const TransshipOrders = () => {
         autoHideDuration: 6000,
       });
       setLoading(true);
-      const updatedProducts = await fetch("/apc", {
+      await fetch("/apc/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(apcRef.current),
-      });
+      }).then((res) =>
+        res.json().then((data) => enqueueSnackbar(data, { variant: "success" }))
+      );
+
+      await fetch("/apc/variants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apcRef.current),
+      }).then((res) =>
+        res.json().then((data) => enqueueSnackbar(data, { variant: "success" }))
+      );
+
       closeSnackbar(updateSnackbarID);
-      enqueueSnackbar("Successfully updated products", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }
@@ -62,23 +72,43 @@ const TransshipOrders = () => {
   };
   const handleWCAShopifyUpdate = async (e) => {
     try {
-      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
-        variant: "info",
-        autoHideDuration: 6000,
-      });
+      const productSnackbarID = enqueueSnackbar(
+        `Updating Shopify Products...`,
+        {
+          variant: "info",
+          autoHideDuration: 10000,
+        }
+      );
       setLoading(true);
-      await fetch("/wca", {
+      await fetch("/wca/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(wcaRef.current),
-      })
-        .then((res) => {
-          return res.json();
-        })
-        .then(async (res_data) => {
-          closeSnackbar(updateSnackbarID);
-          enqueueSnackbar(`${res_data}`, { variant: "success" });
+      }).then((res) => {
+        res
+          .json()
+          .then((data) => enqueueSnackbar(data, { variant: "success" }));
+      });
+      closeSnackbar(productSnackbarID);
+      const variantSnackbarID = enqueueSnackbar(
+        "Updating product variants...",
+        {
+          variant: "info",
+          autoHideDuration: 10000,
+        }
+      );
+
+      await fetch("/wca/variants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(wcaRef.current),
+      }).then((res) => {
+        res.json().then((data) => {
+          console.log(data);
+          enqueueSnackbar(data, { variant: "success" });
         });
+      });
+      closeSnackbar(variantSnackbarID);
     } catch (error) {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }

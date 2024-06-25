@@ -183,7 +183,10 @@ const prepareShopifyImport = async (
     });
   });
 
-  return [productUpdateList, productUpdateVariantList];
+  return {
+    productUpdateList: productUpdateList,
+    productUpdateVariantList: productUpdateVariantList,
+  };
 };
 
 module.exports = prepareShopifyImport;
