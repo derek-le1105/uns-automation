@@ -156,3 +156,7 @@ table caption button {
   width: 100px;
   height: 100px;
 }
+
+.delete-warning-logo {
+  transform: scale(7);
+}

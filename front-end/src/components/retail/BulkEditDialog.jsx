@@ -9,11 +9,15 @@ import {
   Autocomplete,
 } from "@mui/material";
 
+import DeleteIcon from "@mui/icons-material/Delete";
+
 import { supabase } from "../../supabaseClient";
 import { useEffect, useState, useContext } from "react";
 import { format_data } from "../../helper/supabaseHelpers";
 import { useSnackbar } from "notistack";
 import { SupabaseContext } from "../Contexts";
+
+import DeleteConfirmation from "./DeleteConfirmation";
 
 const BulkEditDialog = ({ title, handleModalClose }) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -24,8 +28,17 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
   const [newName, setNewName] = useState("");
   const [newProducts, setNewProducts] = useState(["", "", "", "", ""]);
   const [newLocations, setNewLocations] = useState(["", "", "", "", ""]);
+  const [deleteClicked, setDeleteClicked] = useState(false);
 
   const supabase_packs = useContext(SupabaseContext);
+
+  function areAllEntriesEmpty(arr) {
+    let isEmpty = true;
+    arr.forEach((item) => {
+      if (item !== "") isEmpty = false;
+    });
+    return isEmpty;
+  }
 
   const isEditsValid = () => {
     if (edittedPacks) {
@@ -56,14 +69,6 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
       else return true;
     }
 
-    function areAllEntriesEmpty(arr) {
-      let isEmpty = true;
-      arr.forEach((item) => {
-        if (item !== "") isEmpty = false;
-      });
-      return isEmpty;
-    }
-
     if (newName === "") return false;
     if (areAllEntriesEmpty(newProducts)) return false;
     if (areAllEntriesEmpty(newLocations)) return false;
@@ -87,6 +92,7 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
 
   const handleAgree = async () => {
     if (!edittedPacks) {
+      enqueueSnackbar(`Nothing was updated`, { variant: "info" });
       handleModalClose();
       return;
     }
@@ -117,9 +123,17 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
   };
 
   const handleClear = () => {
-    setNewName("");
-    setNewProducts(["", "", "", "", ""]);
-    setNewLocations(["", "", "", "", ""]);
+    if (
+      areAllEntriesEmpty(newProducts) &&
+      areAllEntriesEmpty(newLocations) &&
+      newName === ""
+    ) {
+      handleModalClose();
+    } else {
+      setNewName("");
+      setNewProducts(["", "", "", "", ""]);
+      setNewLocations(["", "", "", "", ""]);
+    }
   };
 
   const handleAddNewPack = async () => {
@@ -141,6 +155,27 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
           });
       } else enqueueSnackbar("Successfully added pack", { variant: "Success" });
     }
+  };
+
+  const handleDeleteExistingPack = () => {
+    setDeleteClicked(true);
+  };
+
+  const handleCloseConfirmation = () => {
+    setDeleteClicked(false);
+  };
+
+  const handleDeleting = async () => {
+    console.log(selectedPack);
+    const { error } = await supabase
+      .from("plant_packs")
+      .delete()
+      .eq("Plant Pack", selectedPack);
+    if (error === null)
+      enqueueSnackbar(`Successfully deleted ${selectedPack}`, {
+        variant: "success",
+      });
+    else console.log(error);
   };
 
   return (
@@ -174,8 +209,23 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
                   />
                 )}
               </Grid>
+              {!addPack && (
+                <Grid item xs="auto" sx={{ padding: "5px 0px", ml: "25px" }}>
+                  <Button
+                    sx={{ height: "100%" }}
+                    variant="contained"
+                    startIcon={<DeleteIcon />}
+                    color="error"
+                    onClick={handleDeleteExistingPack}
+                  >
+                    Delete
+                  </Button>
+                </Grid>
+              )}
+
               <Grid item xs />
-              <Grid item xs="auto">
+
+              <Grid item xs="auto" sx={{ padding: "5px 0px" }}>
                 <Button
                   sx={{ height: "100%", padding: "0px 30px" }}
                   variant="contained"
@@ -193,6 +243,7 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
                     {supabasePacks[selectedPack].map((item, idx) => {
                       return (
                         <TextField
+                          key={idx}
                           label={`Item ${idx + 1}`}
                           value={item["plant"]}
                           sx={{ width: "100%" }}
@@ -218,6 +269,7 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
                     {supabasePacks[selectedPack].map((item, idx) => {
                       return (
                         <TextField
+                          key={idx}
                           label={`Location ${idx + 1}`}
                           value={item["location"]}
                           sx={{ width: "100%" }}
@@ -250,6 +302,7 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
                   {newProducts.map((item, idx) => {
                     return (
                       <TextField
+                        key={idx}
                         label={`Item ${idx + 1}`}
                         value={item}
                         sx={{ width: "100%" }}
@@ -268,6 +321,7 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
                   {newLocations.map((item, idx) => {
                     return (
                       <TextField
+                        key={idx}
                         label={`Location ${idx + 1}`}
                         value={item}
                         sx={{ width: "100%" }}
@@ -307,6 +361,13 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
           </>
         )}
       </DialogActions>
+
+      <DeleteConfirmation
+        deleteClicked={deleteClicked}
+        onClose={handleCloseConfirmation}
+        packTitle={selectedPack}
+        onConfirmation={handleDeleting}
+      />
     </>
   );
 };

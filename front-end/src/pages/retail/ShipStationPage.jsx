@@ -91,7 +91,7 @@ const ShipStationPage = () => {
       <Dialog
         open={openDialog}
         onClose={handleClose}
-        sx={{ padding: "50px", minHeight: "5vh" }}
+        sx={{ padding: "50px", minHeight: "80vh" }}
         maxWidth={fileUpload ? "md" : "lg"}
         fullWidth
       >
