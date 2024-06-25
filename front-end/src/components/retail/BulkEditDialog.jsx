@@ -20,6 +20,10 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
   const [supabasePacks, setSupabasePacks] = useState();
   const [selectedPack, setSelectedPack] = useState();
   const [edittedPacks, setEdittedPacks] = useState();
+  const [addPack, setAddPack] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newProducts, setNewProducts] = useState(["", "", "", "", ""]);
+  const [newLocations, setNewLocations] = useState(["", "", "", "", ""]);
 
   const supabase_packs = useContext(SupabaseContext);
 
@@ -41,6 +45,33 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
           }
         }
       }
+    }
+    return true;
+  };
+
+  const isNewPackValid = () => {
+    function isValidProduct(product, location) {
+      if (product === "" && location !== "") return false;
+      else if (product !== "" && location === "") return false;
+      else return true;
+    }
+
+    function areAllEntriesEmpty(arr) {
+      let isEmpty = true;
+      arr.forEach((item) => {
+        if (item !== "") isEmpty = false;
+      });
+      return isEmpty;
+    }
+
+    if (newName === "") return false;
+    if (areAllEntriesEmpty(newProducts)) return false;
+    if (areAllEntriesEmpty(newLocations)) return false;
+
+    for (let i = 0; i < newProducts.length; i += 1) {
+      let product = newProducts[i],
+        location = newLocations[i];
+      if (!isValidProduct(product, location)) return false;
     }
     return true;
   };
@@ -80,44 +111,152 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
     }
   };
 
+  const handleAddPackClicked = () => {
+    setAddPack(!addPack);
+    if (addPack) handleClear();
+  };
+
+  const handleClear = () => {
+    setNewName("");
+    setNewProducts(["", "", "", "", ""]);
+    setNewLocations(["", "", "", "", ""]);
+  };
+
+  const handleAddNewPack = async () => {
+    if (!isNewPackValid())
+      enqueueSnackbar("Adding new pack is not valid", { variant: "error" });
+    else {
+      let newRow = {};
+      newRow["Plant Pack"] = newName;
+      newProducts.forEach((product, idx) => {
+        let item = { plant: product, location: newLocations[idx] };
+        newRow[`item_${idx + 1}`] = item;
+      });
+      const { error } = await supabase.from("plant_packs").insert([newRow]);
+
+      if (error !== null) {
+        if (error.code === "23505")
+          enqueueSnackbar("A pack with this name exists already", {
+            variant: "error",
+          });
+      } else enqueueSnackbar("Successfully added pack", { variant: "Success" });
+    }
+  };
+
   return (
     <>
       <DialogTitle>{title}</DialogTitle>
-      {supabasePacks && (
-        <DialogContent>
-          <Autocomplete
-            options={Object.keys(supabasePacks).sort()}
-            renderInput={(params) => (
-              <TextField {...params} label="Product Packs" />
-            )}
-            sx={{ width: "375px", padding: "5px 0px" }}
-            onChange={(e, value) => {
-              setSelectedPack(value);
-            }}
-            value={selectedPack}
-          ></Autocomplete>
+      <DialogContent>
+        {supabasePacks && (
+          <>
+            <Grid container>
+              <Grid item xs="auto">
+                {!addPack ? (
+                  <Autocomplete
+                    options={Object.keys(supabasePacks).sort()}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Product Packs" />
+                    )}
+                    sx={{ width: "375px", padding: "5px 0px" }}
+                    onChange={(e, value) => {
+                      setSelectedPack(value);
+                    }}
+                    value={selectedPack}
+                  ></Autocomplete>
+                ) : (
+                  <TextField
+                    value={newName}
+                    label="Product Name"
+                    sx={{ width: "375px", padding: "5px 0px" }}
+                    onChange={(e) => {
+                      setNewName(e.target.value);
+                    }}
+                  />
+                )}
+              </Grid>
+              <Grid item xs />
+              <Grid item xs="auto">
+                <Button
+                  sx={{ height: "100%", padding: "0px 30px" }}
+                  variant="contained"
+                  onClick={handleAddPackClicked}
+                >
+                  {addPack ? `View packs` : `Add Pack`}
+                </Button>
+              </Grid>
+            </Grid>
 
-          {selectedPack && (
+            {selectedPack && !addPack && (
+              <Grid item container spacing={3}>
+                <Grid item xs>
+                  <Stack spacing={3} sx={{ marginTop: "20px" }}>
+                    {supabasePacks[selectedPack].map((item, idx) => {
+                      return (
+                        <TextField
+                          label={`Item ${idx + 1}`}
+                          value={item["plant"]}
+                          sx={{ width: "100%" }}
+                          onChange={(e) => {
+                            let temp_list = supabasePacks[selectedPack];
+                            temp_list[idx]["plant"] = e.target.value;
+                            setSupabasePacks({
+                              ...supabasePacks,
+                              [selectedPack]: temp_list,
+                            });
+                            setEdittedPacks({
+                              ...edittedPacks,
+                              [selectedPack]: temp_list,
+                            });
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Grid>
+                <Grid item xs>
+                  <Stack spacing={3} sx={{ marginTop: "20px" }}>
+                    {supabasePacks[selectedPack].map((item, idx) => {
+                      return (
+                        <TextField
+                          label={`Location ${idx + 1}`}
+                          value={item["location"]}
+                          sx={{ width: "100%" }}
+                          onChange={(e) => {
+                            let temp_list = supabasePacks[selectedPack];
+                            temp_list[idx]["location"] = e.target.value;
+                            setSupabasePacks({
+                              ...supabasePacks,
+                              [selectedPack]: temp_list,
+                            });
+                            setEdittedPacks({
+                              ...edittedPacks,
+                              [selectedPack]: temp_list,
+                            });
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Grid>
+              </Grid>
+            )}
+          </>
+        )}
+        {addPack && (
+          <>
             <Grid item container spacing={3}>
               <Grid item xs>
                 <Stack spacing={3} sx={{ marginTop: "20px" }}>
-                  {supabasePacks[selectedPack].map((item, idx) => {
+                  {newProducts.map((item, idx) => {
                     return (
                       <TextField
                         label={`Item ${idx + 1}`}
-                        value={item["plant"]}
+                        value={item}
                         sx={{ width: "100%" }}
                         onChange={(e) => {
-                          let temp_list = supabasePacks[selectedPack];
-                          temp_list[idx]["plant"] = e.target.value;
-                          setSupabasePacks({
-                            ...supabasePacks,
-                            [selectedPack]: temp_list,
-                          });
-                          setEdittedPacks({
-                            ...edittedPacks,
-                            [selectedPack]: temp_list,
-                          });
+                          const newList = [...newProducts];
+                          newList[idx] = e.target.value;
+                          setNewProducts(newList);
                         }}
                       />
                     );
@@ -126,23 +265,16 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
               </Grid>
               <Grid item xs>
                 <Stack spacing={3} sx={{ marginTop: "20px" }}>
-                  {supabasePacks[selectedPack].map((item, idx) => {
+                  {newLocations.map((item, idx) => {
                     return (
                       <TextField
                         label={`Location ${idx + 1}`}
-                        value={item["location"]}
+                        value={item}
                         sx={{ width: "100%" }}
                         onChange={(e) => {
-                          let temp_list = supabasePacks[selectedPack];
-                          temp_list[idx]["location"] = e.target.value;
-                          setSupabasePacks({
-                            ...supabasePacks,
-                            [selectedPack]: temp_list,
-                          });
-                          setEdittedPacks({
-                            ...edittedPacks,
-                            [selectedPack]: temp_list,
-                          });
+                          const newList = [...newLocations];
+                          newList[idx] = e.target.value;
+                          setNewLocations(newList);
                         }}
                       />
                     );
@@ -150,16 +282,30 @@ const BulkEditDialog = ({ title, handleModalClose }) => {
                 </Stack>
               </Grid>
             </Grid>
-          )}
-        </DialogContent>
-      )}
+          </>
+        )}
+      </DialogContent>
+
       <DialogActions sx={{ padding: "0px 25px 25px 25px" }}>
-        <Button onClick={handleModalClose} variant="outlined" autoFocus>
-          Close
-        </Button>
-        <Button onClick={handleAgree} variant="contained" autoFocus>
-          Update
-        </Button>
+        {!addPack ? (
+          <>
+            <Button onClick={handleModalClose} variant="outlined" autoFocus>
+              Close
+            </Button>
+            <Button onClick={handleAgree} variant="contained" autoFocus>
+              Update
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={handleClear} variant="outlined" autoFocus>
+              Clear
+            </Button>
+            <Button onClick={handleAddNewPack} variant="contained" autoFocus>
+              Add
+            </Button>
+          </>
+        )}
       </DialogActions>
     </>
   );
