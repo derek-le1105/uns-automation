@@ -1,5 +1,6 @@
 import { Grid, Tooltip, Typography, Button } from "@mui/material";
 
+import { useTheme } from "@mui/material/styles";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -15,6 +16,7 @@ const WholesaleHeader = ({
   validSelection,
   onEditClick,
 }) => {
+  const theme = useTheme();
   const DatePickerSettings = [
     {
       type: "before",
@@ -48,6 +50,7 @@ const WholesaleHeader = ({
                   onChange={(newValue) => {
                     onDateChange(newValue, datePicker.type);
                   }}
+                  sx={{ background: `${theme.palette.common.white}` }}
                 />
               </DemoContainer>
             </LocalizationProvider>

@@ -2,10 +2,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   List,
   ListItem,
-  Collapse,
   DialogTitle,
   Button,
   ToggleButtonGroup,
@@ -14,7 +12,11 @@ import {
   Stack,
   Paper,
   ListItemText,
+  Typography,
+  IconButton,
 } from "@mui/material";
+
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import { styled } from "@mui/material/styles";
 import { useState, useEffect } from "react";
@@ -30,7 +32,7 @@ const HeaderItem = styled(Paper)(({ theme }) => ({
   width: "100%",
 }));
 
-const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
+const BatchEdits = ({ openEditModal, onClose, shipoutDate }) => {
   const [batches, setBatches] = useState([]);
   const [day, setDay] = useState(0);
   const [order, setOrder] = useState(0);
@@ -61,6 +63,8 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
   const handleOrder = (e, newOrder) => {
     setOrder(newOrder);
   };
+
+  const handleOrderDelete = (orderToDelete) => {};
   return (
     <>
       <Dialog
@@ -102,7 +106,9 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
             {batches[day] !== undefined && (
               <>
                 <Grid item container xs={4}>
-                  <Stack sx={{ width: "100%" }}>
+                  <Stack
+                    sx={{ width: "100%", overflow: "auto", maxHeight: "100%" }}
+                  >
                     <HeaderItem>Orders</HeaderItem>
                     <ToggleButtonGroup
                       value={order}
@@ -118,7 +124,7 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
                             key={idx}
                             sx={{ width: "100%" }}
                           >
-                            {idx}
+                            {`${batch.id}: ${batch.order_name}`}
                           </ToggleButton>
                         );
                       })}
@@ -127,13 +133,18 @@ const BatchEdits = ({ openEditModal, onClose, shipoutDate, supabaseData }) => {
                 </Grid>
                 <Grid item container xs={4}>
                   <Stack sx={{ width: "100%" }}>
-                    <HeaderItem>Order</HeaderItem>
+                    <HeaderItem>Customer</HeaderItem>
                     <List>
                       {batches[day][order] !== undefined && (
                         <ListItem sx={{ width: "100%" }}>
                           <ListItemText>
-                            {batches[day][order]["order_name"]}
+                            <Typography variant="h7">
+                              {batches[day][order].customer.first_name}
+                            </Typography>
                           </ListItemText>
+                          <IconButton>
+                            <DeleteIcon color="error" />
+                          </IconButton>
                         </ListItem>
                       )}
                     </List>

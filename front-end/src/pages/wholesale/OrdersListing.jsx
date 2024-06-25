@@ -191,7 +191,6 @@ const WholesaleOrders = () => {
           display: "flex",
           flexDirection: "column",
           width: "100%",
-          background: `${theme.palette.grey[100]}`,
         }}
       >
         <WholesaleHeader
@@ -269,6 +268,7 @@ const WholesaleOrders = () => {
               setBatchList(newRowSelectionModel);
             }}
             rowSelectionModel={batchList}
+            sx={{ background: `${theme.palette.common.white}` }}
           ></DataGrid>
           <BatchModal
             openModal={openModal}

@@ -92,8 +92,6 @@ router.post("/", async (req, res) => {
       }
     );
     let parsedData = await parseData();
-    console.log(parsedData);
-    console.log("success");
     return res.status(200).json(parsedData);
   } catch (error) {
     console.log(error.lineNumber);
