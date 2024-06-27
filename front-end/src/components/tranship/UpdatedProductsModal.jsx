@@ -109,6 +109,9 @@ const UpdatedProductsModal = ({
 
   const handleConfirmation = () => {
     //TODO: reformat updatedProducts and updatedVariants
+
+    //updatedProducts: Map() -> {id: ..., title: ..., status: ...}
+    //updatedVariants: should be fine?
     onConfirmation([updatedProducts, updatedVariants]);
   };
 
