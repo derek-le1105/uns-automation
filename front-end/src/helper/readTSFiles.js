@@ -76,7 +76,7 @@ const apcParse = (workbook) => {
   try {
     let codes = [];
     var isValidRow = false;
-    const worksheet = workbook.getWorksheet("Stocklist"); //throws error if no worksheet found with the name "Stocklist"
+    const worksheet = workbook.getWorksheet("Stocklist"); //throws error if no worksheet found with the name "Stocklist", use promise reject
     let variantColumns = [2, 5, 8, 11, 14];
     worksheet.eachRow((row) => {
       if (isValidRow) {
