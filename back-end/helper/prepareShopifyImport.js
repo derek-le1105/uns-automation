@@ -170,7 +170,7 @@ const prepareShopifyImport = async (
     let [productToUpdate, variantToUpdate] = compare(product, barcodeExistsMap);
 
     if (productToUpdate.status !== product.status) {
-      let { variants, vendor, ...rest } = productToUpdate;
+      let { variants, ...rest } = productToUpdate;
       productUpdateList.push(rest);
     }
     variantToUpdate.forEach((variant) => {
@@ -178,7 +178,7 @@ const prepareShopifyImport = async (
       let { vendors } = barcodeExistsMap[barcode];
       if (vendors[vendor].inventoryPolicy !== inventoryPolicy) {
         let { barcode, vendor, ...rest } = variant;
-        productUpdateVariantList.push(rest);
+        productUpdateVariantList.push(variant);
       }
     });
   });

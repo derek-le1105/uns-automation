@@ -20,6 +20,7 @@ router.post("/statuses", async (req, res) => {
 
     res.status(200).json([productUpdateList, productUpdateVariantList]);
   } catch (error) {
+    console.log(error);
     res.status(404).json("Invalid");
   }
 });

@@ -4,7 +4,7 @@ const compare = (product, barcodeMap) => {
   let newProduct = _.cloneDeep(product);
   let productToUpdate = {};
   let variantToUpdate = [];
-  let { variants } = newProduct;
+  let { variants, title } = newProduct;
   if (variants.length <= 1) {
     let barcode = variants[0].barcode;
     //check after if status remains the same after checking between APC
@@ -18,6 +18,7 @@ const compare = (product, barcodeMap) => {
       };
       variantToUpdate.push({
         ...newProduct.variants[0],
+        title: title,
         inventoryPolicy: "CONTINUE",
       });
     } else {
@@ -28,6 +29,7 @@ const compare = (product, barcodeMap) => {
       };
       variantToUpdate.push({
         ...newProduct.variants[0],
+        title: title,
         inventoryPolicy: "DENY",
       });
     }
@@ -37,11 +39,19 @@ const compare = (product, barcodeMap) => {
       //if shopify barcode exists in apc list, make active if not already
       let { barcode, inventoryPolicy } = variant;
       if (barcodeMap[barcode]["exists"]) {
-        variantToUpdate.push({ ...variant, inventoryPolicy: "CONTINUE" });
+        variantToUpdate.push({
+          ...variant,
+          title: title,
+          inventoryPolicy: "CONTINUE",
+        });
 
         inventoryPolicySet.add("CONTINUE");
       } else {
-        variantToUpdate.push({ ...variant, inventoryPolicy: "DENY" });
+        variantToUpdate.push({
+          ...variant,
+          title: title,
+          inventoryPolicy: "DENY",
+        });
 
         inventoryPolicySet.add("DENY");
       }

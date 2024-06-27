@@ -26,19 +26,14 @@ router.post("/statuses", async (req, res) => {
 });
 
 router.post("/products", async (req, res) => {
-  let apc_stocklist_codes = req.body;
+  let products = req.body;
+  console.log("products: ", products);
   try {
-    let { productUpdateList } = await prepareShopifyImport(
-      apc_stocklist_codes,
-      filterString,
-      "apc"
-    );
-
     let response = "";
 
-    if (productUpdateList.length !== 0) {
+    if (products.length !== 0) {
       let polling = await importBulkData(
-        productUpdateList,
+        products,
         "apcimport",
         productUpdateString
       );
@@ -54,18 +49,13 @@ router.post("/products", async (req, res) => {
 });
 
 router.post("/variants", async (req, res) => {
-  let apc_stocklist_codes = req.body;
+  let variants = req.body;
   try {
-    let { productUpdateVariantList } = await prepareShopifyImport(
-      apc_stocklist_codes,
-      filterString,
-      "apc"
-    );
     let response = "";
 
-    if (productUpdateVariantList.length !== 0) {
+    if (variants.length !== 0) {
       let polling = await importBulkData(
-        productUpdateVariantList,
+        variants,
         "apcvariantimport",
         variantUpdateString
       );

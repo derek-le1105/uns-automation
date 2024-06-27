@@ -14,6 +14,8 @@ const TransshipOrders = () => {
   const [wcaUploaded, setWCAUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [updateConfirmation, setUpdateConfirmation] = useState(false);
+  const [updatedProducts, setUpdatedProducts] = useState([]);
+  const [vendorUpdating, setVendorUpdating] = useState("");
 
   const apcRef = useRef([]);
   const wcaRef = useRef([]);
@@ -42,7 +44,7 @@ const TransshipOrders = () => {
     setWCAUploaded(true);
   };
 
-  const handleAPCShopifyUpdate = async (e) => {
+  /*const handleAPCShopifyUpdate = async (e) => {
     try {
       const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
         variant: "info",
@@ -70,7 +72,7 @@ const TransshipOrders = () => {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }
     setLoading(false);
-  };
+  };*/
   /*const handleWCAShopifyUpdate = async (e) => {
     try {
       const productSnackbarID = enqueueSnackbar(
@@ -114,6 +116,114 @@ const TransshipOrders = () => {
     }
     setLoading(false);
   };*/
+  const handleAPCShopifyUpdate = async (e) => {
+    try {
+      const updateSnackbarID = enqueueSnackbar(
+        `Generating products to update...`,
+        {
+          variant: "info",
+          autoHideDuration: 10000,
+        }
+      );
+      setLoading(true);
+      const data = await fetch("/apc/statuses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apcRef.current),
+      })
+        .then((res) => {
+          return res.json();
+        })
+        .then((temp) => {
+          return temp;
+        });
+      closeSnackbar(updateSnackbarID);
+      setUpdateConfirmation(true);
+      setUpdatedProducts(data);
+      setVendorUpdating("apc");
+
+      closeSnackbar(updateSnackbarID);
+    } catch (error) {
+      enqueueSnackbar(`${error}`, { variant: "error" });
+    }
+    setLoading(false);
+  };
+
+  const finalizeUpdating = async (data) => {
+    setUpdateConfirmation(false);
+    try {
+      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
+        variant: "info",
+        autoHideDuration: 6000,
+      });
+      setLoading(true);
+      const [products, variants] = data;
+      console.log(products);
+      if (vendorUpdating === "apc") {
+        await fetch("/apc/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(products),
+        }).then((res) =>
+          res
+            .json()
+            .then((data) => enqueueSnackbar(data, { variant: "success" }))
+        );
+        closeSnackbar(updateSnackbarID);
+        const variantSnackbarID = enqueueSnackbar(
+          "Updating product variants...",
+          {
+            variant: "info",
+            autoHideDuration: 10000,
+          }
+        );
+
+        await fetch("/apc/variants", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(variants),
+        }).then((res) =>
+          res
+            .json()
+            .then((data) => enqueueSnackbar(data, { variant: "success" }))
+        );
+        closeSnackbar(variantSnackbarID);
+      } else {
+        await fetch("/wca/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(products),
+        }).then((res) => {
+          res
+            .json()
+            .then((data) => enqueueSnackbar(data, { variant: "success" }));
+        });
+        closeSnackbar(updateSnackbarID);
+        const variantSnackbarID = enqueueSnackbar(
+          "Updating product variants...",
+          {
+            variant: "info",
+            autoHideDuration: 10000,
+          }
+        );
+
+        await fetch("/wca/variants", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(variants),
+        }).then((res) => {
+          res
+            .json()
+            .then((data) => enqueueSnackbar(data, { variant: "success" }));
+        });
+        closeSnackbar(variantSnackbarID);
+      }
+    } catch (error) {
+      enqueueSnackbar(`${error}`, { variant: "error" });
+    }
+
+    setLoading(false);
+  };
 
   const handleWCAShopifyUpdate = async () => {
     try {
@@ -121,7 +231,7 @@ const TransshipOrders = () => {
         `Generating products to update...`,
         {
           variant: "info",
-          autoHideDuration: 6000,
+          autoHideDuration: 10000,
         }
       );
       const data = await fetch("/wca/statuses", {
@@ -137,10 +247,15 @@ const TransshipOrders = () => {
         });
       closeSnackbar(updateSnackbarID);
       setUpdateConfirmation(true);
-      console.log(data);
+      setUpdatedProducts(data);
+      setVendorUpdating("wca");
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const handleModalClose = () => {
+    setUpdateConfirmation(false);
   };
 
   return (
@@ -178,7 +293,13 @@ const TransshipOrders = () => {
           </Grid>
         </Grid>
       </Grid>
-      <UpdatedProductsModal openModal={updateConfirmation} />
+      <UpdatedProductsModal
+        openModal={updateConfirmation}
+        products={updatedProducts[0]}
+        variants={updatedProducts[1]}
+        onClose={handleModalClose}
+        onConfirmation={finalizeUpdating}
+      />
     </>
   );
 };
