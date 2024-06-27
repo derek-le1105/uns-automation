@@ -124,7 +124,7 @@ const TransshipOrders = () => {
           autoHideDuration: 6000,
         }
       );
-      const data = await fetch("/wca/test", {
+      const data = await fetch("/wca/statuses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(wcaRef.current),

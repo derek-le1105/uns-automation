@@ -13,6 +13,18 @@ const filterString = "(vendor:CPA-TS OR vendor:CPA) AND -status:Archived)";
 
 require("dotenv").config();
 
+router.post("/statuses", async (req, res) => {
+  try {
+    let apc_stocklist_codes = req.body;
+    let { productUpdateList, productUpdateVariantList } =
+      await prepareShopifyImport(apc_stocklist_codes, filterString, "apc");
+
+    res.status(200).json([productUpdateList, productUpdateVariantList]);
+  } catch (error) {
+    res.status(404).json("Invalid");
+  }
+});
+
 router.post("/products", async (req, res) => {
   let apc_stocklist_codes = req.body;
   try {

@@ -12,7 +12,7 @@ const filterString = "(vendor:ACW-TS OR vendor:ACW) AND -status:Archived)";
 
 require("dotenv").config();
 
-router.post("/test", async (req, res) => {
+router.post("/statuses", async (req, res) => {
   try {
     let wca_stocklist_codes = req.body;
     let { productUpdateList, productUpdateVariantList } =
