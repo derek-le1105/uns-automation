@@ -111,8 +111,8 @@ const UpdatedProductsModal = ({
     const formattedProducts = [],
       formattedVariants = [];
     products.forEach((product) => {
-      let { title } = product;
-      if (updatedProducts.has(title)) formattedProducts.push(product);
+      let { title, vendor, ...rest } = product;
+      if (updatedProducts.has(title)) formattedProducts.push(rest);
     });
 
     updatedVariants.forEach((variant) => {
@@ -240,7 +240,9 @@ const UpdatedProductsModal = ({
                     </Grid>
                     <Grid item xs={2} sx={{ alignContent: "center" }}>
                       {`${
-                        productValue["status"] === "ACTIVE" ? "DENY" : "ACTIVE "
+                        productValue["status"] === "ACTIVE"
+                          ? "DRAFT"
+                          : "ACTIVE "
                       } -> ${productValue["status"]}`}
                     </Grid>
                     <Grid item xs>

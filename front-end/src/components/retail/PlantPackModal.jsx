@@ -151,7 +151,7 @@ const PlantPackModal = ({ file, handleModalClose }) => {
                 </Stack>
               </Grid>
               <Grid item container xs>
-                <HeaderItem>Plant</HeaderItem>
+                <HeaderItem>Item</HeaderItem>
                 <Stack flexWrap="wrap" sx={{ width: "100%" }}>
                   {Object.keys(detectedPacks).map((pack) => {
                     return (

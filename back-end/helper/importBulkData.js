@@ -1,6 +1,7 @@
 const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
+const path = require("path");
 
 const {
   requestBulkProductUpdate,
@@ -133,10 +134,8 @@ const stagedShopifyRequest = async (data, filePrefixName) => {
     //change 'testingapc' whenever ready to upload files
     shopifyFormData.append(
       "file",
-      fs.readFileSync(
-        `C:/Users/derek/Documents/code project/uns-automation/back-end/${filePrefixName}.jsonl`
-      ),
-      `C:/Users/derek/Documents/code project/uns-automation/back-end/${filePrefixName}.jsonl`
+      fs.readFileSync(path.resolve(__dirname, `../${filePrefixName}.jsonl`)),
+      path.resolve(__dirname, `../${filePrefixName}.jsonl`)
     );
     const response = await axios.post(url, shopifyFormData, {
       headers: { ...shopifyFormData.getHeaders() },

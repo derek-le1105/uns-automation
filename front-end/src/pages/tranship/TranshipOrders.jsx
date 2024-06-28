@@ -8,6 +8,8 @@ import UpdatedProductsModal from "../../components/tranship/UpdatedProductsModal
 
 import { readFileUpload } from "../../helper/readTSFiles";
 
+import { supabase } from "../../supabaseClient";
+
 const TransshipOrders = () => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [apcUploaded, setAPCUploaded] = useState(false);
@@ -46,78 +48,6 @@ const TransshipOrders = () => {
     }
   };
 
-  /*const handleAPCShopifyUpdate = async (e) => {
-    try {
-      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
-        variant: "info",
-        autoHideDuration: 6000,
-      });
-      setLoading(true);
-      await fetch("/apc/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apcRef.current),
-      }).then((res) =>
-        res.json().then((data) => enqueueSnackbar(data, { variant: "success" }))
-      );
-
-      await fetch("/apc/variants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apcRef.current),
-      }).then((res) =>
-        res.json().then((data) => enqueueSnackbar(data, { variant: "success" }))
-      );
-
-      closeSnackbar(updateSnackbarID);
-    } catch (error) {
-      enqueueSnackbar(`${error}`, { variant: "error" });
-    }
-    setLoading(false);
-  };*/
-  /*const handleWCAShopifyUpdate = async (e) => {
-    try {
-      const productSnackbarID = enqueueSnackbar(
-        `Updating Shopify Products...`,
-        {
-          variant: "info",
-          autoHideDuration: 10000,
-        }
-      );
-      setLoading(true);
-      await fetch("/wca/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(wcaRef.current),
-      }).then((res) => {
-        res
-          .json()
-          .then((data) => enqueueSnackbar(data, { variant: "success" }));
-      });
-      closeSnackbar(updateSnackbarID);
-      const variantSnackbarID = enqueueSnackbar(
-        "Updating product variants...",
-        {
-          variant: "info",
-          autoHideDuration: 10000,
-        }
-      );
-
-      await fetch("/wca/variants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(wcaRef.current),
-      }).then((res) => {
-        res
-          .json()
-          .then((data) => enqueueSnackbar(data, { variant: "success" }));
-      });
-      closeSnackbar(variantSnackbarID);
-    } catch (error) {
-      enqueueSnackbar(`${error}`, { variant: "error" });
-    }
-    setLoading(false);
-  };*/
   const handleAPCShopifyUpdate = async (e) => {
     try {
       const updateSnackbarID = enqueueSnackbar(
@@ -160,7 +90,6 @@ const TransshipOrders = () => {
       });
       setLoading(true);
       const [products, variants] = data;
-      console.log(variants);
       if (vendorUpdating === "apc") {
         await fetch("/apc/products", {
           method: "POST",
