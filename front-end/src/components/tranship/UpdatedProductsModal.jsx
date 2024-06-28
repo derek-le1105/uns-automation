@@ -108,11 +108,19 @@ const UpdatedProductsModal = ({
   };
 
   const handleConfirmation = () => {
-    //TODO: reformat updatedProducts and updatedVariants
+    const formattedProducts = [],
+      formattedVariants = [];
+    products.forEach((product) => {
+      let { title } = product;
+      if (updatedProducts.has(title)) formattedProducts.push(product);
+    });
 
-    //updatedProducts: Map() -> {id: ..., title: ..., status: ...}
-    //updatedVariants: should be fine?
-    onConfirmation([updatedProducts, updatedVariants]);
+    updatedVariants.forEach((variant) => {
+      let { barcode, vendor, title, ...rest } = variant;
+      formattedVariants.push(rest);
+    });
+
+    onConfirmation([formattedProducts, formattedVariants]);
   };
 
   return (

@@ -160,7 +160,7 @@ const TransshipOrders = () => {
       });
       setLoading(true);
       const [products, variants] = data;
-      console.log(products);
+      console.log(variants);
       if (vendorUpdating === "apc") {
         await fetch("/apc/products", {
           method: "POST",
