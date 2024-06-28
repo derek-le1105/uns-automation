@@ -22,10 +22,12 @@ const TransshipOrders = () => {
 
   const handleAPCFileUpload = async (file) => {
     try {
-      setAPCUploaded(true);
-      await readFileUpload(file, "apc").then((data) => {
-        apcRef.current = data;
-      });
+      await readFileUpload(file, "apc")
+        .then((data) => {
+          apcRef.current = data;
+          setAPCUploaded(true);
+        })
+        .catch((err) => enqueueSnackbar(err, { variant: "error" }));
     } catch (error) {
       console.log(error.lineNumber);
     }
@@ -33,15 +35,15 @@ const TransshipOrders = () => {
 
   const handleWCAFileUpload = async (file) => {
     try {
-      setWCAUploaded(true);
-      await readFileUpload(file, "wca").then((data) => {
-        wcaRef.current = data;
-      });
+      await readFileUpload(file, "wca")
+        .then((data) => {
+          wcaRef.current = data;
+          setWCAUploaded(true);
+        })
+        .catch((err) => enqueueSnackbar(err, { variant: "error" }));
     } catch (error) {
       console.log(error.lineNumber);
     }
-    console.log(file);
-    setWCAUploaded(true);
   };
 
   /*const handleAPCShopifyUpdate = async (e) => {
