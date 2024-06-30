@@ -20,6 +20,7 @@
     "dayjs": "^1.11.10",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "jest": "^27.5.1",
     "notistack": "^3.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -31,7 +32,8 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "eslintConfig": {
     "extends": [
@@ -67,5 +69,9 @@
     "url": "^0.11.3",
     "util": "^0.12.5",
     "vite": "^3.2.7"
+  },
+  "type": "module",
+  "jest": {
+    "transform": {}
   }
 }

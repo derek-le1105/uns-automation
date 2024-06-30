@@ -14,7 +14,7 @@ import { useState, useEffect } from "react";
 import WholesaleHeader from "../../components/wholesale/WholesaleHeader";
 import BatchModal from "../../components/wholesale/BatchModal";
 import CustomNoRowsOverlay from "../../components/wholesale/CustomNoRowsOverlay";
-import { getWholesaleDates } from "../../helper/getWholesaleDates";
+import getWholesaleDates from "../../helper/getWholesaleDates";
 import { objectLength, isObjectIncluded } from "../../helper/dataFunctions";
 import { createWholesaleExcel } from "../../helper/createWholesaleExcel";
 
@@ -23,7 +23,7 @@ import { supabase } from "../../supabaseClient";
 const WholesaleOrders = () => {
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
-  const wholesaleDates = getWholesaleDates();
+  const wholesaleDates = getWholesaleDates(dayjs());
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [beforeDate, setBeforeDate] = useState(dayjs(wholesaleDates[0]));
