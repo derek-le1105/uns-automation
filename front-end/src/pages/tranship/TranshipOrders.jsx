@@ -5,6 +5,7 @@ import { useSnackbar } from "notistack";
 
 import FileUpload from "../../components/FileUpload";
 import UpdatedProductsModal from "../../components/tranship/UpdatedProductsModal";
+import createTranshipDraft from "../../helper/createTranshipDraft";
 
 import { readFileUpload } from "../../helper/readTSFiles";
 
@@ -81,81 +82,6 @@ const TransshipOrders = () => {
     setLoading(false);
   };
 
-  const finalizeUpdating = async (data) => {
-    setUpdateConfirmation(false);
-    try {
-      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
-        variant: "info",
-        autoHideDuration: 6000,
-      });
-      setLoading(true);
-      const [products, variants] = data;
-      if (vendorUpdating === "apc") {
-        await fetch("/apc/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(products),
-        }).then((res) =>
-          res
-            .json()
-            .then((data) => enqueueSnackbar(data, { variant: "success" }))
-        );
-        closeSnackbar(updateSnackbarID);
-        const variantSnackbarID = enqueueSnackbar(
-          "Updating product variants...",
-          {
-            variant: "info",
-            autoHideDuration: 10000,
-          }
-        );
-
-        await fetch("/apc/variants", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(variants),
-        }).then((res) =>
-          res
-            .json()
-            .then((data) => enqueueSnackbar(data, { variant: "success" }))
-        );
-        closeSnackbar(variantSnackbarID);
-      } else {
-        await fetch("/wca/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(products),
-        }).then((res) => {
-          res
-            .json()
-            .then((data) => enqueueSnackbar(data, { variant: "success" }));
-        });
-        closeSnackbar(updateSnackbarID);
-        const variantSnackbarID = enqueueSnackbar(
-          "Updating product variants...",
-          {
-            variant: "info",
-            autoHideDuration: 10000,
-          }
-        );
-
-        await fetch("/wca/variants", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(variants),
-        }).then((res) => {
-          res
-            .json()
-            .then((data) => enqueueSnackbar(data, { variant: "success" }));
-        });
-        closeSnackbar(variantSnackbarID);
-      }
-    } catch (error) {
-      enqueueSnackbar(`${error}`, { variant: "error" });
-    }
-
-    setLoading(false);
-  };
-
   const handleWCAShopifyUpdate = async () => {
     try {
       const updateSnackbarID = enqueueSnackbar(
@@ -183,6 +109,51 @@ const TransshipOrders = () => {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const finalizeUpdating = async (data) => {
+    setUpdateConfirmation(false);
+    try {
+      setLoading(true);
+
+      const updateSnackbarID = enqueueSnackbar(`Updating Shopify Products...`, {
+        variant: "info",
+        autoHideDuration: 6000,
+      });
+
+      const [products, variants] = data;
+      await fetch(`/${vendorUpdating}/products`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(products),
+      }).then((res) =>
+        res.json().then((data) => enqueueSnackbar(data, { variant: "success" }))
+      );
+
+      closeSnackbar(updateSnackbarID);
+      const variantSnackbarID = enqueueSnackbar(
+        "Updating product variants...",
+        {
+          variant: "info",
+          autoHideDuration: 10000,
+        }
+      );
+
+      await fetch(`/${vendorUpdating}/variants`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(variants),
+      }).then((res) =>
+        res.json().then((data) => enqueueSnackbar(data, { variant: "success" }))
+      );
+      closeSnackbar(variantSnackbarID);
+
+      await createTranshipDraft(data);
+    } catch (error) {
+      enqueueSnackbar(`${error}`, { variant: "error" });
+    }
+
+    setLoading(false);
   };
 
   const handleModalClose = () => {

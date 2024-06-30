@@ -91,7 +91,6 @@ const UpdatedProductsModal = ({
   const handleUndo = () => {
     if (deleteStack.length > 0) {
       let recent = deleteStack[deleteStack.length - 1];
-      console.log(recent);
       if (recent[0] === "variant") {
         setUpdatedVariants([...updatedVariants, recent[1]]);
       } else {
@@ -111,13 +110,12 @@ const UpdatedProductsModal = ({
     const formattedProducts = [],
       formattedVariants = [];
     products.forEach((product) => {
-      let { title, vendor, ...rest } = product;
-      if (updatedProducts.has(title)) formattedProducts.push(rest);
+      let { title } = product;
+      if (updatedProducts.has(title)) formattedProducts.push(product);
     });
 
     updatedVariants.forEach((variant) => {
-      let { barcode, vendor, title, ...rest } = variant;
-      formattedVariants.push(rest);
+      formattedVariants.push(variant);
     });
 
     onConfirmation([formattedProducts, formattedVariants]);

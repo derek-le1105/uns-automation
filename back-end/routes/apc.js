@@ -27,7 +27,6 @@ router.post("/statuses", async (req, res) => {
 
 router.post("/products", async (req, res) => {
   let products = req.body;
-  console.log("products: ", products);
   try {
     let response = "";
 
@@ -54,8 +53,12 @@ router.post("/variants", async (req, res) => {
     let response = "";
 
     if (variants.length !== 0) {
+      let formatted_variants = variants.map((variant) => ({
+        id: variant.id,
+        inventoryPolicy: variant.inventoryPolicy,
+      }));
       let polling = await importBulkData(
-        variants,
+        formatted_variants,
         "apcvariantimport",
         variantUpdateString
       );
