@@ -148,7 +148,7 @@ const TransshipOrders = () => {
       );
       closeSnackbar(variantSnackbarID);
 
-      await createTranshipDraft(data);
+      await createTranshipDraft(data, vendorUpdating);
     } catch (error) {
       enqueueSnackbar(`${error}`, { variant: "error" });
     }

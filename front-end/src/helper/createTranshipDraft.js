@@ -1,7 +1,7 @@
 import * as Excel from "exceljs";
 import { saveAs } from "file-saver";
 
-export default async function createTranshipDraft(data) {
+export default async function createTranshipDraft(data, vendorUpdating) {
   let [products, variants] = data;
 
   const wb = new Excel.Workbook();
@@ -30,7 +30,8 @@ export default async function createTranshipDraft(data) {
 
   saveAs(
     blob,
-    `APC Drafted ${new Date().getMonth() + 1}/${new Date().getDate() + 1}` +
-      fileExtension
+    `${vendorUpdating} Drafted ${new Date().getMonth() + 1}/${
+      new Date().getDate() + 1
+    }` + fileExtension
   );
 }
