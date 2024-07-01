@@ -38,7 +38,7 @@ const WholesaleOrders = () => {
     const { data } = await supabase
       .from("batch_data")
       .select()
-      .eq("wednesday_date", format(wholesaleDates[1].$d, "MM/dd/yyyy"))
+      .eq("wednesday_date", format(wholesaleDates[1], "MM/dd/yyyy"))
       .limit(1)
       .maybeSingle();
 
